@@ -65,8 +65,47 @@ Leafy è una piattaforma loyalty mobile-first per la sostenibilità. Gli utenti 
 
 ## Stato Build Corrente (Replit)
 
-✅ **Ultima sessione: 24/03/2026** — Fix definitivo Expo Go (ngrok v3 SDK + manifest proxy)
-- **Fix definitivo Expo Go** (`artifacts/leafy-mobile/scripts/start-dev.js`): usa `@ngrok/ngrok` (SDK ufficiale v3, compatibile con token ngrok v3) al posto del binario v2 di @expo/ngrok (rotto con token v3). Metro gira su `ARTIFACT_PORT+1` (23547); un proxy HTTP/WebSocket gira su `ARTIFACT_PORT` (23546) — il proxy intercetta le risposte JSON di Metro e riscrive `http://localhost:23547` → `https://xxx.ngrok-free.dev`. ngrok v3 SDK crea tunnel HTTPS a 23546 → URL tipo `https://noninflammatory-egotistically-elnora.ngrok-free.dev`. **URL Expo Go**: `exp://xxx.ngrok-free.dev:443` — visibile nei log ad ogni riavvio (cambia ogni volta, tier free). Richiede `NGROK_AUTH_TOKEN` in Replit Secrets.
+✅ **Ultima sessione: 24/03/2026** — Fix definitivo Expo Go su dispositivo fisico
+
+### Soluzione Expo Go — DEFINITIVA (da non toccare)
+
+**File chiave**: `artifacts/leafy-mobile/scripts/start-dev.js`
+**Dipendenza aggiunta**: `@ngrok/ngrok@1.7.0` in `artifacts/leafy-mobile/package.json`
+**Secret richiesto**: `NGROK_AUTH_TOKEN` in Replit Secrets
+
+**Architettura (3 componenti che lavorano insieme):**
+
+1. **Metro** gira sulla porta interna `ARTIFACT_PORT+1` (es. 23547) — mai esposta direttamente.
+2. **Manifest proxy** (HTTP/WebSocket, Node.js puro) gira su `ARTIFACT_PORT` (23546):
+   - Riceve tutte le richieste e le inoltra a Metro (23547)
+   - Per risposte JSON (manifest): riscrive `http://localhost:23547` e `ngrok-hostname:23547` → `http://ngrok-hostname` (rimuove la porta, usa HTTP porta 80)
+   - Per WebSocket (live reload): passthrough trasparente a Metro
+3. **Tunnel ngrok v3 HTTP** (via `@ngrok/ngrok` SDK con `schemes: "HTTP"`): espone `ARTIFACT_PORT` con un URL HTTP pubblico tipo `http://xxx.ngrok-free.dev` (porta 80 esterna → 23546 locale).
+
+**Perché questa soluzione (e non le alternative fallite):**
+- Il binario ngrok v2.3.41 bundled con `@expo/ngrok` è **incompatibile con i token ngrok v3** → crash `TypeError: Cannot read properties of undefined (reading 'body')`. Non usare `--tunnel` di Expo.
+- Il proxy Replit (`picard.replit.dev`) espone solo HTTPS/443 → Expo Go usa `exp://` che richiede HTTP puro → non funziona senza tunnel.
+- ngrok v3 con `schemes: "HTTP"` crea un tunnel HTTP vero (non HTTPS) → porta 80 accessibile senza TLS → compatibile con `exp://`.
+- Il manifest rewriting è necessario perché Metro inserisce la porta interna (23547) nelle URL del bundle/asset, che ngrok non espone.
+
+**URL Expo Go ad ogni riavvio** (cambia, tier free ngrok):
+```
+exp://xxx.ngrok-free.dev
+```
+L'URL esatto è stampato nei log del workflow `artifacts/leafy-mobile: expo`:
+```
+[dev] ► Expo Go URL: exp://xxx.ngrok-free.dev
+```
+Inserirlo in Expo Go → "Enter URL manually".
+
+**Come funziona il flusso completo:**
+```
+Expo Go → exp://xxx.ngrok-free.dev (HTTP porta 80)
+  → ngrok (HTTP tunnel) → proxy:23546
+  → manifest JSON con URL riscritte (http://xxx.ngrok-free.dev/bundle, nessuna porta)
+  → Expo Go scarica bundle da http://xxx.ngrok-free.dev/bundle → ngrok → proxy → Metro:23547
+  → WebSocket live reload: ws://xxx.ngrok-free.dev → ngrok → proxy → Metro:23547
+```
 - `react-native-keyboard-controller` pinnato a `1.18.5` (era `^1.18.5`, installava 1.21.1 incompatibile)
 - Wallet screen (`marketplace.tsx`) completamente ridisegnata:
   - Ring SVG animato: rotazione continua (9s/giro) + pulsazione breathing (4s/ciclo) + glow verde
