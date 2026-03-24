@@ -1153,16 +1153,20 @@ export default function HomeScreen() {
                 <Animated.View style={cellStyle}>
                   {done && <Image source={require("@/assets/images/streak-icon.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />}
                   {isNext && <Text style={streakStyles.stampCellNextNum}>{i + 1}</Text>}
+                  {!done && !isNext && <Text style={streakStyles.stampCellFutureNum}>{i + 1}</Text>}
                 </Animated.View>
                 <Text style={[
                   streakStyles.stampLabel,
                   { color: done ? "#0369A1" : isNext ? "rgba(3,105,161,0.65)" : "rgba(0,0,0,0.18)" },
-                ]}>G{i + 1}</Text>
+                ]}>{i + 1}</Text>
               </View>
             );
           })}
         </View>
-        <View style={streakStyles.stampDivider} />
+        {/* Progress bar */}
+        <View style={streakStyles.progressBarBg}>
+          <View style={[streakStyles.progressBarFill, { width: `${Math.min((loginStreak / 7) * 100, 100)}%` as any }]} />
+        </View>
         {/* Footer: giorno e premio */}
         <View style={streakStyles.stampFooter}>
           <Text style={streakStyles.stampFooterDay}>Giorno {loginStreak}/7</Text>
@@ -1174,23 +1178,35 @@ export default function HomeScreen() {
 
         {/* Check-in button */}
         <View style={streakStyles.checkinBtnWrap}>
-          <Animated.View style={combinedBtnStyle}>
-            <Pressable
-              onPress={handleCheckin}
-              disabled={checkedInToday || checkingIn}
-              style={[streakStyles.checkinBtn, checkedInToday && streakStyles.checkinBtnDone]}
-            >
-              {checkinKey > 0 && (
-                <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">
-                  <View style={{ width: 0, height: 0 }}>
-                    <CheckinDropBurst key={checkinKey} dist={confettiDist} alpha={confettiAlpha} />
+          <Animated.View style={[{ width: "100%" }, combinedBtnStyle]}>
+            {checkedInToday ? (
+              <View style={streakStyles.checkinBtnDoneInner}>
+                <Text style={streakStyles.checkinDoneCheckmark}>✓</Text>
+                <Text style={streakStyles.checkinDoneText}>Torna domani</Text>
+              </View>
+            ) : (
+              <Pressable
+                onPress={handleCheckin}
+                disabled={checkingIn}
+                style={{ borderRadius: 12, overflow: "hidden" }}
+              >
+                {checkinKey > 0 && (
+                  <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">
+                    <View style={{ width: 0, height: 0 }}>
+                      <CheckinDropBurst key={checkinKey} dist={confettiDist} alpha={confettiAlpha} />
+                    </View>
                   </View>
-                </View>
-              )}
-              <Text style={[streakStyles.checkinBtnText, checkedInToday && { color: "rgba(22,163,74,0.55)" }]}>
-                {checkedInToday ? "Fatto oggi ✓" : "Fai Check In"}
-              </Text>
-            </Pressable>
+                )}
+                <LinearGradient
+                  colors={["#38BDF8", "#0369A1"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={streakStyles.checkinBtnGradient}
+                >
+                  <Text style={streakStyles.checkinBtnText}>Fai Check In</Text>
+                </LinearGradient>
+              </Pressable>
+            )}
           </Animated.View>
         </View>
       </Animated.View>
@@ -1198,6 +1214,12 @@ export default function HomeScreen() {
       {/* ── STREAK BATTLE PASS ── */}
       {hasLeafyGold && (
         <Animated.View entering={FadeInDown.delay(220).springify()} style={streakStyles.stampGoldCard}>
+          <LinearGradient
+            colors={["#FFFBF0", "#FEF3C7"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
           {/* Header */}
           <View style={streakStyles.stampHeader}>
             <View style={streakStyles.stampTitleRow}>
@@ -1227,17 +1249,21 @@ export default function HomeScreen() {
                       : <XpIcon size={16} />
                     )}
                     {isNext && <Text style={[streakStyles.stampCellNextNum, { color: "#B8860B" }]}>{i + 1}</Text>}
+                    {!done && !isNext && <Text style={streakStyles.stampGoldFutureNum}>{i + 1}</Text>}
                   </View>
                   <Text style={[
-                    streakStyles.stampLabel,
-                    { color: done ? "#B8860B" : isNext ? "rgba(184,134,11,0.70)" : "rgba(245,158,11,0.35)" },
-                  ]}>G{i + 1}</Text>
+                    streakStyles.goldPrizeLabel,
+                    { color: done ? "#B8860B" : isNext ? "rgba(184,134,11,0.85)" : "rgba(245,158,11,0.45)" },
+                  ]}>{prize.label}</Text>
                 </View>
               );
             })}
           </View>
 
-          <View style={streakStyles.stampGoldDivider} />
+          {/* Progress bar gold */}
+          <View style={streakStyles.progressBarBgGold}>
+            <View style={[streakStyles.progressBarFillGold, { width: `${Math.min((bpStreakClaimed / 7) * 100, 100)}%` as any }]} />
+          </View>
 
           {/* Footer */}
           <View style={streakStyles.stampFooter}>
@@ -2005,11 +2031,16 @@ const streakStyles = StyleSheet.create({
     flex: 1,
   },
   stampCell: {
-    width: 36,
-    height: 36,
-    borderRadius: 9,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     alignItems: "center" as const,
     justifyContent: "center" as const,
+  },
+  stampCellFutureNum: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 12,
+    color: "rgba(3,105,161,0.25)",
   },
   stampCellDone: {
     backgroundColor: "#0EA5E9",
@@ -2055,24 +2086,54 @@ const streakStyles = StyleSheet.create({
   },
   checkinBtnWrap: {
     marginTop: 12,
-    alignItems: "center" as const,
     overflow: "visible" as const,
   },
-  checkinBtn: {
-    backgroundColor: "#16A34A",
+  checkinBtnGradient: {
     borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 28,
+    paddingVertical: 13,
     alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
-  checkinBtnDone: {
-    backgroundColor: "rgba(22,163,74,0.12)",
+  checkinBtnDoneInner: {
+    borderRadius: 12,
+    paddingVertical: 13,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    gap: 8,
+    backgroundColor: "rgba(14,165,233,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(14,165,233,0.22)",
+  },
+  checkinDoneCheckmark: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 17,
+    color: "#0EA5E9",
+  },
+  checkinDoneText: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 14,
+    color: "#0369A1",
+    letterSpacing: 0.3,
   },
   checkinBtnText: {
     fontFamily: "DMSans_700Bold",
     fontSize: 14,
     color: "#ffffff",
     letterSpacing: 0.5,
+  },
+  progressBarBg: {
+    height: 4,
+    backgroundColor: "rgba(56,189,248,0.15)",
+    borderRadius: 2,
+    marginTop: 10,
+    marginBottom: 8,
+    overflow: "hidden" as const,
+  },
+  progressBarFill: {
+    height: 4,
+    backgroundColor: "#38BDF8",
+    borderRadius: 2,
   },
   cardHint: {
     fontFamily: "Inter_400Regular",
@@ -2092,6 +2153,7 @@ const streakStyles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 6,
+    overflow: "hidden" as const,
   },
   stampGoldTitle: {
     fontFamily: "DMSans_700Bold",
@@ -2121,6 +2183,29 @@ const streakStyles = StyleSheet.create({
     fontFamily: "DMSans_700Bold",
     fontSize: 16,
     color: "#92400E",
+  },
+  stampGoldFutureNum: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 12,
+    color: "rgba(184,134,11,0.30)",
+  },
+  goldPrizeLabel: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 8,
+    textAlign: "center" as const,
+  },
+  progressBarBgGold: {
+    height: 4,
+    backgroundColor: "rgba(245,158,11,0.15)",
+    borderRadius: 2,
+    marginTop: 10,
+    marginBottom: 8,
+    overflow: "hidden" as const,
+  },
+  progressBarFillGold: {
+    height: 4,
+    backgroundColor: "#F59E0B",
+    borderRadius: 2,
   },
 });
 
