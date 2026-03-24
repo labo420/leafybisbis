@@ -161,7 +161,7 @@ export default function TabLayout() {
             backgroundColor: isIOS ? "transparent" : theme.card,
             borderTopWidth: 0,
             elevation: 0,
-            height: 76 + insets.bottom,
+            height: 84 + insets.bottom,
             paddingBottom: Math.max(insets.bottom, 8),
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
@@ -322,6 +322,7 @@ const styles = StyleSheet.create({
   activeIconWrap: {
     borderRadius: 14,
     padding: 6,
+    overflow: "visible",
   },
   scanBtnOuter: {
     width: 79,
