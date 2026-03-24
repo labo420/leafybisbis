@@ -76,7 +76,7 @@ Leafy è una piattaforma loyalty mobile-first per la sostenibilità. Gli utenti 
 
 **Tunnel automatico senza configurazione**:
 - Se `NGROK_AUTH_TOKEN` è presente → usa ngrok v3 SDK (HTTP tunnel, `exp://xxx.ngrok-free.dev`)
-- Se `NGROK_AUTH_TOKEN` è assente → usa `localtunnel` (HTTPS tunnel, `exp://xxx.loca.lt:443`) — gratuito, no account
+- Se `NGROK_AUTH_TOKEN` è assente → usa `cloudflared` Quick Tunnel (HTTPS, `exp://xxx.trycloudflare.com:443`) — gratuito, no account, nessuna pagina di protezione, download automatico a `/tmp/cloudflared`
 - Fallback finale: dominio Replit (funziona solo in-browser, non su device fisico)
 - URL cambia ad ogni riavvio; leggere dai log: `[dev] ► Expo Go URL: exp://...`
 
