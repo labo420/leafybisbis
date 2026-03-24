@@ -1,5 +1,6 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import BadgeIcon3D from "@/components/BadgeIcon3D";
+import ForestPeeker from "@/components/ForestPeeker";
 import { XpIcon } from "../../components/XpIcon";
 import { LeaIcon } from "../../components/LeaIcon";
 import { GoogleIcon } from "../../components/GoogleIcon";
@@ -1030,6 +1031,7 @@ export default function HomeScreen() {
             points={points}
             nextLevelPoints={nextLevelPoints}
           />
+          <ForestPeeker />
         </Animated.View>
       </View>
 
