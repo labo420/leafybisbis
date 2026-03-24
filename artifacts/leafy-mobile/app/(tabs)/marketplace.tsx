@@ -428,6 +428,7 @@ const styles = StyleSheet.create({
     color: "#000000",
     top: 0,
     left: 0,
+    transform: [{ scale: 1.03 }],
     textShadowColor: "transparent",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0,
