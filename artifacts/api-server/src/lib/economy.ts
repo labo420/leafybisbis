@@ -22,7 +22,10 @@ async function _addDropsImpl(
 ): Promise<number> {
   await dbOrTx
     .update(usersTable)
-    .set({ drops: sql`${usersTable.drops} + ${amount}` })
+    .set({
+      drops: sql`${usersTable.drops} + ${amount}`,
+      totalPoints: sql`${usersTable.totalPoints} + ${amount}`,
+    })
     .where(eq(usersTable.id, userId));
   const [updated] = await dbOrTx
     .select({ drops: usersTable.drops })

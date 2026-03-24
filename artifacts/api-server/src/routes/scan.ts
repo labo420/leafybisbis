@@ -10,6 +10,7 @@ import { uploadReceiptImage } from "../lib/receiptImages";
 import { matchChain, isAcceptedStore } from "../lib/supermarketWhitelist";
 import { requireUser } from "./profile";
 import { checkKitProgress } from "./kits";
+import { checkChallengeProgress } from "./challenges";
 
 const router: IRouter = Router();
 
@@ -884,7 +885,10 @@ router.post("/scan/barcode/confirm", async (req, res): Promise<void> => {
   const userLeaBalance = Math.floor(parseFloat(String(updatedUser?.leaBalance ?? "0")));
   const level = calculateLevel(userDrops);
 
-  const kitResult = await checkKitProgress(user.id, product.category).catch(() => null);
+  const [kitResult, challengesCompleted] = await Promise.all([
+    checkKitProgress(user.id, product.category).catch(() => null),
+    checkChallengeProgress(user.id, product.category).catch(() => [] as string[]),
+  ]);
 
   res.json({
     scanId: scan.id,
@@ -908,6 +912,7 @@ router.post("/scan/barcode/confirm", async (req, res): Promise<void> => {
     kitCompleted: kitResult?.kitCompleted ?? false,
     kitName: kitResult?.kitName ?? null,
     kitRewardDrops: kitResult?.rewardDrops ?? null,
+    challengesUpdated: challengesCompleted,
   });
 });
 

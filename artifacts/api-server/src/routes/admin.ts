@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
-import { eq, count, sum, desc } from "drizzle-orm";
+import { eq, count, sum, desc, sql } from "drizzle-orm";
 import { db, usersTable, receiptsTable, vouchersTable, challengesTable } from "@workspace/db";
 import { approvePendingPoints } from "../lib/antiFraud";
 
@@ -253,12 +253,18 @@ router.post("/admin/user/:email/add-xp", requireAdmin, async (req, res): Promise
     return;
   }
 
-  const newDrops = Math.floor((user.drops ?? 0) + amount);
-  const [updated] = await db
+  await db
     .update(usersTable)
-    .set({ drops: newDrops })
-    .where(eq(usersTable.id, user.id))
-    .returning();
+    .set({
+      drops: sql`xp + ${amount}`,
+      totalPoints: sql`total_points + ${amount}`,
+    })
+    .where(eq(usersTable.id, user.id));
+
+  const [updated] = await db
+    .select({ email: usersTable.email, drops: usersTable.drops })
+    .from(usersTable)
+    .where(eq(usersTable.id, user.id));
 
   res.json({ ok: true, user: updated.email, newDrops: updated.drops });
 });
