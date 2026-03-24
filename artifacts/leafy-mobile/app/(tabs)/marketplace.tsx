@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -11,7 +11,16 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence,
+  Easing,
+} from "react-native-reanimated";
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PayPalLogo from "@/components/PayPalLogo";
@@ -61,33 +70,62 @@ function formatLea(n: number): string {
 }
 
 function LeafyRing({ leaBalance }: { leaBalance: number }) {
+  const rotation = useSharedValue(0);
+  const pulse    = useSharedValue(1);
+
+  useEffect(() => {
+    rotation.value = withRepeat(
+      withTiming(360, { duration: 9000, easing: Easing.linear }),
+      -1,
+      false,
+    );
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.05, { duration: 1400, easing: Easing.inOut(Easing.sine) }),
+        withTiming(1.00, { duration: 1400, easing: Easing.inOut(Easing.sine) }),
+      ),
+      -1,
+      false,
+    );
+  }, []);
+
+  const rotateStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+  }));
+
   return (
-    <View style={styles.ringWrap}>
-      <Svg width={RING_SIZE} height={RING_SIZE} style={{ transform: [{ rotate: "-90deg" }] }}>
-        <Defs>
-          <SvgLinearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%"   stopColor={LEAF_GREEN} />
-            <Stop offset="100%" stopColor={LEAF_DARK}  />
-          </SvgLinearGradient>
-        </Defs>
-        <Circle
-          cx={RING_SIZE / 2}
-          cy={RING_SIZE / 2}
-          r={RADIUS}
-          fill="none"
-          stroke="rgba(77,184,71,0.15)"
-          strokeWidth={STROKE_WIDTH}
-        />
-        <Circle
-          cx={RING_SIZE / 2}
-          cy={RING_SIZE / 2}
-          r={RADIUS}
-          fill="none"
-          stroke="url(#ringGrad)"
-          strokeWidth={STROKE_WIDTH}
-          strokeLinecap="round"
-        />
-      </Svg>
+    <Animated.View style={[styles.ringWrap, styles.ringGlow, pulseStyle]}>
+      <Animated.View style={[{ position: "absolute", width: RING_SIZE, height: RING_SIZE }, rotateStyle]}>
+        <Svg width={RING_SIZE} height={RING_SIZE}>
+          <Defs>
+            <SvgLinearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0%"   stopColor={LEAF_GREEN} />
+              <Stop offset="100%" stopColor={LEAF_DARK}  />
+            </SvgLinearGradient>
+          </Defs>
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RADIUS}
+            fill="none"
+            stroke="rgba(77,184,71,0.18)"
+            strokeWidth={STROKE_WIDTH}
+          />
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RADIUS}
+            fill="none"
+            stroke="url(#ringGrad)"
+            strokeWidth={STROKE_WIDTH}
+            strokeLinecap="round"
+          />
+        </Svg>
+      </Animated.View>
 
       <View style={styles.ringCenter}>
         <Image
@@ -97,7 +135,7 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
         />
         <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -397,6 +435,13 @@ const styles = StyleSheet.create({
     height: RING_SIZE,
     alignItems: "center",
     justifyContent: "center",
+  },
+  ringGlow: {
+    shadowColor: LEAF_GREEN,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.55,
+    shadowRadius: 22,
+    elevation: 14,
   },
   ringCenter: {
     position: "absolute",
