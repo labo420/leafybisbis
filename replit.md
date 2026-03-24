@@ -65,8 +65,8 @@ Leafy è una piattaforma loyalty mobile-first per la sostenibilità. Gli utenti 
 
 ## Stato Build Corrente (Replit)
 
-✅ **Ultima sessione: 24/03/2026** — Fix Expo Go senza ngrok + Wallet redesign
-- **Fix Expo Go senza NGROK_AUTH_TOKEN** (`artifacts/leafy-mobile/scripts/start-dev.js`): quando ngrok non è configurato, `start-dev.js` imposta automaticamente `REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN` nel processo Metro. In questo modo il QR code punta al dominio Replit (raggiungibile da qualsiasi rete) invece dell'IP locale, permettendo a Expo Go su dispositivo fisico di connettersi senza ngrok. L'NGROK_AUTH_TOKEN rimane supportato e ha priorità se configurato.
+✅ **Ultima sessione: 24/03/2026** — Fix definitivo Expo Go (manifest proxy) + Wallet redesign
+- **Fix definitivo Expo Go** (`artifacts/leafy-mobile/scripts/start-dev.js`): riscritta la logica di avvio con un manifest-rewriting proxy. Metro gira sulla porta interna `ARTIFACT_PORT+1` (23547); un proxy HTTP/WebSocket gira sulla porta artifact (23546, quella esposta da Replit). Il proxy intercetta le risposte JSON di Metro e riscrive tutti gli URL `localhost:23547` con `$REPLIT_DEV_DOMAIN` (nessuna porta), così Expo Go scarica manifest e bundle attraverso il reverse proxy di Replit (porta 80/443 → 23546 → 23547 → Metro). **URL Expo Go definitivo**: `exp://<REPLIT_DEV_DOMAIN>` (senza porta). Non richiede ngrok né configurazioni aggiuntive.
 - `react-native-keyboard-controller` pinnato a `1.18.5` (era `^1.18.5`, installava 1.21.1 incompatibile)
 - Wallet screen (`marketplace.tsx`) completamente ridisegnata:
   - Ring SVG animato: rotazione continua (9s/giro) + pulsazione breathing (4s/ciclo) + glow verde
