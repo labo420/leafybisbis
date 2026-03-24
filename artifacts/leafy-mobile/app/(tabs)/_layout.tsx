@@ -58,19 +58,8 @@ function FloatingScanButton({ focused }: { focused: boolean }) {
   const pulseScale = useSharedValue(1);
 
   useEffect(() => {
-    if (!focused) {
-      pulseScale.value = withRepeat(
-        withSequence(
-          withTiming(1.06, { duration: 1600 }),
-          withTiming(1.0, { duration: 1600 })
-        ),
-        -1,
-        false
-      );
-    } else {
-      cancelAnimation(pulseScale);
-      pulseScale.value = withTiming(1);
-    }
+    cancelAnimation(pulseScale);
+    pulseScale.value = 1;
   }, [focused]);
 
   const pulseStyle = useAnimatedStyle(() => ({
