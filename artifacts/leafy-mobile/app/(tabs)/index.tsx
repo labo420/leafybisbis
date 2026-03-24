@@ -313,7 +313,7 @@ function LevelProgressRing({
         withTiming(1.0,  { duration: 85,  easing: Easing.inOut(Easing.ease) }),
         withTiming(1.18, { duration: 77,  easing: Easing.inOut(Easing.ease) }),
         withTiming(1.0,  { duration: 78,  easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.20, { duration: 72,  easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.18, { duration: 72,  easing: Easing.inOut(Easing.ease) }),
         withTiming(1.0,  { duration: 73,  easing: Easing.inOut(Easing.ease) }),
         withTiming(1.0,  { duration: 360 }),
         withTiming(0.45, { duration: 220, easing: Easing.out(Easing.quad) }),
@@ -327,7 +327,7 @@ function LevelProgressRing({
       swapLevelTimerRef.current = setTimeout(() => {
         setDisplayedLevel(level);
         swapLevelTimerRef.current = null;
-      }, 3300);
+      }, 3200);
       return () => {
         if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
         if (hapticTimeoutRef.current) clearTimeout(hapticTimeoutRef.current);
