@@ -881,14 +881,19 @@ router.post("/scan/barcode/confirm", async (req, res): Promise<void> => {
     }
   }
 
-  const userDrops = updatedUser?.drops ?? updatedUser?.totalPoints ?? 0;
-  const userLeaBalance = Math.floor(parseFloat(String(updatedUser?.leaBalance ?? "0")));
-  const level = calculateLevel(userDrops);
-
   const [kitResult, challengesCompleted] = await Promise.all([
     checkKitProgress(user.id, product.category).catch(() => null),
     checkChallengeProgress(user.id, product.category).catch(() => [] as string[]),
   ]);
+
+  const [finalUser] = await db
+    .select({ totalPoints: usersTable.totalPoints, drops: usersTable.drops, leaBalance: usersTable.leaBalance })
+    .from(usersTable)
+    .where(eq(usersTable.id, user.id));
+
+  const userDrops = finalUser?.drops ?? finalUser?.totalPoints ?? 0;
+  const userLeaBalance = Math.floor(parseFloat(String(finalUser?.leaBalance ?? "0")));
+  const level = calculateLevel(userDrops);
 
   res.json({
     scanId: scan.id,
@@ -899,7 +904,7 @@ router.post("/scan/barcode/confirm", async (req, res): Promise<void> => {
     emoji: product.emoji,
     reasoning: product.reasoning,
     source: product.source,
-    totalPoints: updatedUser?.totalPoints ?? 0,
+    totalPoints: finalUser?.totalPoints ?? 0,
     drops: userDrops,
     leaBalance: userLeaBalance,
     level: level.level,
