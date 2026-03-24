@@ -236,6 +236,7 @@ export default function TabLayout() {
           options={{
             title: "Scansiona",
             tabBarIcon: ({ focused }) => <FloatingScanButton focused={focused} />,
+            tabBarLabel: () => null,
             tabBarItemStyle: {
               top: -20,
             },
