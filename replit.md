@@ -35,7 +35,7 @@ Leafy è una piattaforma loyalty mobile-first per la sostenibilità. Gli utenti 
 - **Saldo LEA senza €**: il simbolo `€` compare **solo** nella sezione Wallet (`marketplace.tsx`). Badge LEA nell'header Home e chip LEA nella nav bar mostrano solo il numero (es. `$LEA 100.00` senza €).
 - **Streak cards (Check In)** (`app/(tabs)/index.tsx`): due card affiancate — "Check In" (accesso giornaliero, sfondo #F97316 arancione) e "Check In Gold" (con Leafy Gold, sfondo gold/amber). Ogni card mostra il valore premio con pill badge: sfondo arancione, testo bianco bold "250" + `<XpIcon size={14}/>`. Le card usano bordi colorati e icone `MaterialCommunityIcons`.
 - **Leafy Gold** (`hasLeafyGold: boolean`, `leafyGoldExpiry: Date | null` come campi TS; colonne SQL `has_battle_pass`/`battle_pass_expiry` invariate): abbonamento premium mock a 0,89€/mese (TODO: integrare Stripe/IAP). Attivazione via `POST /api/profile/leafy-gold/activate`. Effetti: x2 moltiplicatore su tutti i $LEA guadagnati (scan scontrino + barcode), sblocco prelievo PayPal nel Wallet. `hasLeafyGold` esposto nell'auth context (`context/auth.tsx`); AsyncStorage key `auth_bp` invariata per retrocompatibilità. UI: badge "x2" nella scan result card, card promo nel Wallet se non attivo, riga status in Profilo.
-- **Wallet tab** (ex Marketplace): Tab rinominata "Wallet" con icona credit-card. Schermata (`marketplace.tsx`) completamente riscritta: saldo $LEA grande + equivalente €, **swap widget exchange-style** ($LEA → €) con input utente, pulsante MAX, validazione in tempo reale, step di conferma (Modal), sezione "Prelievi recenti" con storico ultimi 5 prelievi. Il vecchio pulsante standalone "Ritira su PayPal" è sostituito dal widget. Gate Leafy Gold funzionante (mostra card promo se non attivo).
+- **Wallet tab** (ex Marketplace): Tab rinominata "Wallet" con icona credit-card. Schermata (`marketplace.tsx`) completamente riscritta con layout a singola pagina: **ring SVG animato** (rotazione lenta 9s, pulsazione breathing 4s/ciclo, glow verde) + **griglia 3×2 importi prelievo** (€5/€10/€15/€20/€25/€30) + **tasto PayPal** — tutto visibile senza scroll. Il €5 è esclusivo Leafy Gold: se selezionato senza Gold apre il modal Leafy Gold. Validazione saldo: se i LEA necessari superano il saldo dell'utente → messaggio inline "Saldo insufficiente. Ti mancano X LEA". Il tasto PayPal è disabilitato finché non si seleziona un importo. Modal di conferma prima dell'invio. Sezione "Prelievi recenti" visibile sotto (ultimi 5). Sfondo pagina verde chiaro `#EDF7F0`. Ring: interno trasparente, bordo gradiente `#4DB847→#2E6B50`, foglia (lea-icon.png) prominente al centro + valore LEA bianco con text shadow nero per leggibilità.
 - **Prelievi LEA** (`lea_withdrawals` tabella DB): schema Drizzle in `lib/db/src/schema/withdrawals.ts`. Campi: id, userId FK, leaAmount numeric, euroAmount numeric, status text (pending/completed/rejected), requestedAt timestamp, processedAt timestamp nullable. Tasso: 1 $LEA = 0,01 €. Minimi: 500 LEA con Leafy Gold (5€), 1000 LEA senza (10€).
 - **Backend wallet** (`artifacts/api-server/src/routes/wallet.ts`): `POST /api/wallet/withdraw` (valida auth + saldo + minimo, scala lea_balance, inserisce record) e `GET /api/wallet/withdrawals` (ultimi 10 prelievi, ordine desc).
 - **FAQ screen** (`app/faq.tsx`): 8 domande frequenti accordion (collapse/expand animato con Animated.View), card contatto supporto, raggiungibile da Profilo > Supporto > Aiuto e FAQ.
@@ -65,7 +65,17 @@ Leafy è una piattaforma loyalty mobile-first per la sostenibilità. Gli utenti 
 
 ## Stato Build Corrente (Replit)
 
-✅ **Ultima sessione: 24/03/2026** — Task #3–#8 tutti MERGED
+✅ **Ultima sessione: 24/03/2026** — Wallet redesign + fix ngrok + fix dipendenze
+- NGROK_AUTH_TOKEN configurato → tunnel Expo Go funzionante su dispositivo fisico
+- `react-native-keyboard-controller` pinnato a `1.18.5` (era `^1.18.5`, installava 1.21.1 incompatibile)
+- Wallet screen (`marketplace.tsx`) completamente ridisegnata:
+  - Ring SVG animato: rotazione continua (9s/giro) + pulsazione breathing (4s/ciclo) + glow verde
+  - Griglia 3×2 importi prelievo (€5–€30), €5 esclusivo Leafy Gold
+  - Tasto PayPal disabilitato senza selezione; validazione saldo inline
+  - Sfondo pagina verde chiaro `#EDF7F0`
+  - Fix easing: `Easing.sine` → `Easing.ease` (crash su Android Expo Go)
+
+✅ **Task #3–#8 tutti MERGED (sessione precedente)**
 - Task #3: Logo PayPal SVG ufficiale nel bottone Wallet
 - Task #4: Locked Gold Check-in nella Home
 - Task #5: Level-Up Evolution Animation
@@ -112,7 +122,7 @@ Leafy è una piattaforma loyalty mobile-first per la sostenibilità. Gli utenti 
 Dopo la migrazione Replit, le seguenti configurazioni **opzionali ma consigliate** non sono ancora impostate:
 
 ### 🔴 Obbligatorio per Dev Mobile
-- [ ] **NGROK_AUTH_TOKEN** — Necessario per il tunnel Expo in dev. Registrati su [ngrok.com](https://ngrok.com) → Dashboard → Your Authtoken. Senza: l'app mobile non riesce a connettersi al backend fuori dalla rete locale.
+- [x] **NGROK_AUTH_TOKEN** — Configurato (24/03/2026). Tunnel Expo Go attivo su dispositivo fisico.
 
 ### 🟡 Consigliato (Auth)
 - [ ] **Google OAuth** — GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET da [Google Cloud Console](https://console.cloud.google.com)
@@ -142,7 +152,7 @@ Dopo la migrazione Replit, le seguenti configurazioni **opzionali ma consigliate
 |-----------|-------------|-------------|
 | `DATABASE_URL` | ✅ Sì | PostgreSQL connection string (fornita automaticamente da Replit) |
 | `SESSION_SECRET` | ✅ Produzione | Segreto per la firma dei cookie di sessione. Genera con: `openssl rand -base64 32` |
-| `NGROK_AUTH_TOKEN` | ✅ Dev mobile | Token ngrok per il tunnel Expo. Registrati su [ngrok.com](https://ngrok.com) → Dashboard → Your Authtoken. Senza di esso, l'app mobile non riesce a connettersi al backend fuori dalla rete locale. |
+| `NGROK_AUTH_TOKEN` | ✅ Dev mobile | Token ngrok per il tunnel Expo. **Configurato (24/03/2026).** |
 | `GOOGLE_CLIENT_ID` | Auth Google | OAuth 2.0 Client ID da Google Cloud Console |
 | `GOOGLE_CLIENT_SECRET` | Auth Google | OAuth 2.0 Client Secret da Google Cloud Console |
 | `FACEBOOK_APP_ID` | Auth Facebook | App ID da Facebook Developers |
