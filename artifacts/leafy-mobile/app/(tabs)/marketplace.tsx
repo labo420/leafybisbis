@@ -414,6 +414,9 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodyBold,
     color: "#ffffff",
     lineHeight: 56,
+    textShadowColor: "#000000",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
 
   goldBadge: {
