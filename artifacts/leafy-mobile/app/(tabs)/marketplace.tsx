@@ -26,8 +26,8 @@ const PAYPAL_BLUE = "#0070E0";
 const LEAF_GREEN = "#4DB847";
 const LEAF_DARK = "#2E6B50";
 
-const RING_SIZE = 190;
-const STROKE_WIDTH = 16;
+const RING_SIZE = 260;
+const STROKE_WIDTH = 20;
 const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
 
 const AMOUNTS = [
@@ -390,8 +390,8 @@ const styles = StyleSheet.create({
 
   ringSection: {
     alignItems: "center",
-    paddingVertical: 8,
-    gap: 10,
+    paddingVertical: 4,
+    gap: 8,
   },
   ringWrap: {
     width: RING_SIZE,
@@ -406,21 +406,21 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   ringLeafIcon: {
-    width: 46,
-    height: 46,
-    marginBottom: 4,
+    width: 62,
+    height: 62,
+    marginBottom: 6,
   },
   ringAmount: {
-    fontSize: 38,
+    fontSize: 52,
     fontFamily: Fonts.displayBold,
     color: LEAF_GREEN,
-    lineHeight: 42,
+    lineHeight: 56,
   },
   ringLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: Fonts.bodyBold,
     color: LEAF_DARK,
-    letterSpacing: 1.5,
+    letterSpacing: 2,
   },
 
   goldBadge: {
