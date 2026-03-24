@@ -46,9 +46,10 @@ function TabIcon({
   }));
 
   return (
-    <Animated.View style={[styles.activeIconWrap, pillStyle]}>
+    <View style={styles.iconContainer}>
+      <Animated.View style={[StyleSheet.absoluteFill, styles.iconPill, pillStyle]} />
       <MaterialCommunityIcons name={iconName} size={28} color={color} />
-    </Animated.View>
+    </View>
   );
 }
 
@@ -152,6 +153,9 @@ export default function TabLayout() {
           headerShown: false,
           tabBarActiveTintColor: theme.tabActive,
           tabBarInactiveTintColor: theme.tabInactive,
+          tabBarIconStyle: {
+            overflow: "visible",
+          },
           tabBarLabelStyle: {
             fontSize: 10,
             fontFamily: Fonts.bodyMedium,
@@ -319,10 +323,15 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.25)",
     borderRadius: 1,
   },
-  activeIconWrap: {
-    borderRadius: 14,
-    padding: 6,
+  iconContainer: {
+    width: 44,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
     overflow: "visible",
+  },
+  iconPill: {
+    borderRadius: 14,
   },
   scanBtnOuter: {
     width: 79,
