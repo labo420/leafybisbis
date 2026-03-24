@@ -291,31 +291,32 @@ function LevelProgressRing({
       }, 1970);
       progTimeoutRef.current = setTimeout(() => animateProgress(oldP, newP), 1970);
 
-      // Crescendo badge: 10 cicli con ampiezza crescente (±2%→±20%) e periodo decrescente
-      // sincronizzati con i 2700ms dell'annaffiatoio, poi swap al nuovo livello
+      // Crescendo badge: 11 cicli con ampiezza crescente (±2%→±18%) e periodo decrescente
+      // (380ms→155ms), totale ~2705ms = durata annaffiatoio, poi swap al nuovo livello
       if (swapLevelTimerRef.current) clearTimeout(swapLevelTimerRef.current);
       badgeVScale.value = withSequence(
-        withTiming(1.02, { duration: 175, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 175, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.04, { duration: 160, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 160, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.06, { duration: 145, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 145, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.08, { duration: 132, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 133, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.10, { duration: 120, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 120, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.12, { duration: 107, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.02, { duration: 190, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 190, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.04, { duration: 170, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 170, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.06, { duration: 152, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 153, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.08, { duration: 140, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 140, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.10, { duration: 127, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 128, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.12, { duration: 117, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 118, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.14, { duration: 107, easing: Easing.inOut(Easing.ease) }),
         withTiming(1.0,  { duration: 108, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.14, { duration: 95,  easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 95,  easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.16, { duration: 85,  easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 85,  easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.18, { duration: 77,  easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 78,  easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.18, { duration: 72,  easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 73,  easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 360 }),
+        withTiming(1.16, { duration:  97, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration:  98, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.18, { duration:  90, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration:  90, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.18, { duration:  82, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration:  83, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.18, { duration:  77, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration:  78, easing: Easing.inOut(Easing.ease) }),
         withTiming(0.45, { duration: 220, easing: Easing.out(Easing.quad) }),
         withDelay(60, withSpring(1, { damping: 9, stiffness: 130 })),
       );
