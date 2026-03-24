@@ -912,10 +912,10 @@ export default function HomeScreen() {
     );
     confettiDist.value = 0;
     confettiAlpha.value = 0;
-    confettiDist.value = withTiming(1, { duration: 720, easing: Easing.out(Easing.cubic) });
+    confettiDist.value = withTiming(1, { duration: 650, easing: Easing.out(Easing.cubic) });
     confettiAlpha.value = withSequence(
-      withTiming(1, { duration: 80 }),
-      withDelay(200, withTiming(0, { duration: 500 }))
+      withTiming(1, { duration: 60 }),
+      withDelay(140, withTiming(0, { duration: 500 }))
     );
     cellBounce.value = withSpring(1.4, { damping: 8, stiffness: 400 }, () => {
       cellBounce.value = withSpring(1, { damping: 12, stiffness: 200 });
@@ -2003,14 +2003,14 @@ const streakStyles = StyleSheet.create({
     overflow: "visible" as const,
   },
   checkinBtn: {
-    backgroundColor: "#0EA5E9",
+    backgroundColor: "#16A34A",
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 28,
     alignItems: "center" as const,
   },
   checkinBtnDone: {
-    backgroundColor: "rgba(56,189,248,0.12)",
+    backgroundColor: "rgba(22,163,74,0.12)",
   },
   checkinBtnText: {
     fontFamily: "DMSans_700Bold",
