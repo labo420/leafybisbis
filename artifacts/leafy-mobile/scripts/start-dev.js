@@ -1,18 +1,26 @@
 #!/usr/bin/env node
 /**
- * start-dev.js — Leafy Mobile dev launcher
+ * start-dev.js — Leafy Mobile dev launcher (DEFINITIVO v3)
  *
- * Strategy (no ngrok required):
- *   1. Metro runs on METRO_PORT (artifactPort + 1, e.g. 23547) — internal only.
- *   2. A manifest-rewriting HTTP/WebSocket proxy runs on PROXY_PORT (artifactPort, e.g. 23546).
- *      - For manifest responses (JSON): rewrites every "localhost:METRO_PORT" reference
- *        to REPLIT_DEV_DOMAIN (no port) so Expo Go fetches assets through Replit's proxy.
- *      - For WebSocket upgrade requests: proxies transparently to Metro.
- *      - For everything else: pipes through unchanged.
- *   3. The exp:// URL written to TUNNEL_FILE is exp://REPLIT_DEV_DOMAIN (no port).
- *      Expo Go connects on port 80/443 → Replit reverse-proxy → our proxy → Metro.
+ * Architettura:
+ *   METRO_PORT  (ARTIFACT_PORT+1, e.g. 23547) — Metro bundler (interno)
+ *   PROXY_PORT  (ARTIFACT_PORT,   e.g. 23546) — Proxy HTTP/WS + manifest rewriting
  *
- * If REPLIT_DEV_DOMAIN is not set (local dev), falls back to plain LAN mode.
+ * Tunnel:
+ *   Usa @ngrok/ngrok (SDK ufficiale v3) — compatibile con i token ngrok v3.
+ *   Evita completamente @expo/ngrok e il binario ngrok v2 (rotti con token v3).
+ *
+ * Flusso Expo Go:
+ *   Expo Go → exp://xxx.ngrok-free.app:443
+ *   → ngrok HTTPS (443) → proxy:PROXY_PORT
+ *   → manifest rewriting → Metro:METRO_PORT
+ *
+ * Manifest rewriting:
+ *   Il proxy intercetta le risposte JSON di Metro e sostituisce
+ *   "http://localhost:METRO_PORT" con "https://ngrok-hostname"
+ *   così Expo Go scarica bundle e asset attraverso ngrok.
+ *
+ * Fallback: se NGROK_AUTH_TOKEN è assente → usa REPLIT_DEV_DOMAIN.
  */
 
 const { spawn, execSync } = require("child_process");
@@ -35,7 +43,7 @@ function ensureSingleInstance() {
           let cmdline = "";
           try { cmdline = fs.readFileSync(`/proc/${oldPid}/cmdline`, "utf8"); } catch {}
           if (cmdline.includes("start-dev")) {
-            console.log(`Killing previous start-dev.js instance (PID ${oldPid})...`);
+            console.log(`[dev] Killing previous instance (PID ${oldPid})...`);
             process.kill(oldPid, "SIGTERM");
             try { execSync(`pkill -P ${oldPid} || true`, { stdio: "ignore" }); } catch {}
           }
@@ -47,7 +55,7 @@ function ensureSingleInstance() {
 }
 ensureSingleInstance();
 
-// ── Read artifact port from artifact.toml ───────────────────────────────────
+// ── Ports & env ──────────────────────────────────────────────────────────────
 function readArtifactPort() {
   try {
     const tomlPath = path.join(__dirname, "..", ".replit-artifact", "artifact.toml");
@@ -59,37 +67,19 @@ function readArtifactPort() {
 }
 
 const ARTIFACT_PORT = readArtifactPort();
+const PROXY_PORT    = ARTIFACT_PORT || 23546;
+const METRO_PORT    = PROXY_PORT + 1;
 const REPLIT_DOMAIN = process.env.REPLIT_DEV_DOMAIN || process.env.EXPO_PUBLIC_DOMAIN || "";
+const NGROK_TOKEN   = process.env.NGROK_AUTH_TOKEN  || "";
 
-// CLI args: strip --tunnel (we manage connectivity ourselves) and --port (we set it)
-const rawArgs  = process.argv.slice(2);
-const cliPortIdx = rawArgs.indexOf("--port");
-const cliPort    = cliPortIdx !== -1 && rawArgs[cliPortIdx + 1] ? Number(rawArgs[cliPortIdx + 1]) : null;
-const tunnelIdx  = rawArgs.indexOf("--tunnel");
-
-// Remove --tunnel and --port flags; we add --port ourselves below
-let expoArgs = rawArgs.filter((_, i) =>
-  i !== tunnelIdx &&
-  i !== cliPortIdx &&
-  !(cliPortIdx !== -1 && i === cliPortIdx + 1)
-);
-
-// Ports:
-//   PROXY_PORT  = artifact port (23546) — Replit exposes this externally
-//   METRO_PORT  = internal Metro port   (23547)
-const PROXY_PORT = ARTIFACT_PORT || cliPort || 23546;
-const METRO_PORT = PROXY_PORT + 1;
-
-expoArgs.push("--port", String(METRO_PORT), "--lan");
-
-console.log(`[start-dev] Proxy port : ${PROXY_PORT}  (Replit-visible)`);
-console.log(`[start-dev] Metro port : ${METRO_PORT}  (internal)`);
-console.log(`[start-dev] Replit domain: ${REPLIT_DOMAIN || "(not set — LAN fallback)"}`);
+console.log(`[dev] Proxy port  : ${PROXY_PORT}  (ngrok target / Replit-visible)`);
+console.log(`[dev] Metro port  : ${METRO_PORT}  (internal Metro)`);
+console.log(`[dev] ngrok token : ${NGROK_TOKEN ? "✓ present" : "✗ missing — will use Replit domain"}`);
 
 // ── Kill stale processes ─────────────────────────────────────────────────────
 function killStaleProcesses() {
-  for (const pat of ["ngrok", "'expo start'", "metro", "@react-native-community/cli-server-api"]) {
-    try { execSync(`pkill -f ${pat} || true`, { stdio: "ignore" }); } catch {}
+  for (const pat of ["ngrok", "expo start", "metro", "@react-native-community/cli-server-api"]) {
+    try { execSync(`pkill -f "${pat}" || true`, { stdio: "ignore" }); } catch {}
   }
   try { execSync("sleep 1", { stdio: "ignore" }); } catch {}
   for (const port of [PROXY_PORT, METRO_PORT]) {
@@ -101,68 +91,110 @@ function killStaleProcesses() {
           try { process.kill(Number(pid), "SIGKILL"); } catch {}
         }
       }
-      if (pids.length) console.log(`[start-dev] Killed stale PIDs on port ${port}: ${pids.join(", ")}`);
+      if (pids.length) console.log(`[dev] Freed port ${port}: PIDs ${pids.join(", ")}`);
     } catch {}
   }
 }
 killStaleProcesses();
+if (fs.existsSync(TUNNEL_FILE)) try { fs.unlinkSync(TUNNEL_FILE); } catch {}
 
-if (fs.existsSync(TUNNEL_FILE)) fs.unlinkSync(TUNNEL_FILE);
+// ── Cleanup ──────────────────────────────────────────────────────────────────
+let intentionalExit = false;
+let expoChild = null;
+
+function cleanupAndExit(code) {
+  intentionalExit = true;
+  try { if (expoChild) expoChild.kill("SIGTERM"); } catch {}
+  try { fs.unlinkSync(LOCK_FILE); } catch {}
+  // Let @ngrok/ngrok SDK clean up its own connections
+  try {
+    const ngrok = require("@ngrok/ngrok");
+    ngrok.kill().catch(() => {});
+  } catch {}
+  setTimeout(() => process.exit(code ?? 0), 600);
+}
+process.on("SIGTERM", () => cleanupAndExit(0));
+process.on("SIGINT",  () => cleanupAndExit(0));
+
+// ── Public hostname (set once tunnel is up) ──────────────────────────────────
+let publicHostname = ""; // e.g. "xxx.ngrok-free.app"
+let publicScheme   = "http"; // "http" or "https"
+
+function onTunnelReady(listenerUrl) {
+  if (publicHostname) return;
+  // listenerUrl e.g. "https://xxx.ngrok-free.app"
+  const isHttps = listenerUrl.startsWith("https://");
+  publicScheme   = isHttps ? "https" : "http";
+  publicHostname = listenerUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const port     = isHttps ? 443 : 80;
+  const expUrl   = `exp://${publicHostname}:${port}`;
+  fs.writeFileSync(TUNNEL_FILE, expUrl, "utf8");
+  console.log(`\n[dev] ► Tunnel URL : ${listenerUrl}`);
+  console.log(`[dev] ► Expo Go URL: ${expUrl}`);
+  console.log(`[dev]   Insert in Expo Go → "Enter URL manually":\n      ${expUrl}\n`);
+}
 
 // ── Manifest-rewriting proxy ─────────────────────────────────────────────────
-// Rewrites Metro's local addresses in JSON manifests to the public Replit domain.
-function rewriteManifest(body) {
-  if (!REPLIT_DOMAIN) return body;
+function rewriteBody(body) {
+  if (!publicHostname) return body;
+  const target = `${publicScheme}://${publicHostname}`;
   return body
-    .replace(new RegExp(`localhost:${METRO_PORT}`, "g"), REPLIT_DOMAIN)
-    .replace(new RegExp(`127\\.0\\.0\\.1:${METRO_PORT}`, "g"), REPLIT_DOMAIN)
-    // Also cover IPs that Metro might advertise (LAN IP)
-    .replace(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{4,5}/g, REPLIT_DOMAIN);
+    // Replace full URLs: http://localhost:PORT → https://ngrok-hostname
+    .replace(new RegExp(`https?://localhost:${METRO_PORT}`, "g"), target)
+    .replace(new RegExp(`https?://127\\.0\\.0\\.1:${METRO_PORT}`, "g"), target)
+    // Replace host:port references in JSON strings (no protocol prefix)
+    .replace(new RegExp(`localhost:${METRO_PORT}`, "g"), publicHostname)
+    .replace(new RegExp(`127\\.0\\.0\\.1:${METRO_PORT}`, "g"), publicHostname)
+    // Replace LAN IP:PORT that Metro advertises in LAN mode
+    .replace(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{4,5}/g, publicHostname);
 }
 
 function startProxy() {
-  const proxyServer = http.createServer((req, res) => {
-    const options = {
+  const server = http.createServer((req, res) => {
+    const opts = {
       hostname: "127.0.0.1",
       port: METRO_PORT,
       path: req.url,
       method: req.method,
       headers: { ...req.headers, host: `localhost:${METRO_PORT}` },
     };
-
-    const proxyReq = http.request(options, (proxyRes) => {
-      const ct = proxyRes.headers["content-type"] || "";
-      const isJson = ct.includes("json") || ct.includes("javascript");
-
-      if (isJson) {
+    const pReq = http.request(opts, (pRes) => {
+      const ct = pRes.headers["content-type"] || "";
+      // Rewrite manifest / JSON / JS responses
+      if (ct.includes("json") || ct.includes("javascript") ||
+          req.url === "/" || req.url.startsWith("/_expo") || req.url.startsWith("/manifest")) {
         let body = "";
-        proxyRes.on("data", (chunk) => { body += chunk.toString(); });
-        proxyRes.on("end", () => {
-          const rewritten = rewriteManifest(body);
-          const buf = Buffer.from(rewritten, "utf8");
-          const headers = { ...proxyRes.headers, "content-length": buf.length };
-          delete headers["transfer-encoding"];
-          res.writeHead(proxyRes.statusCode, headers);
+        pRes.on("data", (c) => { body += c.toString(); });
+        pRes.on("end", () => {
+          const out = rewriteBody(body);
+          const buf = Buffer.from(out, "utf8");
+          const hdrs = {
+            ...pRes.headers,
+            "content-length": buf.length,
+            "access-control-allow-origin": "*",
+          };
+          delete hdrs["transfer-encoding"];
+          res.writeHead(pRes.statusCode, hdrs);
           res.end(buf);
         });
       } else {
-        res.writeHead(proxyRes.statusCode, proxyRes.headers);
-        proxyRes.pipe(res);
+        const hdrs = { ...pRes.headers, "access-control-allow-origin": "*" };
+        res.writeHead(pRes.statusCode, hdrs);
+        pRes.pipe(res);
       }
     });
-
-    proxyReq.on("error", (err) => {
+    pReq.on("error", (e) => {
       if (!res.headersSent) res.writeHead(502);
-      res.end(`Proxy error: ${err.message}`);
+      res.end(`proxy error: ${e.message}`);
     });
-    req.pipe(proxyReq);
+    req.pipe(pReq);
   });
 
-  // WebSocket passthrough
-  proxyServer.on("upgrade", (req, socket, head) => {
+  // WebSocket passthrough to Metro
+  server.on("upgrade", (req, socket, head) => {
     const target = net.connect(METRO_PORT, "127.0.0.1", () => {
-      const headers = Object.entries(req.headers).map(([k, v]) => `${k}: ${v}`).join("\r\n");
-      target.write(`${req.method} ${req.url} HTTP/1.1\r\n${headers}\r\n\r\n`);
+      const hdrs = Object.entries(req.headers).map(([k, v]) => `${k}: ${v}`).join("\r\n");
+      target.write(`${req.method} ${req.url} HTTP/1.1\r\n${hdrs}\r\n\r\n`);
       if (head && head.length) target.write(head);
       socket.pipe(target);
       target.pipe(socket);
@@ -171,75 +203,100 @@ function startProxy() {
     socket.on("error", () => { try { target.destroy(); } catch {} });
   });
 
-  proxyServer.listen(PROXY_PORT, "0.0.0.0", () => {
-    console.log(`[start-dev] Manifest proxy listening on :${PROXY_PORT}`);
-    if (REPLIT_DOMAIN) {
-      const expUrl = `exp://${REPLIT_DOMAIN}`;
-      fs.writeFileSync(TUNNEL_FILE, expUrl, "utf8");
-      console.log(`\n[start-dev] ► Expo Go URL: ${expUrl}\n`);
-    }
+  server.listen(PROXY_PORT, "0.0.0.0", () => {
+    console.log(`[dev] Manifest proxy listening on :${PROXY_PORT}`);
   });
-
-  proxyServer.on("error", (err) => {
-    console.error(`[start-dev] Proxy error: ${err.message}`);
-  });
+  server.on("error", (e) => { console.error(`[dev] Proxy error: ${e.message}`); });
 }
 
-startProxy();
+// ── ngrok tunnel (SDK v3) ────────────────────────────────────────────────────
+async function startNgrokTunnel() {
+  if (!NGROK_TOKEN) {
+    console.warn("[dev] NGROK_AUTH_TOKEN not set — using Replit domain fallback.");
+    useFallback();
+    return;
+  }
+
+  let ngrok;
+  try {
+    ngrok = require("@ngrok/ngrok");
+  } catch (e) {
+    console.warn(`[dev] @ngrok/ngrok not loadable: ${e.message} — using Replit domain fallback.`);
+    useFallback();
+    return;
+  }
+
+  console.log("[dev] Connecting ngrok tunnel...");
+  try {
+    const listener = await ngrok.forward({
+      addr: PROXY_PORT,
+      authtoken: NGROK_TOKEN,
+    });
+    const url = listener.url ? listener.url() : String(listener);
+    if (url) {
+      onTunnelReady(url);
+    } else {
+      throw new Error("listener.url() returned empty");
+    }
+  } catch (e) {
+    console.warn(`[dev] ngrok tunnel failed: ${e.message}`);
+    useFallback();
+  }
+}
+
+function useFallback() {
+  if (REPLIT_DOMAIN) {
+    publicHostname = REPLIT_DOMAIN;
+    publicScheme   = "https";
+    const expUrl   = `exp://${REPLIT_DOMAIN}`;
+    fs.writeFileSync(TUNNEL_FILE, expUrl, "utf8");
+    console.log(`[dev] ► Expo Go URL (Replit fallback): ${expUrl}`);
+  } else {
+    console.warn("[dev] No tunnel URL available. Expo Go on physical device won't connect.");
+  }
+}
 
 // ── Expo / Metro launcher ────────────────────────────────────────────────────
-let intentionalExit  = false;
-let restartAttempts  = 0;
-const MAX_RESTARTS   = 8;
+let restartAttempts = 0;
+const MAX_RESTARTS  = 8;
 
-function cleanupAndExit(code) {
-  intentionalExit = true;
-  try { fs.unlinkSync(LOCK_FILE); } catch {}
-  process.exit(code ?? 0);
-}
-process.on("SIGTERM", () => cleanupAndExit(0));
-process.on("SIGINT",  () => cleanupAndExit(0));
+// Strip --tunnel and --port from CLI args passed by pnpm run dev
+const rawArgs = process.argv.slice(2).filter((a, i, arr) => {
+  if (a === "--tunnel") return false;
+  if (a === "--port")   return false;
+  if (i > 0 && arr[i - 1] === "--port") return false;
+  return true;
+});
+const expoArgs = [...rawArgs, "--port", String(METRO_PORT), "--lan"];
 
 function startExpo() {
-  console.log(`[start-dev] Starting Expo on internal port ${METRO_PORT}... (attempt ${restartAttempts + 1})`);
+  console.log(`[dev] Starting Expo on :${METRO_PORT} (attempt ${restartAttempts + 1})`);
+  const env = Object.assign({}, process.env);
+  delete env.CI;
+  if (publicHostname) env.REACT_NATIVE_PACKAGER_HOSTNAME = publicHostname;
 
-  const spawnEnv = Object.assign({}, process.env);
-  delete spawnEnv.CI;
-
-  // Force tunnel subdomain field (unused but harmless)
-  if (!spawnEnv.EXPO_TUNNEL_SUBDOMAIN) {
-    const replId = (spawnEnv.REPL_ID || "leafymobile").replace(/[^a-z0-9]/gi, "").toLowerCase().slice(0, 20);
-    spawnEnv.EXPO_TUNNEL_SUBDOMAIN = `leafy${replId}`;
-  }
-
-  // Set REACT_NATIVE_PACKAGER_HOSTNAME so Metro embeds the Replit domain in the manifest
-  if (REPLIT_DOMAIN) {
-    spawnEnv.REACT_NATIVE_PACKAGER_HOSTNAME = REPLIT_DOMAIN;
-  }
-
-  const child = spawn("pnpm", ["exec", "expo", "start", ...expoArgs], {
+  expoChild = spawn("pnpm", ["exec", "expo", "start", ...expoArgs], {
     stdio: ["inherit", "pipe", "pipe"],
-    env: spawnEnv,
+    env,
     cwd: path.join(__dirname, ".."),
   });
-
-  function fwd(data) { process.stdout.write(data); }
-  child.stdout.on("data", fwd);
-  child.stderr.on("data", (data) => { process.stderr.write(data); });
-
-  child.on("close", (code) => {
+  expoChild.stdout.on("data", (d) => { process.stdout.write(d); });
+  expoChild.stderr.on("data", (d) => { process.stderr.write(d); });
+  expoChild.on("close", (code) => {
     if (intentionalExit || code === 0) { process.exit(code ?? 0); return; }
     restartAttempts++;
     if (restartAttempts <= MAX_RESTARTS) {
       const delay = Math.min(3000 * restartAttempts, 15000);
-      console.warn(`\n[start-dev] Expo exited (code ${code}). Restarting in ${delay / 1000}s... (${restartAttempts}/${MAX_RESTARTS})`);
+      console.warn(`[dev] Expo exited (${code}). Restart in ${delay / 1000}s... (${restartAttempts}/${MAX_RESTARTS})`);
       setTimeout(startExpo, delay);
     } else {
-      console.error(`[start-dev] Expo failed after ${MAX_RESTARTS} attempts. Giving up.`);
+      console.error(`[dev] Expo failed after ${MAX_RESTARTS} attempts.`);
       process.exit(code ?? 1);
     }
   });
 }
 
-// Give the proxy a moment to bind before Metro starts
-setTimeout(startExpo, 500);
+// ── Boot sequence ─────────────────────────────────────────────────────────────
+startProxy();
+startNgrokTunnel(); // async — populates publicHostname when ready
+setTimeout(startExpo, 1500); // give proxy + ngrok a head start
