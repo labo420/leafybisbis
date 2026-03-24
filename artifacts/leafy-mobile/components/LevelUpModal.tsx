@@ -48,10 +48,10 @@ interface LevelUpModalProps {
   onClose: () => void;
 }
 
-const PULSE_DURATION = 1200;
+const PULSE_DURATION = 400;
 const FLASH_DELAY = PULSE_DURATION;
-const REVEAL_DELAY = FLASH_DELAY + 300;
-const AUTO_CLOSE_DELAY = REVEAL_DELAY + 2200;
+const REVEAL_DELAY = FLASH_DELAY + 200;
+const AUTO_CLOSE_DELAY = REVEAL_DELAY + 2800;
 
 const PARTICLE_COUNT = 12;
 
@@ -148,40 +148,34 @@ export default function LevelUpModal({
     backdropOpacity.value = withTiming(1, { duration: 250 });
 
     oldScale.value = withSequence(
-      withTiming(1.05, { duration: 200, easing: Easing.inOut(Easing.ease) }),
-      withTiming(0.95, { duration: 180 }),
-      withTiming(1.12, { duration: 160 }),
-      withTiming(0.88, { duration: 140 }),
-      withTiming(1.2, { duration: 120 }),
-      withTiming(0.82, { duration: 100 }),
-      withTiming(1.35, { duration: 80 }),
-      withTiming(1.5, { duration: 60 }),
+      withTiming(1.1,  { duration: 80,  easing: Easing.out(Easing.quad) }),
+      withTiming(2.6,  { duration: 320, easing: Easing.in(Easing.quad) }),
     );
 
-    oldOpacity.value = withDelay(
-      PULSE_DURATION - 80,
-      withTiming(0, { duration: 120 }),
+    oldOpacity.value = withSequence(
+      withTiming(1,    { duration: 120 }),
+      withTiming(0,    { duration: 280 }),
     );
 
     flashOpacity.value = withDelay(
       FLASH_DELAY,
       withSequence(
-        withTiming(1, { duration: 80 }),
-        withTiming(0, { duration: 350 }),
+        withTiming(1, { duration: 50 }),
+        withTiming(0, { duration: 280 }),
       ),
     );
     flashScale.value = withDelay(
       FLASH_DELAY,
-      withTiming(3, { duration: 350, easing: Easing.out(Easing.ease) }),
+      withTiming(5, { duration: 300, easing: Easing.out(Easing.quad) }),
     );
 
     newScale.value = withDelay(
       REVEAL_DELAY,
-      withSpring(1, { damping: 8, stiffness: 150, mass: 0.7 }),
+      withSpring(1, { damping: 5, stiffness: 250, mass: 0.5 }),
     );
     newOpacity.value = withDelay(
       REVEAL_DELAY,
-      withTiming(1, { duration: 150 }),
+      withTiming(1, { duration: 100 }),
     );
 
     textOpacity.value = withDelay(

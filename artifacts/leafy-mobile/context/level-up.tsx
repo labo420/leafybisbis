@@ -8,7 +8,7 @@ import type { Profile } from "@workspace/api-client-react";
 import LevelUpModal from "@/components/LevelUpModal";
 
 const PREV_LEVEL_KEY_PREFIX = "leafy_prev_level:";
-const WATERING_CAN_DURATION_MS = 3200;
+const WATERING_CAN_DURATION_MS = 2700;
 
 interface LevelUpContextValue {
   checkForLevelUp: () => void;

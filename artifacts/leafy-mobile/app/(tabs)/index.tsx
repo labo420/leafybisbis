@@ -177,6 +177,8 @@ function LevelProgressRing({
 
   // ── Badge level cross-fade ──
   const prevLevelRef = useRef(level);
+  const [displayedLevel, setDisplayedLevel] = useState(level);
+  const swapLevelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const badgeOpacity = useSharedValue(1);
   const badgeVScale = useSharedValue(1);
   const badgeAnimStyle = useAnimatedStyle(() => ({
@@ -289,20 +291,48 @@ function LevelProgressRing({
       }, 1970);
       progTimeoutRef.current = setTimeout(() => animateProgress(oldP, newP), 1970);
 
-      // Badge level-change animation DOPO annafiatoio (2700ms)
+      // Crescendo badge: 10 cicli con ampiezza crescente (±2%→±20%) e periodo decrescente
+      // sincronizzati con i 2700ms dell'annaffiatoio, poi swap al nuovo livello
+      if (swapLevelTimerRef.current) clearTimeout(swapLevelTimerRef.current);
+      badgeVScale.value = withSequence(
+        withTiming(1.02, { duration: 175, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 175, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.04, { duration: 160, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 160, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.06, { duration: 145, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 145, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.08, { duration: 132, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 133, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.10, { duration: 120, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 120, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.12, { duration: 107, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 108, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.14, { duration: 95,  easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 95,  easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.16, { duration: 85,  easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 85,  easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.18, { duration: 77,  easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 78,  easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.20, { duration: 72,  easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 73,  easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 360 }),
+        withTiming(0.45, { duration: 220, easing: Easing.out(Easing.quad) }),
+        withDelay(60, withSpring(1, { damping: 9, stiffness: 130 })),
+      );
       badgeOpacity.value = withDelay(2700, withSequence(
         withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) }),
         withDelay(60, withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) })),
       ));
-      badgeVScale.value = withDelay(2700, withSequence(
-        withTiming(0.45, { duration: 220, easing: Easing.out(Easing.quad) }),
-        withDelay(60, withSpring(1, { damping: 9, stiffness: 130 })),
-      ));
       iconScale.value = withDelay(2980, withSpring(newIconScale, { damping: 10, stiffness: 90 }));
+      swapLevelTimerRef.current = setTimeout(() => {
+        setDisplayedLevel(level);
+        swapLevelTimerRef.current = null;
+      }, 3300);
       return () => {
         if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
         if (hapticTimeoutRef.current) clearTimeout(hapticTimeoutRef.current);
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        if (swapLevelTimerRef.current) clearTimeout(swapLevelTimerRef.current);
       };
     }
 
@@ -311,6 +341,8 @@ function LevelProgressRing({
     if (prevLev !== level) {
       displayProgressRef.current = progress;
       setDisplayProgress(progress);
+      if (swapLevelTimerRef.current) clearTimeout(swapLevelTimerRef.current);
+      setDisplayedLevel(level);
       badgeOpacity.value = withSequence(
         withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) }),
         withDelay(60, withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) })),
@@ -454,10 +486,10 @@ function LevelProgressRing({
         <View style={ringStyles.innerContent}>
           <Animated.View style={badgeAnimStyle}>
             <Animated.View style={iconAnimStyle}>
-              <BadgeIcon3D name={level} category="Livello" emoji="" isUnlocked={true} size={ICON_BASE_SIZE} />
+              <BadgeIcon3D name={displayedLevel} category="Livello" emoji="" isUnlocked={true} size={ICON_BASE_SIZE} />
             </Animated.View>
           </Animated.View>
-          <Text style={[ringStyles.levelName, { color: nameColor }]}>{LEVEL_LABELS[level] ?? level}</Text>
+          <Text style={[ringStyles.levelName, { color: nameColor }]}>{LEVEL_LABELS[displayedLevel] ?? displayedLevel}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
             <Text style={[ringStyles.xpProgress, { color: "#38BDF8" }]}>
               {new Intl.NumberFormat("it-IT").format(points)} / {new Intl.NumberFormat("it-IT").format(targetPts)}
