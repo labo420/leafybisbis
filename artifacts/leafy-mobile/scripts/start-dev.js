@@ -122,30 +122,40 @@ let publicScheme   = "http"; // "http" or "https"
 
 function onTunnelReady(listenerUrl) {
   if (publicHostname) return;
-  // listenerUrl e.g. "https://xxx.ngrok-free.app"
-  const isHttps = listenerUrl.startsWith("https://");
+  // listenerUrl e.g. "http://xxx.ngrok-free.app" (HTTP) or "https://..." (HTTPS)
+  const isHttps  = listenerUrl.startsWith("https://");
   publicScheme   = isHttps ? "https" : "http";
   publicHostname = listenerUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
-  const port     = isHttps ? 443 : 80;
-  const expUrl   = `exp://${publicHostname}:${port}`;
+  // For HTTP (port 80): use no explicit port → Expo Go defaults to 80
+  // For HTTPS (port 443): use :443 explicitly
+  const expUrl   = isHttps
+    ? `exp://${publicHostname}:443`
+    : `exp://${publicHostname}`;
   fs.writeFileSync(TUNNEL_FILE, expUrl, "utf8");
   console.log(`\n[dev] ► Tunnel URL : ${listenerUrl}`);
   console.log(`[dev] ► Expo Go URL: ${expUrl}`);
-  console.log(`[dev]   Insert in Expo Go → "Enter URL manually":\n      ${expUrl}\n`);
+  console.log(`[dev]   Inserisci in Expo Go → "Enter URL manually":\n      ${expUrl}\n`);
 }
 
 // ── Manifest-rewriting proxy ─────────────────────────────────────────────────
+function escRx(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
 function rewriteBody(body) {
   if (!publicHostname) return body;
-  const target = `${publicScheme}://${publicHostname}`;
+  const proto  = publicScheme; // "http" or "https"
+  const target = `${proto}://${publicHostname}`;
+
   return body
-    // Replace full URLs: http://localhost:PORT → https://ngrok-hostname
+    // Full URL with localhost:PORT  →  target
     .replace(new RegExp(`https?://localhost:${METRO_PORT}`, "g"), target)
     .replace(new RegExp(`https?://127\\.0\\.0\\.1:${METRO_PORT}`, "g"), target)
-    // Replace host:port references in JSON strings (no protocol prefix)
+    // Full URL with ngrok-hostname:PORT  →  target  (when PACKAGER_HOSTNAME already set)
+    .replace(new RegExp(`https?://${escRx(publicHostname)}:${METRO_PORT}`, "g"), target)
+    // Bare host:port references  →  publicHostname only (strip port)
     .replace(new RegExp(`localhost:${METRO_PORT}`, "g"), publicHostname)
     .replace(new RegExp(`127\\.0\\.0\\.1:${METRO_PORT}`, "g"), publicHostname)
-    // Replace LAN IP:PORT that Metro advertises in LAN mode
+    .replace(new RegExp(`${escRx(publicHostname)}:${METRO_PORT}`, "g"), publicHostname)
+    // LAN IP:PORT that Metro may advertise
     .replace(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{4,5}/g, publicHostname);
 }
 
@@ -231,6 +241,7 @@ async function startNgrokTunnel() {
     const listener = await ngrok.forward({
       addr: PROXY_PORT,
       authtoken: NGROK_TOKEN,
+      schemes: "HTTP",
     });
     const url = listener.url ? listener.url() : String(listener);
     if (url) {
