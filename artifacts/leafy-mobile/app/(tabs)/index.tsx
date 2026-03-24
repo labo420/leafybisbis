@@ -32,6 +32,8 @@ import Animated, {
   withTiming,
   withSequence,
   withDelay,
+  withRepeat,
+  cancelAnimation,
   Easing,
   FadeInDown,
 } from "react-native-reanimated";
@@ -893,13 +895,34 @@ export default function HomeScreen() {
   const confettiDist = useSharedValue(0);
   const confettiAlpha = useSharedValue(0);
   const checkinBtnScale = useSharedValue(1);
+  const pulseScale = useSharedValue(1);
   const cellBounce = useSharedValue(1);
-  const checkinBtnAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: checkinBtnScale.value }],
+  const combinedBtnStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkinBtnScale.value * pulseScale.value }],
   }));
   const cellBounceStyle = useAnimatedStyle(() => ({
     transform: [{ scale: cellBounce.value }],
   }));
+
+  const _checkedInTodayForEffect = !!(profile?.lastLoginDate &&
+    new Date(profile.lastLoginDate).toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10));
+
+  useEffect(() => {
+    if (!profile) return;
+    if (!_checkedInTodayForEffect) {
+      pulseScale.value = withRepeat(
+        withSequence(
+          withTiming(1.05, { duration: 750, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1.0, { duration: 750, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
+      );
+    } else {
+      cancelAnimation(pulseScale);
+      pulseScale.value = withTiming(1, { duration: 200 });
+    }
+  }, [_checkedInTodayForEffect, !!profile]);
 
   const handleCheckin = async () => {
     if (checkingIn) return;
@@ -1120,18 +1143,20 @@ export default function HomeScreen() {
 
         {/* Check-in button */}
         <View style={streakStyles.checkinBtnWrap}>
-          <Animated.View style={checkinBtnAnimStyle}>
+          <Animated.View style={combinedBtnStyle}>
             <Pressable
               onPress={handleCheckin}
               disabled={checkedInToday || checkingIn}
               style={[streakStyles.checkinBtn, checkedInToday && streakStyles.checkinBtnDone]}
             >
-              <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">
-                <View style={{ width: 0, height: 0 }}>
-                  <CheckinDropBurst key={checkinKey} dist={confettiDist} alpha={confettiAlpha} />
+              {checkinKey > 0 && (
+                <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">
+                  <View style={{ width: 0, height: 0 }}>
+                    <CheckinDropBurst key={checkinKey} dist={confettiDist} alpha={confettiAlpha} />
+                  </View>
                 </View>
-              </View>
-              <Text style={[streakStyles.checkinBtnText, checkedInToday && { color: "rgba(3,105,161,0.45)" }]}>
+              )}
+              <Text style={[streakStyles.checkinBtnText, checkedInToday && { color: "rgba(22,163,74,0.55)" }]}>
                 {checkedInToday ? "Fatto oggi ✓" : "Fai Check In"}
               </Text>
             </Pressable>
