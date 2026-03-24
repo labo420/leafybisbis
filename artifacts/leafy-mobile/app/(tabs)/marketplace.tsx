@@ -95,7 +95,10 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
           style={styles.ringLeafIcon}
           resizeMode="contain"
         />
-        <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
+        <View style={styles.ringAmountWrap}>
+          <Text style={[styles.ringAmount, styles.ringAmountOutline]}>{formatLea(leaBalance)}</Text>
+          <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
+        </View>
       </View>
     </View>
   );
@@ -404,6 +407,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 2,
   },
+  ringAmountWrap: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   ringLeafIcon: {
     width: 62,
     height: 62,
@@ -414,8 +422,14 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodyBold,
     color: "#ffffff",
     lineHeight: 56,
-    textShadowColor: "#000000",
-    textShadowOffset: { width: 1, height: 0 },
+  },
+  ringAmountOutline: {
+    position: "absolute",
+    color: "#000000",
+    top: 0,
+    left: 0,
+    textShadowColor: "transparent",
+    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0,
   },
 
