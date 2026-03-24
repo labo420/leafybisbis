@@ -67,14 +67,17 @@ const portFlag = args.indexOf("--port");
 const cliPort = portFlag !== -1 && args[portFlag + 1] ? args[portFlag + 1] : null;
 const tunnelFlag = args.indexOf("--tunnel");
 
-// Remove --tunnel flag if no ngrok auth token is configured to avoid failures
-const USE_REPLIT_DOMAIN_FALLBACK = !NGROK_AUTH_TOKEN && (process.env.REPLIT_DEV_DOMAIN || process.env.EXPO_PUBLIC_DOMAIN);
-if (tunnelFlag !== -1 && !NGROK_AUTH_TOKEN) {
+// Always remove --tunnel: Expo's bundled ngrok binary (v2.x) is incompatible with
+// current ngrok API responses and crashes on start. Instead we use REACT_NATIVE_PACKAGER_HOSTNAME
+// set to the Replit dev domain so Expo Go on physical devices can connect via Replit's proxy.
+const REPLIT_DOMAIN = process.env.REPLIT_DEV_DOMAIN || process.env.EXPO_PUBLIC_DOMAIN;
+const USE_REPLIT_DOMAIN_FALLBACK = !!REPLIT_DOMAIN;
+if (tunnelFlag !== -1) {
   args.splice(tunnelFlag, 1);
   if (USE_REPLIT_DOMAIN_FALLBACK) {
-    console.log("No NGROK_AUTH_TOKEN set — using Replit domain as packager hostname (REACT_NATIVE_PACKAGER_HOSTNAME).");
+    console.log("Tunnel mode disabled — using Replit domain as packager hostname (REACT_NATIVE_PACKAGER_HOSTNAME).");
   } else {
-    console.log("No NGROK_AUTH_TOKEN set, skipping tunnel mode.");
+    console.log("Tunnel mode disabled (no Replit domain available).");
   }
 }
 
@@ -218,10 +221,10 @@ function startExpo() {
     const replId = (spawnEnv.REPL_ID || "leafymobile").replace(/[^a-z0-9]/gi, "").toLowerCase().slice(0, 20);
     spawnEnv.EXPO_TUNNEL_SUBDOMAIN = `leafy${replId}`;
   }
-  // When running on Replit without ngrok, set the packager hostname to the Replit
-  // dev domain so Expo Go on a physical device can reach Metro through Replit's proxy.
+  // Set the packager hostname to the Replit dev domain so Expo Go on a physical device
+  // can reach Metro through Replit's proxy without needing ngrok.
   if (USE_REPLIT_DOMAIN_FALLBACK && !spawnEnv.REACT_NATIVE_PACKAGER_HOSTNAME) {
-    spawnEnv.REACT_NATIVE_PACKAGER_HOSTNAME = spawnEnv.REPLIT_DEV_DOMAIN || spawnEnv.EXPO_PUBLIC_DOMAIN;
+    spawnEnv.REACT_NATIVE_PACKAGER_HOSTNAME = REPLIT_DOMAIN;
     console.log(`REACT_NATIVE_PACKAGER_HOSTNAME set to: ${spawnEnv.REACT_NATIVE_PACKAGER_HOSTNAME}`);
   }
 
