@@ -1165,7 +1165,7 @@ export default function HomeScreen() {
         </View>
         {/* Progress bar */}
         <View style={streakStyles.progressBarBg}>
-          <View style={[streakStyles.progressBarFill, { width: `${Math.min((loginStreak / 7) * 100, 100)}%` as any }]} />
+          <View style={[streakStyles.progressBarFill, { width: `${Math.min((loginStreak / 7) * 100, 100)}%` }]} />
         </View>
         {/* Footer: giorno e premio */}
         <View style={streakStyles.stampFooter}>
@@ -1262,7 +1262,7 @@ export default function HomeScreen() {
 
           {/* Progress bar gold */}
           <View style={streakStyles.progressBarBgGold}>
-            <View style={[streakStyles.progressBarFillGold, { width: `${Math.min((bpStreakClaimed / 7) * 100, 100)}%` as any }]} />
+            <View style={[streakStyles.progressBarFillGold, { width: `${Math.min((bpStreakClaimed / 7) * 100, 100)}%` }]} />
           </View>
 
           {/* Footer */}
