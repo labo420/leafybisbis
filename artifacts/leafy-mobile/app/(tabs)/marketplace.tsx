@@ -415,8 +415,8 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     lineHeight: 56,
     textShadowColor: "#000000",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    textShadowOffset: { width: 1, height: 0 },
+    textShadowRadius: 0,
   },
 
   goldBadge: {
