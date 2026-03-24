@@ -68,9 +68,14 @@ const cliPort = portFlag !== -1 && args[portFlag + 1] ? args[portFlag + 1] : nul
 const tunnelFlag = args.indexOf("--tunnel");
 
 // Remove --tunnel flag if no ngrok auth token is configured to avoid failures
+const USE_REPLIT_DOMAIN_FALLBACK = !NGROK_AUTH_TOKEN && (process.env.REPLIT_DEV_DOMAIN || process.env.EXPO_PUBLIC_DOMAIN);
 if (tunnelFlag !== -1 && !NGROK_AUTH_TOKEN) {
   args.splice(tunnelFlag, 1);
-  console.log("No NGROK_AUTH_TOKEN set, skipping tunnel mode.");
+  if (USE_REPLIT_DOMAIN_FALLBACK) {
+    console.log("No NGROK_AUTH_TOKEN set — using Replit domain as packager hostname (REACT_NATIVE_PACKAGER_HOSTNAME).");
+  } else {
+    console.log("No NGROK_AUTH_TOKEN set, skipping tunnel mode.");
+  }
 }
 
 const expoPort = ARTIFACT_PORT || (cliPort ? Number(cliPort) : 8081);
@@ -212,6 +217,12 @@ function startExpo() {
   if (!spawnEnv.EXPO_TUNNEL_SUBDOMAIN) {
     const replId = (spawnEnv.REPL_ID || "leafymobile").replace(/[^a-z0-9]/gi, "").toLowerCase().slice(0, 20);
     spawnEnv.EXPO_TUNNEL_SUBDOMAIN = `leafy${replId}`;
+  }
+  // When running on Replit without ngrok, set the packager hostname to the Replit
+  // dev domain so Expo Go on a physical device can reach Metro through Replit's proxy.
+  if (USE_REPLIT_DOMAIN_FALLBACK && !spawnEnv.REACT_NATIVE_PACKAGER_HOSTNAME) {
+    spawnEnv.REACT_NATIVE_PACKAGER_HOSTNAME = spawnEnv.REPLIT_DEV_DOMAIN || spawnEnv.EXPO_PUBLIC_DOMAIN;
+    console.log(`REACT_NATIVE_PACKAGER_HOSTNAME set to: ${spawnEnv.REACT_NATIVE_PACKAGER_HOSTNAME}`);
   }
 
   const hasTunnelFlag = args.includes("--tunnel");
