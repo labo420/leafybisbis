@@ -234,4 +234,33 @@ router.post("/admin/user/:email/add-lea", requireAdmin, async (req, res): Promis
   res.json({ ok: true, user: updated.email, newBalance: updated.leaBalance });
 });
 
+router.post("/admin/user/:email/add-xp", requireAdmin, async (req, res): Promise<void> => {
+  const email = (req.params.email as string).toLowerCase();
+  const { amount } = req.body as { amount?: number };
+
+  if (!amount || amount <= 0) {
+    res.status(400).json({ error: "Amount deve essere un numero positivo." });
+    return;
+  }
+
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, email));
+
+  if (!user) {
+    res.status(404).json({ error: "Utente non trovato." });
+    return;
+  }
+
+  const newDrops = Math.floor((user.drops ?? 0) + amount);
+  const [updated] = await db
+    .update(usersTable)
+    .set({ drops: newDrops })
+    .where(eq(usersTable.id, user.id))
+    .returning();
+
+  res.json({ ok: true, user: updated.email, newDrops: updated.drops });
+});
+
 export default router;
