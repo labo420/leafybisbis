@@ -47,7 +47,7 @@ function TabIcon({
 
   return (
     <Animated.View style={[styles.activeIconWrap, pillStyle]}>
-      <MaterialCommunityIcons name={iconName} size={24} color={color} />
+      <MaterialCommunityIcons name={iconName} size={28} color={color} />
     </Animated.View>
   );
 }
