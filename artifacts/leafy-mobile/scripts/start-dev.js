@@ -219,11 +219,66 @@ function startProxy() {
   server.on("error", (e) => { console.error(`[dev] Proxy error: ${e.message}`); });
 }
 
+// ── localtunnel fallback ─────────────────────────────────────────────────────
+async function startLocaltunnel() {
+  return new Promise((resolve) => {
+    console.log("[dev] Starting localtunnel (no NGROK_AUTH_TOKEN)...");
+    let ltChild;
+    try {
+      ltChild = spawn("npx", ["localtunnel", "--port", String(PROXY_PORT)], {
+        stdio: ["ignore", "pipe", "pipe"],
+        env: process.env,
+      });
+    } catch (e) {
+      console.warn(`[dev] localtunnel spawn failed: ${e.message}`);
+      useFallback();
+      resolve();
+      return;
+    }
+
+    let resolved = false;
+    const tryResolve = () => { if (!resolved) { resolved = true; resolve(); } };
+
+    ltChild.stdout.on("data", (d) => {
+      const line = d.toString();
+      process.stdout.write(`[lt] ${line}`);
+      const match = line.match(/your url is:\s*(https?:\/\/\S+)/i);
+      if (match) {
+        onTunnelReady(match[1].trim());
+        tryResolve();
+      }
+    });
+    ltChild.stderr.on("data", (d) => {
+      process.stderr.write(`[lt] ${d}`);
+    });
+    ltChild.on("close", (code) => {
+      if (code !== 0 && !publicHostname) {
+        console.warn(`[dev] localtunnel exited (${code}) without URL — using Replit domain fallback.`);
+        useFallback();
+      }
+      tryResolve();
+    });
+    ltChild.on("error", (e) => {
+      console.warn(`[dev] localtunnel error: ${e.message} — using Replit domain fallback.`);
+      useFallback();
+      tryResolve();
+    });
+
+    // Timeout: if no URL in 30s, fall back
+    setTimeout(() => {
+      if (!publicHostname) {
+        console.warn("[dev] localtunnel timeout — using Replit domain fallback.");
+        useFallback();
+      }
+      tryResolve();
+    }, 30000);
+  });
+}
+
 // ── ngrok tunnel (SDK v3) ────────────────────────────────────────────────────
 async function startNgrokTunnel() {
   if (!NGROK_TOKEN) {
-    console.warn("[dev] NGROK_AUTH_TOKEN not set — using Replit domain fallback.");
-    useFallback();
+    await startLocaltunnel();
     return;
   }
 
@@ -231,8 +286,8 @@ async function startNgrokTunnel() {
   try {
     ngrok = require("@ngrok/ngrok");
   } catch (e) {
-    console.warn(`[dev] @ngrok/ngrok not loadable: ${e.message} — using Replit domain fallback.`);
-    useFallback();
+    console.warn(`[dev] @ngrok/ngrok not loadable: ${e.message} — trying localtunnel.`);
+    await startLocaltunnel();
     return;
   }
 
@@ -250,8 +305,8 @@ async function startNgrokTunnel() {
       throw new Error("listener.url() returned empty");
     }
   } catch (e) {
-    console.warn(`[dev] ngrok tunnel failed: ${e.message}`);
-    useFallback();
+    console.warn(`[dev] ngrok tunnel failed: ${e.message} — trying localtunnel.`);
+    await startLocaltunnel();
   }
 }
 

@@ -66,13 +66,19 @@ Leafy è una piattaforma loyalty mobile-first per la sostenibilità. Gli utenti 
 
 ## Stato Build Corrente (Replit)
 
-✅ **Ultima sessione: 24/03/2026** — Check-in manuale + Animazione level-up crescendo/esplosione
+✅ **Ultima sessione: 24/03/2026** — Fix tunnel Expo Go: localtunnel come fallback automatico a ngrok
 
 ### Soluzione Expo Go — DEFINITIVA (da non toccare)
 
 **File chiave**: `artifacts/leafy-mobile/scripts/start-dev.js`
-**Dipendenza aggiunta**: `@ngrok/ngrok@1.7.0` in `artifacts/leafy-mobile/package.json`
-**Secret richiesto**: `NGROK_AUTH_TOKEN` in Replit Secrets
+**Dipendenze aggiunte**: `@ngrok/ngrok@1.7.0` + `localtunnel@^2.0.2` in `artifacts/leafy-mobile/package.json`
+**Secret opzionale**: `NGROK_AUTH_TOKEN` in Replit Secrets (se assente, usa localtunnel automaticamente)
+
+**Tunnel automatico senza configurazione**:
+- Se `NGROK_AUTH_TOKEN` è presente → usa ngrok v3 SDK (HTTP tunnel, `exp://xxx.ngrok-free.dev`)
+- Se `NGROK_AUTH_TOKEN` è assente → usa `localtunnel` (HTTPS tunnel, `exp://xxx.loca.lt:443`) — gratuito, no account
+- Fallback finale: dominio Replit (funziona solo in-browser, non su device fisico)
+- URL cambia ad ogni riavvio; leggere dai log: `[dev] ► Expo Go URL: exp://...`
 
 **Architettura (3 componenti che lavorano insieme):**
 
