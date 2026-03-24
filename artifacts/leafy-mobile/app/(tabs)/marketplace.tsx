@@ -1,30 +1,43 @@
 import { Feather } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import React, { useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
-  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
-import Svg, { Circle } from "react-native-svg";
+import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PayPalLogo from "@/components/PayPalLogo";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/auth";
 import { useTheme } from "@/context/theme";
 import LeafyGoldModal from "@/components/LeafyGoldModal";
 import { apiFetch } from "@/lib/api";
+import { Fonts } from "@/constants/typography";
+
+const PAYPAL_BLUE = "#0070E0";
+const LEAF_GREEN = "#4DB847";
+const LEAF_DARK = "#2E6B50";
+
+const RING_SIZE = 190;
+const STROKE_WIDTH = 16;
+const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
+
+const AMOUNTS = [
+  { euros: 5,  lea: 500,  goldOnly: true  },
+  { euros: 10, lea: 1000, goldOnly: false },
+  { euros: 15, lea: 1500, goldOnly: false },
+  { euros: 20, lea: 2000, goldOnly: false },
+  { euros: 25, lea: 2500, goldOnly: false },
+  { euros: 30, lea: 3000, goldOnly: false },
+];
 
 type Withdrawal = {
   id: number;
@@ -37,12 +50,9 @@ type Withdrawal = {
 
 function statusLabel(status: string): { label: string; color: string } {
   switch (status) {
-    case "completed":
-      return { label: "Completato", color: "#4ade80" };
-    case "rejected":
-      return { label: "Rifiutato", color: "#f87171" };
-    default:
-      return { label: "In elaborazione", color: "#FACC15" };
+    case "completed": return { label: "Completato",    color: "#4ade80" };
+    case "rejected":  return { label: "Rifiutato",     color: "#f87171" };
+    default:          return { label: "In elaborazione", color: "#FACC15" };
   }
 }
 
@@ -50,28 +60,22 @@ function formatLea(n: number): string {
   return Math.floor(n).toLocaleString("it-IT", { maximumFractionDigits: 0 });
 }
 
-const RING_SIZE = 200;
-const STROKE_WIDTH = 14;
-const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-const PAYPAL_BLUE = "#0070E0";
-
-const LEAF_GREEN = "#4DB847";
-
-function PayPalHeroRing({ leaBalance }: { leaBalance: number }) {
+function LeafyRing({ leaBalance }: { leaBalance: number }) {
   return (
-    <View style={styles.heroContainer}>
-      <Svg
-        width={RING_SIZE}
-        height={RING_SIZE}
-        style={{ transform: [{ rotate: "-90deg" }] }}
-      >
+    <View style={styles.ringWrap}>
+      <Svg width={RING_SIZE} height={RING_SIZE} style={{ transform: [{ rotate: "-90deg" }] }}>
+        <Defs>
+          <SvgLinearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0%"   stopColor={LEAF_GREEN} />
+            <Stop offset="100%" stopColor={LEAF_DARK}  />
+          </SvgLinearGradient>
+        </Defs>
         <Circle
           cx={RING_SIZE / 2}
           cy={RING_SIZE / 2}
           r={RADIUS}
           fill="none"
-          stroke="rgba(77,184,71,0.13)"
+          stroke="rgba(77,184,71,0.15)"
           strokeWidth={STROKE_WIDTH}
         />
         <Circle
@@ -79,24 +83,24 @@ function PayPalHeroRing({ leaBalance }: { leaBalance: number }) {
           cy={RING_SIZE / 2}
           r={RADIUS}
           fill="none"
-          stroke="rgba(77,184,71,0.6)"
+          stroke="url(#ringGrad)"
           strokeWidth={STROKE_WIDTH}
-          strokeDasharray={`${CIRCUMFERENCE}`}
-          strokeDashoffset={0}
           strokeLinecap="round"
         />
       </Svg>
-      <View style={styles.heroCenter}>
-        <Text style={styles.heroAmount}>{formatLea(leaBalance)}</Text>
-        <View style={styles.heroLeafBadge}>
-          <Image source={require("@/assets/badges/badge-leaf.png")} style={styles.heroLeafIcon} resizeMode="contain" />
-          <Text style={styles.heroLeafText}>LEA</Text>
-        </View>
+
+      <View style={styles.ringCenter}>
+        <Image
+          source={require("@/assets/images/lea-icon.png")}
+          style={styles.ringLeafIcon}
+          resizeMode="contain"
+        />
+        <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
+        <Text style={styles.ringLabel}>LEA</Text>
       </View>
     </View>
   );
 }
-
 
 export default function WalletScreen() {
   const insets = useSafeAreaInsets();
@@ -105,12 +109,14 @@ export default function WalletScreen() {
   const queryClient = useQueryClient();
 
   const [showLeafyGold, setShowLeafyGold] = useState(false);
-  const [showWithdrawForm, setShowWithdrawForm] = useState(false);
-  const [leaInput, setLeaInput] = useState("");
+  const [selected, setSelected]   = useState<typeof AMOUNTS[0] | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [inlineError, setInlineError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg]   = useState<string | null>(null);
+  const [refreshing, setRefreshing]   = useState(false);
+
+  const topPadding = Platform.OS === "web" ? 67 : 0;
+  const bottomPad  = Platform.OS === "web" ? 34 + 84 : 84 + insets.bottom;
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -120,25 +126,6 @@ export default function WalletScreen() {
     ]);
     setRefreshing(false);
   }, [refreshBalances, queryClient]);
-
-  const topPadding = Platform.OS === "web" ? 67 : 0;
-  const bottomPad = Platform.OS === "web" ? 34 + 84 : 100 + insets.bottom;
-
-  const leaAmount = Math.floor(parseFloat(leaInput.replace(",", ".")) || 0);
-  const minLea = hasLeafyGold ? 500 : 1000;
-
-  let validationError: string | null = null;
-  if (leaInput.length > 0) {
-    if (leaAmount <= 0) {
-      validationError = "Inserisci un importo valido.";
-    } else if (leaAmount > leaBalance) {
-      validationError = "Saldo $LEA insufficiente.";
-    } else if (leaAmount < minLea) {
-      validationError = `Importo minimo: ${minLea.toLocaleString("it-IT")} $LEA${hasLeafyGold ? " con Leafy Gold" : ""}.`;
-    }
-  }
-
-  const canConvert = leaInput.length > 0 && leaAmount > 0 && !validationError;
 
   const { data: withdrawals, isLoading: loadingWithdrawals } = useQuery<Withdrawal[]>({
     queryKey: ["wallet-withdrawals"],
@@ -151,50 +138,55 @@ export default function WalletScreen() {
     mutationFn: () =>
       apiFetch<Withdrawal>("/wallet/withdraw", {
         method: "POST",
-        body: JSON.stringify({ leaAmount }),
+        body: JSON.stringify({ leaAmount: selected!.lea }),
       }),
     onSuccess: () => {
       setShowConfirm(false);
-      setLeaInput("");
-      setShowWithdrawForm(false);
-      setSubmitError(null);
-      setSuccessMsg(`Prelievo di ${formatLea(leaAmount)} $LEA registrato! Elaborazione entro 24h.`);
+      setSelected(null);
+      setInlineError(null);
+      const euros = selected?.euros ?? 0;
+      setSuccessMsg(`Prelievo di €${euros} registrato! Elaborazione entro 24h.`);
       refreshBalances();
       queryClient.invalidateQueries({ queryKey: ["wallet-withdrawals"] });
       setTimeout(() => setSuccessMsg(null), 5000);
     },
     onError: (err: Error) => {
       setShowConfirm(false);
-      setSubmitError(err.message);
+      setInlineError(err.message);
     },
   });
 
+  const handleTilePress = useCallback((amount: typeof AMOUNTS[0]) => {
+    setInlineError(null);
+    setSelected((prev) => prev?.euros === amount.euros ? null : amount);
+  }, []);
+
   const handlePayPalPress = useCallback(() => {
-    if (!hasLeafyGold) {
+    if (!selected) return;
+
+    if (selected.goldOnly && !hasLeafyGold) {
       setShowLeafyGold(true);
       return;
     }
-    setShowWithdrawForm((v) => !v);
-    setLeaInput("");
-    setSubmitError(null);
-  }, [hasLeafyGold]);
 
-  const handleMax = useCallback(() => {
-    setLeaInput(String(Math.floor(leaBalance)));
-  }, [leaBalance]);
+    if (selected.lea > Math.floor(leaBalance)) {
+      const missing = selected.lea - Math.floor(leaBalance);
+      setInlineError(`Saldo insufficiente. Ti mancano ${formatLea(missing)} LEA.`);
+      return;
+    }
 
-  const handleConfirmPress = useCallback(() => {
-    if (!canConvert) return;
-    setSubmitError(null);
+    setInlineError(null);
     setShowConfirm(true);
-  }, [canConvert]);
+  }, [selected, hasLeafyGold, leaBalance]);
 
   if (!user) {
     return (
       <View style={[styles.centered, { backgroundColor: theme.background }]}>
         <Feather name="credit-card" size={48} color={theme.textMuted} />
         <Text style={[styles.guestTitle, { color: theme.text }]}>Il tuo Wallet</Text>
-        <Text style={[styles.guestSub, { color: theme.textSecondary }]}>Accedi per vedere il tuo saldo $LEA.</Text>
+        <Text style={[styles.guestSub, { color: theme.textSecondary }]}>
+          Accedi per vedere il tuo saldo LEA.
+        </Text>
       </View>
     );
   }
@@ -203,18 +195,22 @@ export default function WalletScreen() {
     <>
       <LeafyGoldModal visible={showLeafyGold} onClose={() => setShowLeafyGold(false)} />
 
-      <Modal visible={showConfirm} transparent animationType="fade" onRequestClose={() => setShowConfirm(false)}>
+      <Modal
+        visible={showConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowConfirm(false)}
+      >
         <Pressable style={styles.overlay} onPress={() => !isSubmitting && setShowConfirm(false)}>
           <Pressable style={[styles.confirmCard, { backgroundColor: theme.card }]} onPress={() => {}}>
             <Text style={[styles.confirmTitle, { color: theme.text }]}>Conferma prelievo</Text>
 
-            <View style={styles.confirmSummary}>
-              <View style={[styles.confirmPanel, { backgroundColor: "rgba(0,112,224,0.08)", borderColor: "rgba(0,112,224,0.25)" }]}>
-                <Text style={[styles.confirmPanelLabel, { color: PAYPAL_BLUE }]}>Prelevi</Text>
-                <Text style={[styles.confirmPanelAmount, { color: theme.text }]}>
-                  {formatLea(leaAmount)} <Text style={{ fontSize: 14 }}>$LEA</Text>
-                </Text>
-              </View>
+            <View style={[styles.confirmPanel, { backgroundColor: "rgba(0,112,224,0.08)", borderColor: "rgba(0,112,224,0.25)" }]}>
+              <Text style={[styles.confirmPanelLabel, { color: PAYPAL_BLUE }]}>Riceverai</Text>
+              <Text style={[styles.confirmPanelAmount, { color: theme.text }]}>
+                €{selected?.euros ?? 0}
+                <Text style={{ fontSize: 14, color: theme.textSecondary }}>  ({formatLea(selected?.lea ?? 0)} LEA)</Text>
+              </Text>
             </View>
 
             <Text style={[styles.confirmNote, { color: theme.textSecondary }]}>
@@ -235,201 +231,147 @@ export default function WalletScreen() {
                 onPress={() => submitWithdrawal()}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <Text style={styles.confirmBtnConfirmText}>Conferma</Text>
-                )}
+                {isSubmitting
+                  ? <ActivityIndicator color="#fff" size="small" />
+                  : <Text style={styles.confirmBtnConfirmText}>Conferma</Text>
+                }
               </Pressable>
             </View>
           </Pressable>
         </Pressable>
       </Modal>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <ScrollView
-          style={[styles.container, { backgroundColor: "rgba(77,184,71,0.18)" }]}
-          contentContainerStyle={{ paddingTop: topPadding + 20, paddingBottom: bottomPad }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={PAYPAL_BLUE}
-              colors={[PAYPAL_BLUE]}
-            />
-          }
-        >
-          <View style={styles.content}>
-            <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.heroSection}>
-              <PayPalHeroRing leaBalance={leaBalance} />
+      <ScrollView
+        style={[styles.container, { backgroundColor: theme.background }]}
+        contentContainerStyle={{ paddingTop: topPadding, paddingBottom: bottomPad }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.mainBlock}>
+          <Animated.View entering={FadeInDown.delay(50).springify()} style={styles.ringSection}>
+            <LeafyRing leaBalance={leaBalance} />
+            {hasLeafyGold && (
+              <View style={styles.goldBadge}>
+                <Image
+                  source={require("@/assets/images/leafy-gold-icon.png")}
+                  style={{ width: 14, height: 14 }}
+                  resizeMode="contain"
+                />
+                <Text style={styles.goldBadgeText}>Leafy Gold · LEA x2</Text>
+              </View>
+            )}
+          </Animated.View>
 
-              {hasLeafyGold && (
-                <View style={styles.goldBadge}>
-                  <Image source={require("@/assets/images/leafy-gold-icon.png")} style={{ width: 14, height: 14 }} resizeMode="contain" />
-                  <Text style={styles.goldBadgeText}>Leafy Gold · $LEA x2</Text>
-                </View>
-              )}
-            </Animated.View>
+          <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.gridSection}>
+            <Text style={[styles.gridLabel, { color: theme.textSecondary }]}>
+              Seleziona importo da prelevare
+            </Text>
+            <View style={styles.grid}>
+              {AMOUNTS.map((amount) => {
+                const isSelected   = selected?.euros === amount.euros;
+                const isGoldLocked = amount.goldOnly && !hasLeafyGold;
+                const notEnough    = !isGoldLocked && amount.lea > Math.floor(leaBalance);
 
-            <Animated.View entering={FadeInDown.delay(120).springify()}>
-              <Pressable
-                style={({ pressed }) => [styles.paypalBtn, { opacity: pressed ? 0.88 : 1 }]}
-                onPress={handlePayPalPress}
-              >
-                <PayPalLogo width={160} height={38} />
-              </Pressable>
-            </Animated.View>
-
-            {showWithdrawForm && (
-              <Animated.View entering={FadeIn.duration(220)} style={[styles.withdrawCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <View style={styles.withdrawInputRow}>
-                  <TextInput
-                    style={[styles.withdrawInput, { color: theme.text }]}
-                    value={leaInput}
-                    onChangeText={(v) => {
-                      setLeaInput(v.replace(/[^0-9,\.]/g, ""));
-                      setSubmitError(null);
-                    }}
-                    placeholder="0"
-                    placeholderTextColor={theme.textMuted}
-                    keyboardType="decimal-pad"
-                    returnKeyType="done"
-                    autoFocus
-                  />
-                  <View style={[styles.leaBadge, { backgroundColor: "rgba(0,112,224,0.10)" }]}>
-                    <Text style={[styles.leaBadgeText, { color: PAYPAL_BLUE }]}>$LEA</Text>
-                  </View>
-                  <Pressable style={[styles.maxBtn, { backgroundColor: "rgba(0,112,224,0.10)" }]} onPress={handleMax}>
-                    <Text style={[styles.maxBtnText, { color: PAYPAL_BLUE }]}>MAX</Text>
+                return (
+                  <Pressable
+                    key={amount.euros}
+                    style={({ pressed }) => [
+                      styles.tile,
+                      { borderColor: isSelected ? LEAF_GREEN : theme.border, backgroundColor: theme.card },
+                      isSelected && styles.tileSelected,
+                      (isGoldLocked || notEnough) && styles.tileDimmed,
+                      pressed && { opacity: 0.75 },
+                    ]}
+                    onPress={() => handleTilePress(amount)}
+                  >
+                    <Text style={[styles.tileEuros, { color: isSelected ? LEAF_GREEN : theme.text }]}>
+                      €{amount.euros}
+                    </Text>
+                    <Text style={[styles.tileLea, { color: theme.textMuted }]}>
+                      {formatLea(amount.lea)} LEA
+                    </Text>
+                    {isGoldLocked && (
+                      <View style={styles.goldTag}>
+                        <Feather name="star" size={8} color="#FFD700" />
+                        <Text style={styles.goldTagText}>Gold</Text>
+                      </View>
+                    )}
                   </Pressable>
-                </View>
+                );
+              })}
+            </View>
+          </Animated.View>
 
-                <Text style={[styles.withdrawAvail, { color: theme.textMuted }]}>
-                  Disponibile: {formatLea(leaBalance)} $LEA · Min: {minLea.toLocaleString("it-IT")} $LEA
-                </Text>
-
-                {(validationError || submitError) && (
-                  <Animated.View entering={FadeIn} style={[styles.errorBox, { backgroundColor: "#FEE2E2", borderColor: "#FCA5A5" }]}>
-                    <Feather name="alert-circle" size={14} color="#DC2626" />
-                    <Text style={styles.errorText}>{validationError ?? submitError}</Text>
-                  </Animated.View>
-                )}
-
-                {successMsg && (
-                  <Animated.View entering={FadeIn} style={[styles.successBox, { backgroundColor: "#DCFCE7", borderColor: "#86EFAC" }]}>
-                    <Feather name="check-circle" size={14} color="#16A34A" />
-                    <Text style={styles.successText}>{successMsg}</Text>
-                  </Animated.View>
-                )}
-
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.confirmWithdrawBtn,
-                    {
-                      backgroundColor: canConvert ? PAYPAL_BLUE : theme.textMuted,
-                      opacity: pressed ? 0.85 : 1,
-                    },
-                  ]}
-                  onPress={handleConfirmPress}
-                  disabled={!canConvert}
-                >
-                  <Text style={styles.confirmWithdrawBtnText}>Conferma prelievo</Text>
-                </Pressable>
-              </Animated.View>
-            )}
-
-            {successMsg && !showWithdrawForm && (
-              <Animated.View entering={FadeIn} style={[styles.successBox, { backgroundColor: "#DCFCE7", borderColor: "#86EFAC" }]}>
-                <Feather name="check-circle" size={14} color="#16A34A" />
-                <Text style={styles.successText}>{successMsg}</Text>
-              </Animated.View>
-            )}
-
-            {!hasLeafyGold && (
-              <Animated.View entering={FadeInDown.delay(180).springify()}>
-                <Pressable style={styles.bpPromoCard} onPress={() => setShowLeafyGold(true)}>
-                  <LinearGradient colors={["#0f2a1e", "#1a4a2e"]} style={StyleSheet.absoluteFill} />
-                  <View style={styles.bpPromoLeft}>
-                    <View style={styles.bpPromoIconWrap}>
-                      <Image source={require("@/assets/images/leafy-gold-icon.png")} style={{ width: 28, height: 28 }} resizeMode="contain" />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.bpPromoTitle}>Leafy Gold</Text>
-                      <Text style={styles.bpPromoSub}>Raddoppia i $LEA · Sblocca i prelievi</Text>
-                    </View>
-                  </View>
-                  <View style={styles.bpPromoBtn}>
-                    <Text style={styles.bpPromoBtnText}>Attiva</Text>
-                  </View>
-                </Pressable>
-              </Animated.View>
-            )}
-
-            {user && (
-              <Animated.View entering={FadeInDown.delay(240).springify()} style={[styles.historySection, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <Text style={[styles.historySectionTitle, { color: theme.text }]}>Prelievi recenti</Text>
-
-                {loadingWithdrawals && (
-                  <ActivityIndicator color={PAYPAL_BLUE} style={{ marginVertical: 16 }} />
-                )}
-
-                {!loadingWithdrawals && (!withdrawals || withdrawals.length === 0) && (
-                  <Text style={[styles.historyEmpty, { color: theme.textMuted }]}>Nessun prelievo ancora.</Text>
-                )}
-
-                {!loadingWithdrawals && withdrawals && withdrawals.slice(0, 5).map((w) => {
-                  const { label, color } = statusLabel(w.status);
-                  const date = new Date(w.requestedAt).toLocaleDateString("it-IT", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  });
-                  return (
-                    <View key={w.id} style={[styles.historyRow, { borderBottomColor: theme.border }]}>
-                      <View style={[styles.historyIconWrap, { backgroundColor: "rgba(0,112,224,0.10)" }]}>
-                        <Feather name="arrow-up-right" size={16} color={PAYPAL_BLUE} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.historyAmount, { color: theme.text }]}>
-                          -{Math.floor(parseFloat(w.leaAmount)).toLocaleString("it-IT")} $LEA
-                        </Text>
-                        <Text style={[styles.historyDate, { color: theme.textMuted }]}>{date}</Text>
-                      </View>
-                      <View style={[styles.statusBadge, { backgroundColor: `${color}22` }]}>
-                        <Text style={[styles.statusBadgeText, { color }]}>{label}</Text>
-                      </View>
-                    </View>
-                  );
-                })}
-              </Animated.View>
-            )}
-
-            <Animated.View entering={FadeInDown.delay(300).springify()} style={[styles.infoSection, { backgroundColor: theme.card, borderColor: theme.border }]}>
-              <Text style={[styles.infoSectionTitle, { color: theme.text }]}>Come funziona $LEA</Text>
-              {[
-                { icon: "camera" as const, text: "Scansiona uno scontrino e guadagna drops" },
-                { icon: "maximize" as const, text: "Scansiona i barcode per ottenere $LEA extra" },
-                { icon: "zap" as const, text: "Con Leafy Gold ogni $LEA è raddoppiato (x2)" },
-              ].map((item, i) => (
-                <View key={i} style={styles.infoRow}>
-                  <View style={[styles.infoRowIcon, { backgroundColor: theme.primaryLight }]}>
-                    <Feather name={item.icon} size={16} color={theme.leaf} />
-                  </View>
-                  <Text style={[styles.infoRowText, { color: theme.text }]}>{item.text}</Text>
-                </View>
-              ))}
+          {inlineError && (
+            <Animated.View entering={FadeIn} style={[styles.errorBox, { backgroundColor: "#FEE2E2", borderColor: "#FCA5A5" }]}>
+              <Feather name="alert-circle" size={14} color="#DC2626" />
+              <Text style={styles.errorText}>{inlineError}</Text>
             </Animated.View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          )}
+
+          {successMsg && (
+            <Animated.View entering={FadeIn} style={[styles.successBox, { backgroundColor: "#DCFCE7", borderColor: "#86EFAC" }]}>
+              <Feather name="check-circle" size={14} color="#16A34A" />
+              <Text style={styles.successText}>{successMsg}</Text>
+            </Animated.View>
+          )}
+
+          <Animated.View entering={FadeInDown.delay(150).springify()}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.paypalBtn,
+                !selected && styles.paypalBtnDisabled,
+                pressed && { opacity: 0.85 },
+              ]}
+              onPress={handlePayPalPress}
+              disabled={!selected}
+            >
+              <PayPalLogo width={140} height={34} />
+            </Pressable>
+          </Animated.View>
+        </View>
+
+        {withdrawals && withdrawals.length > 0 && (
+          <Animated.View
+            entering={FadeInDown.delay(200).springify()}
+            style={[styles.historySection, { backgroundColor: theme.card, borderColor: theme.border }]}
+          >
+            <Text style={[styles.historySectionTitle, { color: theme.text }]}>Prelievi recenti</Text>
+
+            {loadingWithdrawals && (
+              <ActivityIndicator color={PAYPAL_BLUE} style={{ marginVertical: 16 }} />
+            )}
+
+            {withdrawals.slice(0, 5).map((w) => {
+              const { label, color } = statusLabel(w.status);
+              const date = new Date(w.requestedAt).toLocaleDateString("it-IT", {
+                day: "2-digit", month: "short", year: "numeric",
+              });
+              return (
+                <View key={w.id} style={[styles.historyRow, { borderBottomColor: theme.border }]}>
+                  <View style={[styles.historyIconWrap, { backgroundColor: "rgba(0,112,224,0.10)" }]}>
+                    <Feather name="arrow-up-right" size={16} color={PAYPAL_BLUE} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.historyAmount, { color: theme.text }]}>
+                      -{Math.floor(parseFloat(w.leaAmount)).toLocaleString("it-IT")} LEA
+                    </Text>
+                    <Text style={[styles.historyDate, { color: theme.textMuted }]}>{date}</Text>
+                  </View>
+                  <View style={[styles.statusBadge, { backgroundColor: `${color}22` }]}>
+                    <Text style={[styles.statusBadgeText, { color }]}>{label}</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </Animated.View>
+        )}
+      </ScrollView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F0F8FF" },
+  container: { flex: 1 },
   centered: {
     flex: 1,
     alignItems: "center",
@@ -437,59 +379,48 @@ const styles = StyleSheet.create({
     padding: 32,
     gap: 12,
   },
-  guestTitle: {
-    fontSize: 22,
-    fontFamily: "DMSans_700Bold",
-    textAlign: "center",
-  },
-  guestSub: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    lineHeight: 20,
-  },
+  guestTitle: { fontSize: 22, fontFamily: Fonts.displayBold, textAlign: "center" },
+  guestSub:   { fontSize: 14, fontFamily: Fonts.bodyRegular, textAlign: "center", lineHeight: 20 },
 
-  content: {
+  mainBlock: {
     paddingHorizontal: 20,
+    paddingTop: 8,
     gap: 16,
   },
 
-  heroSection: {
+  ringSection: {
     alignItems: "center",
-    paddingVertical: 12,
-    gap: 12,
+    paddingVertical: 8,
+    gap: 10,
   },
-  heroContainer: {
+  ringWrap: {
     width: RING_SIZE,
     height: RING_SIZE,
     alignItems: "center",
     justifyContent: "center",
   },
-  heroCenter: {
+  ringCenter: {
     position: "absolute",
     alignItems: "center",
     justifyContent: "center",
+    gap: 2,
   },
-  heroAmount: {
-    fontSize: 40,
-    fontFamily: "DMSans_700Bold",
-    color: "#fff",
-    lineHeight: 46,
+  ringLeafIcon: {
+    width: 46,
+    height: 46,
+    marginBottom: 4,
   },
-  heroLeafBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 8,
-  },
-  heroLeafIcon: {
-    width: 14,
-    height: 14,
-  },
-  heroLeafText: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
+  ringAmount: {
+    fontSize: 38,
+    fontFamily: Fonts.displayBold,
     color: LEAF_GREEN,
+    lineHeight: 42,
+  },
+  ringLabel: {
+    fontSize: 12,
+    fontFamily: Fonts.bodyBold,
+    color: LEAF_DARK,
+    letterSpacing: 1.5,
   },
 
   goldBadge: {
@@ -503,61 +434,63 @@ const styles = StyleSheet.create({
   },
   goldBadgeText: {
     fontSize: 12,
-    fontFamily: "Inter_700Bold",
+    fontFamily: Fonts.bodyBold,
     color: "#1a4a2e",
   },
 
-  paypalBtn: {
-    width: "100%",
-    backgroundColor: "#FFFFFF",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 50,
-    borderWidth: 1,
-    borderColor: "#CCCCCC",
+  gridSection: { gap: 10 },
+  gridLabel: {
+    fontSize: 12,
+    fontFamily: Fonts.bodyMedium,
+    textAlign: "center",
+    letterSpacing: 0.3,
   },
-
-  withdrawCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 20,
-    gap: 12,
-  },
-  withdrawInputRow: {
+  grid: {
     flexDirection: "row",
-    alignItems: "center",
+    flexWrap: "wrap",
     gap: 10,
   },
-  withdrawInput: {
-    flex: 1,
-    fontSize: 32,
-    fontFamily: "DMSans_700Bold",
-    padding: 0,
-    minHeight: 40,
+  tile: {
+    width: "30.5%",
+    borderRadius: 16,
+    borderWidth: 1.5,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: "center",
+    gap: 3,
+    position: "relative",
   },
-  leaBadge: {
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  tileSelected: {
+    backgroundColor: "rgba(77,184,71,0.08)",
   },
-  leaBadgeText: {
-    fontSize: 13,
-    fontFamily: "Inter_700Bold",
+  tileDimmed: {
+    opacity: 0.45,
   },
-  maxBtn: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  tileEuros: {
+    fontSize: 22,
+    fontFamily: Fonts.displayBold,
+    lineHeight: 26,
   },
-  maxBtnText: {
-    fontSize: 11,
-    fontFamily: "Inter_700Bold",
+  tileLea: {
+    fontSize: 10,
+    fontFamily: Fonts.bodyMedium,
   },
-  withdrawAvail: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
+  goldTag: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    backgroundColor: "rgba(255,215,0,0.18)",
+    borderRadius: 6,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  goldTagText: {
+    fontSize: 8,
+    fontFamily: Fonts.bodyBold,
+    color: "#B8860B",
   },
 
   errorBox: {
@@ -570,7 +503,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: Fonts.bodyRegular,
     color: "#DC2626",
     flex: 1,
     lineHeight: 18,
@@ -585,157 +518,35 @@ const styles = StyleSheet.create({
   },
   successText: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: Fonts.bodyRegular,
     color: "#16A34A",
     flex: 1,
     lineHeight: 18,
   },
 
-  confirmWithdrawBtn: {
-    flexDirection: "row",
+  paypalBtn: {
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 14,
-    paddingVertical: 15,
-    marginTop: 4,
+    borderRadius: 50,
+    borderWidth: 1.5,
+    borderColor: "#CCCCCC",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  confirmWithdrawBtnText: {
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-    color: "#fff",
-  },
-
-  bpPromoCard: {
-    borderRadius: 20,
-    overflow: "hidden",
-    padding: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "rgba(255,215,0,0.2)",
-  },
-  bpPromoLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    flex: 1,
-  },
-  bpPromoIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,215,0,0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bpPromoTitle: {
-    fontSize: 15,
-    fontFamily: "Inter_700Bold",
-    color: "#fff",
-  },
-  bpPromoSub: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    color: "rgba(255,255,255,0.6)",
-    marginTop: 2,
-  },
-  bpPromoBtn: {
-    backgroundColor: "#FFD700",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  bpPromoBtnText: {
-    fontSize: 13,
-    fontFamily: "Inter_700Bold",
-    color: "#1a4a2e",
-  },
-
-  historySection: {
-    borderRadius: 20,
-    padding: 20,
-    gap: 0,
-    borderWidth: 1,
-  },
-  historySectionTitle: {
-    fontSize: 15,
-    fontFamily: "Inter_700Bold",
-    marginBottom: 12,
-  },
-  historyEmpty: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    paddingVertical: 12,
-  },
-  historyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
-  historyIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  historyAmount: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-    lineHeight: 18,
-  },
-  historyDate: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    marginTop: 2,
-  },
-  statusBadge: {
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  statusBadgeText: {
-    fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-  },
-
-  infoSection: {
-    borderRadius: 20,
-    padding: 20,
-    gap: 14,
-    borderWidth: 1,
-  },
-  infoSectionTitle: {
-    fontSize: 15,
-    fontFamily: "Inter_700Bold",
-    marginBottom: 4,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  infoRowIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  infoRowText: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    flex: 1,
-    lineHeight: 20,
+  paypalBtnDisabled: {
+    opacity: 0.45,
   },
 
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
@@ -747,39 +558,34 @@ const styles = StyleSheet.create({
     gap: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
     elevation: 10,
   },
   confirmTitle: {
-    fontSize: 20,
-    fontFamily: "DMSans_700Bold",
+    fontSize: 18,
+    fontFamily: Fonts.displayBold,
     textAlign: "center",
   },
-  confirmSummary: {
-    gap: 4,
-    alignItems: "center",
-  },
   confirmPanel: {
-    width: "100%",
     borderRadius: 16,
     borderWidth: 1,
     padding: 16,
+    alignItems: "center",
     gap: 4,
   },
   confirmPanelLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
+    fontSize: 12,
+    fontFamily: Fonts.bodyMedium,
+    letterSpacing: 0.5,
   },
   confirmPanelAmount: {
-    fontSize: 26,
-    fontFamily: "DMSans_700Bold",
+    fontSize: 28,
+    fontFamily: Fonts.displayBold,
   },
   confirmNote: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: Fonts.bodyRegular,
     textAlign: "center",
     lineHeight: 18,
   },
@@ -789,26 +595,71 @@ const styles = StyleSheet.create({
   },
   confirmBtnCancel: {
     flex: 1,
+    paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
-    paddingVertical: 14,
     alignItems: "center",
-    justifyContent: "center",
   },
   confirmBtnCancelText: {
     fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: Fonts.bodyMedium,
   },
   confirmBtnConfirm: {
     flex: 1,
-    borderRadius: 14,
     paddingVertical: 14,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
   confirmBtnConfirmText: {
     fontSize: 15,
-    fontFamily: "Inter_700Bold",
+    fontFamily: Fonts.bodyBold,
     color: "#fff",
+  },
+
+  historySection: {
+    marginHorizontal: 20,
+    marginTop: 4,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    gap: 0,
+  },
+  historySectionTitle: {
+    fontSize: 15,
+    fontFamily: Fonts.bodyBold,
+    marginBottom: 12,
+  },
+  historyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  historyIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  historyAmount: {
+    fontSize: 14,
+    fontFamily: Fonts.bodyBold,
+  },
+  historyDate: {
+    fontSize: 12,
+    fontFamily: Fonts.bodyRegular,
+    marginTop: 2,
+  },
+  statusBadge: {
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontFamily: Fonts.bodyBold,
   },
 });
