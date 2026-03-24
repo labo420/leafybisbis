@@ -52,6 +52,7 @@ export interface Profile {
   profileImageUrl?: string | null;
   hasLeafyGold?: boolean;
   loginStreak?: number;
+  lastLoginDate?: string | null;
   bpStreakDay?: number;
   bpStreakClaimed?: number;
   bpStreakCompleted?: boolean;

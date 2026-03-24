@@ -170,6 +170,7 @@ router.get("/profile", async (req, res): Promise<void> => {
     pendingValidations,
     hasLeafyGold: user.hasLeafyGold ?? false,
     loginStreak: user.loginStreak ?? 0,
+    lastLoginDate: user.lastLoginDate ? user.lastLoginDate.toISOString() : null,
     referralDropsMultiplierRemaining: user.referralDropsMultiplierRemaining ?? 0,
     bpStreakDay: user.bpStreakDay ?? 0,
     bpStreakClaimed: user.bpStreakClaimed ?? 0,

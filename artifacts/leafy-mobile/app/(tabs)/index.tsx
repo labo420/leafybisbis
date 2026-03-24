@@ -49,6 +49,7 @@ import { useNearbyLocations, type NearbyLocation } from "@/hooks/useNearbyLocati
 import { useWalkin } from "@/hooks/useWalkin";
 import type { Profile, DailyCheckinResponse } from "@workspace/api-client-react";
 import LeafyGoldModal from "@/components/LeafyGoldModal";
+import CheckinDropBurst from "@/components/CheckinDropBurst";
 
 const LEVEL_LABELS: Record<string, string> = {
   Germoglio: "Germoglio",
@@ -822,6 +823,7 @@ export default function HomeScreen() {
   } | null>(null);
 
   const [inStoreModeEnabled, setInStoreModeEnabled] = useState(true);
+  const [checkingIn, setCheckingIn] = useState(false);
   const [inStoreModeActive, setInStoreModeActive] = useState(false);
   const [walkinToast, setWalkinToast] = useState<{ locationName: string; drops: number } | null>(null);
   const [showLeafyGoldModal, setShowLeafyGoldModal] = useState(false);
@@ -867,21 +869,6 @@ export default function HomeScreen() {
     }, [user?.id])
   );
 
-  useEffect(() => {
-    if (!user) return;
-    apiFetch("/profile/daily-checkin", { method: "POST" }).then((data: DailyCheckinResponse) => {
-      if (!data.alreadyCheckedIn) {
-        setStreakToast({
-          loginStreak: data.loginStreak,
-          bonusAwarded: data.bonusAwarded,
-          dropsBonus: data.dropsBonus,
-          bpPrize: data.bpPrize ?? null,
-        });
-        setTimeout(() => setStreakToast(null), 4500);
-        refetchProfile();
-      }
-    }).catch(() => {});
-  }, [user?.id]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -900,6 +887,45 @@ export default function HomeScreen() {
       scanButtonScale.value = withSpring(1);
     });
     router.push("/(tabs)/scan");
+  };
+
+  const confettiDist = useSharedValue(0);
+  const confettiAlpha = useSharedValue(0);
+  const checkinBtnScale = useSharedValue(1);
+  const checkinBtnAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkinBtnScale.value }],
+  }));
+
+  const handleCheckin = async () => {
+    if (checkingIn) return;
+    setCheckingIn(true);
+    checkinBtnScale.value = withSequence(
+      withSpring(0.88, { damping: 10, stiffness: 320 }),
+      withSpring(1.10, { damping: 9, stiffness: 260 }),
+      withSpring(1, { damping: 14, stiffness: 200 })
+    );
+    confettiDist.value = 0;
+    confettiAlpha.value = 0;
+    confettiDist.value = withTiming(1, { duration: 720, easing: Easing.out(Easing.cubic) });
+    confettiAlpha.value = withSequence(
+      withTiming(1, { duration: 80 }),
+      withDelay(200, withTiming(0, { duration: 500 }))
+    );
+    try {
+      const data: DailyCheckinResponse = await apiFetch("/profile/daily-checkin", { method: "POST" });
+      if (!data.alreadyCheckedIn) {
+        setStreakToast({
+          loginStreak: data.loginStreak,
+          bonusAwarded: data.bonusAwarded,
+          dropsBonus: data.dropsBonus,
+          bpPrize: data.bpPrize ?? null,
+        });
+        setTimeout(() => setStreakToast(null), 4500);
+        refetchProfile();
+      }
+    } catch {} finally {
+      setCheckingIn(false);
+    }
   };
 
   const topPadding = Platform.OS === "web" ? 67 : 0;
@@ -921,6 +947,9 @@ export default function HomeScreen() {
   const username = profile?.username || user?.firstName || "Utente";
   const streak = profile?.streak ?? 0;
   const loginStreak = profile?.loginStreak ?? 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const checkedInToday = !!(profile?.lastLoginDate &&
+    new Date(profile.lastLoginDate).toISOString().slice(0, 10) === today);
   const hasLeafyGold = profile?.hasLeafyGold ?? false;
   const bpStreakDay = profile?.bpStreakDay ?? 0;
   const bpStreakClaimed = profile?.bpStreakClaimed ?? 0;
@@ -1077,6 +1106,24 @@ export default function HomeScreen() {
             <XpIcon size={15} />
           </View>
         </View>
+
+        {/* Check-in button */}
+        <View style={streakStyles.checkinBtnWrap}>
+          <Animated.View style={checkinBtnAnimStyle}>
+            <Pressable
+              onPress={handleCheckin}
+              disabled={checkedInToday || checkingIn}
+              style={[streakStyles.checkinBtn, checkedInToday && streakStyles.checkinBtnDone]}
+            >
+              <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">
+                <CheckinDropBurst dist={confettiDist} alpha={confettiAlpha} />
+              </View>
+              <Text style={[streakStyles.checkinBtnText, checkedInToday && { color: "rgba(3,105,161,0.45)" }]}>
+                {checkedInToday ? "Fatto oggi ✓" : "Fai Check In"}
+              </Text>
+            </Pressable>
+          </Animated.View>
+        </View>
       </Animated.View>
 
       {/* ── STREAK BATTLE PASS ── */}
@@ -1090,7 +1137,7 @@ export default function HomeScreen() {
             </View>
             <Text style={[streakStyles.stampWeekLabel, { color: "rgba(184,134,11,0.50)" }]}>7 giorni</Text>
           </View>
-          <View style={streakStyles.stampDivider} />
+          <View style={streakStyles.stampGoldDivider} />
 
           {/* 7 celle timbro */}
           <View style={streakStyles.stampRow}>
@@ -1103,7 +1150,7 @@ export default function HomeScreen() {
                     streakStyles.stampCell,
                     done ? streakStyles.stampGoldCellDone
                       : isNext ? streakStyles.stampGoldCellNext
-                      : streakStyles.stampCellFuture,
+                      : streakStyles.stampGoldCellFuture,
                   ]}>
                     {done && (
                       prize.type === "both" ? <Text style={{ fontSize: 14 }}>⭐</Text>
@@ -1114,14 +1161,14 @@ export default function HomeScreen() {
                   </View>
                   <Text style={[
                     streakStyles.stampLabel,
-                    { color: done ? "#B8860B" : isNext ? "rgba(184,134,11,0.70)" : "rgba(0,0,0,0.18)" },
+                    { color: done ? "#B8860B" : isNext ? "rgba(184,134,11,0.70)" : "rgba(245,158,11,0.35)" },
                   ]}>G{i + 1}</Text>
                 </View>
               );
             })}
           </View>
 
-          <View style={streakStyles.stampDivider} />
+          <View style={streakStyles.stampGoldDivider} />
 
           {/* Footer */}
           <View style={streakStyles.stampFooter}>
@@ -1843,14 +1890,15 @@ const streakStyles = StyleSheet.create({
     marginTop: 8,
     borderRadius: 16,
     padding: 14,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F0F9FF",
     borderWidth: 1,
-    borderColor: "rgba(56,189,248,0.25)",
+    borderColor: "rgba(56,189,248,0.30)",
     shadowColor: "#38BDF8",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.25,
     shadowRadius: 10,
-    elevation: 4,
+    elevation: 6,
+    overflow: "visible" as const,
   },
   stampHeader: {
     flexDirection: "row" as const,
@@ -1875,7 +1923,7 @@ const streakStyles = StyleSheet.create({
   },
   stampDivider: {
     height: 1,
-    backgroundColor: "rgba(0,0,0,0.06)",
+    backgroundColor: "rgba(56,189,248,0.18)",
     marginVertical: 10,
   },
   stampRow: {
@@ -1898,14 +1946,14 @@ const streakStyles = StyleSheet.create({
     backgroundColor: "#0EA5E9",
   },
   stampCellNext: {
-    backgroundColor: "transparent",
+    backgroundColor: "rgba(56,189,248,0.10)",
     borderWidth: 1.5,
     borderColor: "#38BDF8",
   },
   stampCellFuture: {
-    backgroundColor: "rgba(0,0,0,0.04)",
+    backgroundColor: "#E0F2FE",
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.08)",
+    borderColor: "rgba(56,189,248,0.30)",
   },
   stampLabel: {
     fontFamily: "DMSans_700Bold",
@@ -1934,7 +1982,28 @@ const streakStyles = StyleSheet.create({
   stampFooterRewardText: {
     fontFamily: "DMSans_700Bold",
     fontSize: 16,
-    color: "#1A1A2E",
+    color: "#0369A1",
+  },
+  checkinBtnWrap: {
+    marginTop: 12,
+    alignItems: "center" as const,
+    overflow: "visible" as const,
+  },
+  checkinBtn: {
+    backgroundColor: "#0EA5E9",
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+    alignItems: "center" as const,
+  },
+  checkinBtnDone: {
+    backgroundColor: "rgba(56,189,248,0.12)",
+  },
+  checkinBtnText: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 14,
+    color: "#ffffff",
+    letterSpacing: 0.5,
   },
   cardHint: {
     fontFamily: "Inter_400Regular",
@@ -1951,9 +2020,9 @@ const streakStyles = StyleSheet.create({
     borderColor: "rgba(255,215,0,0.60)",
     shadowColor: "#FFD700",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.25,
     shadowRadius: 10,
-    elevation: 4,
+    elevation: 6,
   },
   stampGoldTitle: {
     fontFamily: "DMSans_700Bold",
@@ -1961,18 +2030,28 @@ const streakStyles = StyleSheet.create({
     color: "#B8860B",
     letterSpacing: 1.5,
   },
+  stampGoldDivider: {
+    height: 1,
+    backgroundColor: "rgba(245,158,11,0.20)",
+    marginVertical: 10,
+  },
   stampGoldCellDone: {
     backgroundColor: "#F59E0B",
   },
   stampGoldCellNext: {
-    backgroundColor: "transparent",
+    backgroundColor: "rgba(245,158,11,0.10)",
     borderWidth: 1.5,
     borderColor: "#F59E0B",
+  },
+  stampGoldCellFuture: {
+    backgroundColor: "#FEF3C7",
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.30)",
   },
   stampGoldFooterRewardText: {
     fontFamily: "DMSans_700Bold",
     fontSize: 16,
-    color: "#1A1A2E",
+    color: "#92400E",
   },
 });
 
