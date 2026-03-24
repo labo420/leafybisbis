@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState, useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
@@ -219,8 +219,8 @@ export default function WalletScreen() {
   if (!user) {
     return (
       <View style={[styles.centered, { backgroundColor: theme.background }]}>
-        <Feather name="credit-card" size={48} color={theme.textMuted} />
-        <Text style={[styles.guestTitle, { color: theme.text }]}>Il tuo Wallet</Text>
+        <MaterialCommunityIcons name="sprout-outline" size={48} color={theme.textMuted} />
+        <Text style={[styles.guestTitle, { color: theme.text }]}>Il tuo Raccolto</Text>
         <Text style={[styles.guestSub, { color: theme.textSecondary }]}>
           Accedi per vedere il tuo saldo LEA.
         </Text>
