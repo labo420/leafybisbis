@@ -241,7 +241,7 @@ export default function WalletScreen() {
       </Modal>
 
       <ScrollView
-        style={[styles.container, { backgroundColor: theme.background }]}
+        style={[styles.container, { backgroundColor: "#EDF7F0" }]}
         contentContainerStyle={{ paddingTop: topPadding, paddingBottom: bottomPad }}
         showsVerticalScrollIndicator={false}
       >
