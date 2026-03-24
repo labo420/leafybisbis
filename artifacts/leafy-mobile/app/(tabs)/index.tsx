@@ -824,6 +824,7 @@ export default function HomeScreen() {
 
   const [inStoreModeEnabled, setInStoreModeEnabled] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [checkinKey, setCheckinKey] = useState(0);
   const [inStoreModeActive, setInStoreModeActive] = useState(false);
   const [walkinToast, setWalkinToast] = useState<{ locationName: string; drops: number } | null>(null);
   const [showLeafyGoldModal, setShowLeafyGoldModal] = useState(false);
@@ -892,13 +893,18 @@ export default function HomeScreen() {
   const confettiDist = useSharedValue(0);
   const confettiAlpha = useSharedValue(0);
   const checkinBtnScale = useSharedValue(1);
+  const cellBounce = useSharedValue(1);
   const checkinBtnAnimStyle = useAnimatedStyle(() => ({
     transform: [{ scale: checkinBtnScale.value }],
+  }));
+  const cellBounceStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: cellBounce.value }],
   }));
 
   const handleCheckin = async () => {
     if (checkingIn) return;
     setCheckingIn(true);
+    setCheckinKey(k => k + 1);
     checkinBtnScale.value = withSequence(
       withSpring(0.88, { damping: 10, stiffness: 320 }),
       withSpring(1.10, { damping: 9, stiffness: 260 }),
@@ -911,6 +917,9 @@ export default function HomeScreen() {
       withTiming(1, { duration: 80 }),
       withDelay(200, withTiming(0, { duration: 500 }))
     );
+    cellBounce.value = withSpring(1.4, { damping: 8, stiffness: 400 }, () => {
+      cellBounce.value = withSpring(1, { damping: 12, stiffness: 200 });
+    });
     try {
       const data: DailyCheckinResponse = await apiFetch("/profile/daily-checkin", { method: "POST" });
       if (!data.alreadyCheckedIn) {
@@ -1080,15 +1089,17 @@ export default function HomeScreen() {
           {Array.from({ length: 7 }, (_, i) => {
             const done = i < loginStreak;
             const isNext = i === loginStreak && loginStreak < 7;
+            const cellStyle = [
+              streakStyles.stampCell,
+              done ? streakStyles.stampCellDone : isNext ? streakStyles.stampCellNext : streakStyles.stampCellFuture,
+              isNext ? cellBounceStyle : undefined,
+            ];
             return (
               <View key={i} style={streakStyles.stampSlot}>
-                <View style={[
-                  streakStyles.stampCell,
-                  done ? streakStyles.stampCellDone : isNext ? streakStyles.stampCellNext : streakStyles.stampCellFuture,
-                ]}>
+                <Animated.View style={cellStyle}>
                   {done && <Image source={require("@/assets/images/streak-icon.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />}
                   {isNext && <Text style={streakStyles.stampCellNextNum}>{i + 1}</Text>}
-                </View>
+                </Animated.View>
                 <Text style={[
                   streakStyles.stampLabel,
                   { color: done ? "#0369A1" : isNext ? "rgba(3,105,161,0.65)" : "rgba(0,0,0,0.18)" },
@@ -1116,7 +1127,9 @@ export default function HomeScreen() {
               style={[streakStyles.checkinBtn, checkedInToday && streakStyles.checkinBtnDone]}
             >
               <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">
-                <CheckinDropBurst dist={confettiDist} alpha={confettiAlpha} />
+                <View style={{ width: 0, height: 0 }}>
+                  <CheckinDropBurst key={checkinKey} dist={confettiDist} alpha={confettiAlpha} />
+                </View>
               </View>
               <Text style={[streakStyles.checkinBtnText, checkedInToday && { color: "rgba(3,105,161,0.45)" }]}>
                 {checkedInToday ? "Fatto oggi ✓" : "Fai Check In"}

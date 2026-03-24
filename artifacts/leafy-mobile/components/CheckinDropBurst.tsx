@@ -1,5 +1,5 @@
-import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import React, { useState } from "react";
+import { Image, StyleSheet } from "react-native";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
@@ -9,7 +9,14 @@ const DROP = require("../assets/images/drop-xp.png");
 const RADIUS = 72;
 const SIZE = 18;
 const N = 8;
-const ANGLES = Array.from({ length: N }, (_, i) => (i * Math.PI * 2) / N);
+
+function randomAngles(): number[] {
+  return Array.from({ length: N }, (_, i) => {
+    const base = (i * 360) / N;
+    const jitter = (Math.random() - 0.5) * 50;
+    return ((base + jitter) * Math.PI) / 180;
+  });
+}
 
 interface DropProps {
   dist: SharedValue<number>;
@@ -38,20 +45,17 @@ interface Props {
 }
 
 export default function CheckinDropBurst({ dist, alpha }: Props) {
+  const [angles] = useState(randomAngles);
   return (
-    <View style={styles.origin} pointerEvents="none">
-      {ANGLES.map((angle, i) => (
+    <>
+      {angles.map((angle, i) => (
         <Drop key={i} dist={dist} alpha={alpha} angle={angle} />
       ))}
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  origin: {
-    width: 0,
-    height: 0,
-  },
   drop: {
     position: "absolute",
     width: SIZE,
