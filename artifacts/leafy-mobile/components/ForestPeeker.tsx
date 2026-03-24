@@ -174,8 +174,12 @@ export default function ForestPeeker() {
   }, [activeAnimal]);
 
   useEffect(() => {
+    let firstFire = true;
     const schedule = (): ReturnType<typeof setTimeout> => {
-      const delay = 22000 + Math.random() * 33000;
+      // First appearance: 3 seconds (so you can test immediately)
+      // Subsequent: every 25-45 seconds
+      const delay = firstFire ? 3000 : 25000 + Math.random() * 20000;
+      firstFire = false;
       return setTimeout(() => {
         if (!busy.current) {
           busy.current = true;
