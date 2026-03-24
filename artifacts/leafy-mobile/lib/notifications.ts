@@ -1,0 +1,88 @@
+import Constants from "expo-constants";
+import { Platform } from "react-native";
+
+const IS_EXPO_GO = (Constants as any).appOwnership === "expo";
+
+let Notifications: typeof import("expo-notifications") | null = null;
+
+if (!IS_EXPO_GO) {
+  try {
+    Notifications = require("expo-notifications");
+    Notifications!.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  } catch {}
+}
+
+export async function requestNotificationPermission(): Promise<boolean> {
+  if (Platform.OS === "web" || !Notifications) return false;
+  try {
+    const { status: existing } = await Notifications.getPermissionsAsync();
+    if (existing === "granted") return true;
+    const { status } = await Notifications.requestPermissionsAsync();
+    return status === "granted";
+  } catch {
+    return false;
+  }
+}
+
+export async function registerPushToken(): Promise<string | null> {
+  if (Platform.OS === "web" || !Notifications) return null;
+  try {
+    const granted = await requestNotificationPermission();
+    if (!granted) return null;
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    return tokenData.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function scheduleLocalNotification(
+  title: string,
+  body: string,
+  options: { delaySeconds?: number; silent?: boolean } = {},
+): Promise<void> {
+  if (Platform.OS === "web" || !Notifications) return;
+  try {
+    const granted = await requestNotificationPermission();
+    if (!granted) return;
+    const { delaySeconds = 0, silent = false } = options;
+    await Notifications.scheduleNotificationAsync({
+      content: { title, body, sound: !silent },
+      trigger:
+        delaySeconds > 0
+          ? {
+              type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+              seconds: delaySeconds,
+            }
+          : null,
+    });
+  } catch {}
+}
+
+export async function sendWalkinRewardNotification(
+  locationName: string,
+  drops: number,
+): Promise<void> {
+  await scheduleLocalNotification(
+    `Benvenuto in ${locationName}!`,
+    `+${drops} drops`,
+  );
+}
+
+export async function sendDiscoveryRewardNotification(
+  productName: string,
+  drops: number,
+): Promise<void> {
+  await scheduleLocalNotification(
+    "Scoperta completata!",
+    `Hai guadagnato ${drops} drops scansionando "${productName}"!`,
+  );
+}

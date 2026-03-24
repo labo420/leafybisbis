@@ -1,5 +1,8 @@
 import app from "./app";
-import { logger } from "./lib/logger";
+import { seedAllBadges } from "./seed-badges";
+import { seedKits } from "./seed-kits";
+import { seedLocations } from "./seed-locations";
+import { cleanupExpiredReceiptImages } from "./lib/receiptImageCleanup";
 
 const rawPort = process.env["PORT"];
 
@@ -15,11 +18,25 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-app.listen(port, (err) => {
-  if (err) {
-    logger.error({ err }, "Error listening on port");
-    process.exit(1);
+const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
+
+app.listen(port, async () => {
+  console.log(`Server listening on port ${port}`);
+  try {
+    await seedAllBadges();
+    await seedKits();
+    await seedLocations();
+  } catch (e) {
+    console.error("Failed to seed badges/kits/locations:", e);
   }
 
-  logger.info({ port }, "Server listening");
+  cleanupExpiredReceiptImages().catch(e =>
+    console.error("[receipt-cleanup] Initial cleanup failed:", e)
+  );
+
+  setInterval(() => {
+    cleanupExpiredReceiptImages().catch(e =>
+      console.error("[receipt-cleanup] Scheduled cleanup failed:", e)
+    );
+  }, CLEANUP_INTERVAL_MS);
 });
