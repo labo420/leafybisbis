@@ -45,20 +45,10 @@ function TabIcon({
     ],
   }));
 
-  const dotStyle = useAnimatedStyle(() => ({
-    opacity: withSpring(focused ? 1 : 0, { damping: 15, stiffness: 120 }),
-    transform: [
-      { scale: withSpring(focused ? 1 : 0.3, { damping: 15, stiffness: 120 }) },
-    ],
-  }));
-
   return (
-    <View style={styles.iconContainer}>
-      <Animated.View style={[styles.activeIconWrap, pillStyle]}>
-        <MaterialCommunityIcons name={iconName} size={24} color={color} />
-      </Animated.View>
-      <Animated.View style={[styles.activeDot, dotStyle]} />
-    </View>
+    <Animated.View style={[styles.activeIconWrap, pillStyle]}>
+      <MaterialCommunityIcons name={iconName} size={24} color={color} />
+    </Animated.View>
   );
 }
 
@@ -162,7 +152,11 @@ export default function TabLayout() {
           headerShown: false,
           tabBarActiveTintColor: theme.tabActive,
           tabBarInactiveTintColor: theme.tabInactive,
-          tabBarShowLabel: false,
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontFamily: Fonts.bodyMedium,
+            marginBottom: 0,
+          },
           tabBarStyle: {
             backgroundColor: isIOS ? "transparent" : theme.card,
             borderTopWidth: 0,
@@ -325,19 +319,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.25)",
     borderRadius: 1,
   },
-  iconContainer: {
-    alignItems: "center",
-    gap: 4,
-  },
   activeIconWrap: {
     borderRadius: 14,
     padding: 6,
-  },
-  activeDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: "#2E6B50",
   },
   scanBtnOuter: {
     width: 79,
