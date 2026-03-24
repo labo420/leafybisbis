@@ -96,7 +96,6 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
           resizeMode="contain"
         />
         <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
-        <Text style={styles.ringLabel}>LEA</Text>
       </View>
     </View>
   );
@@ -412,15 +411,9 @@ const styles = StyleSheet.create({
   },
   ringAmount: {
     fontSize: 52,
-    fontFamily: Fonts.displayBold,
-    color: LEAF_GREEN,
-    lineHeight: 56,
-  },
-  ringLabel: {
-    fontSize: 14,
     fontFamily: Fonts.bodyBold,
-    color: LEAF_DARK,
-    letterSpacing: 2,
+    color: "#ffffff",
+    lineHeight: 56,
   },
 
   goldBadge: {
