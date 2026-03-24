@@ -17,25 +17,50 @@ type AnimalId = "squirrel" | "bird" | "hedgehog" | "butterfly";
 
 const ANIMALS: AnimalId[] = ["squirrel", "bird", "hedgehog", "butterfly"];
 
-const IMAGES: Record<AnimalId, ReturnType<typeof require>> = {
-  squirrel: require("@/assets/animals/animal-squirrel.png"),
-  bird:     require("@/assets/animals/animal-bird.png"),
-  hedgehog: require("@/assets/animals/animal-hedgehog.png"),
-  butterfly:require("@/assets/animals/animal-butterfly.png"),
+// Frame arrays — each animal has 2-4 sequential frames for animation cycle
+const FRAMES: Record<AnimalId, ReturnType<typeof require>[]> = {
+  squirrel: [
+    require("@/assets/animals/sq-a.png"),
+    require("@/assets/animals/sq-b.png"),
+  ],
+  bird: [
+    require("@/assets/animals/bird-a.png"),
+    require("@/assets/animals/bird-b.png"),
+  ],
+  hedgehog: [
+    require("@/assets/animals/hog-a.png"),
+    require("@/assets/animals/hog-b.png"),
+  ],
+  butterfly: [
+    require("@/assets/animals/fly-a.png"),
+    require("@/assets/animals/fly-b.png"),
+    require("@/assets/animals/fly-c.png"),
+    require("@/assets/animals/fly-d.png"),
+  ],
+};
+
+// Frame timing in ms per frame
+const FRAME_MS: Record<AnimalId, number> = {
+  squirrel:  200,
+  bird:      140,
+  hedgehog:  240,
+  butterfly:  85,
 };
 
 const SIZES: Record<AnimalId, number> = {
   squirrel:  80,
-  bird:      68,
+  bird:      70,
   hedgehog:  76,
   butterfly: 72,
 };
 
 export default function ForestPeeker() {
   const [activeAnimal, setActiveAnimal] = useState<AnimalId | null>(null);
+  const [frame, setFrame] = useState(0);
   const fromRightRef = useRef(true);
   const busy = useRef(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const frameInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const tx     = useSharedValue(SW + 100);
   const ty     = useSharedValue(0);
@@ -49,7 +74,24 @@ export default function ForestPeeker() {
     return id;
   };
 
+  const startFrameLoop = (animal: AnimalId) => {
+    if (frameInterval.current) clearInterval(frameInterval.current);
+    setFrame(0);
+    frameInterval.current = setInterval(() => {
+      setFrame(f => (f + 1) % FRAMES[animal].length);
+    }, FRAME_MS[animal]);
+  };
+
+  const stopFrameLoop = () => {
+    if (frameInterval.current) {
+      clearInterval(frameInterval.current);
+      frameInterval.current = null;
+    }
+    setFrame(0);
+  };
+
   const finish = useCallback(() => {
+    stopFrameLoop();
     busy.current = false;
     setActiveAnimal(null);
   }, []);
@@ -66,13 +108,11 @@ export default function ForestPeeker() {
     scaleX.value = right ? -1 : 1;
     opacity.value = 1;
 
+    startFrameLoop(animal);
+
     if (animal === "butterfly") {
-      // progressSection height ≈ 256px (ring 240 + paddingVertical 8×2)
-      // bottom:18 + size:72 → top = 256-18-72 = 166 from container top
-      // Ring top at ≈ 8px from container top
-      // To land on ring top: translateY = -(166 - 8) = -158
       const LAND_TY = -158;
-      const START_TY = LAND_TY - 90; // start above landing spot (off-screen top)
+      const START_TY = LAND_TY - 90;
 
       tx.value = SW + size;
       ty.value = START_TY;
@@ -80,20 +120,8 @@ export default function ForestPeeker() {
       tx.value = withTiming(ringCX, { duration: 1050, easing: Easing.out(Easing.cubic) });
       ty.value = withTiming(LAND_TY, { duration: 1050, easing: Easing.out(Easing.cubic) });
 
-      scaleY.value = withDelay(
-        1100,
-        withRepeat(
-          withSequence(
-            withTiming(0.38, { duration: 120 }),
-            withTiming(1.0,  { duration: 120 })
-          ),
-          8,
-          false
-        )
-      );
-
+      // After landing, slow down wing flap (already handled by frame cycling)
       addTimer(() => {
-        // Fly away to upper-left
         tx.value = withTiming(-(size * 2), { duration: 950, easing: Easing.in(Easing.cubic) });
         ty.value = withTiming(LAND_TY - 80, { duration: 950, easing: Easing.in(Easing.cubic) });
         addTimer(() => {
@@ -164,6 +192,7 @@ export default function ForestPeeker() {
       clearTimeout(mainTimer);
       timers.current.forEach(clearTimeout);
       timers.current = [];
+      stopFrameLoop();
     };
   }, []);
 
@@ -182,7 +211,7 @@ export default function ForestPeeker() {
       <Animated.View style={[styles.animal, animalStyle]}>
         {activeAnimal && (
           <Image
-            source={IMAGES[activeAnimal]}
+            source={FRAMES[activeAnimal][frame]}
             style={{ width: SIZES[activeAnimal], height: SIZES[activeAnimal] }}
             resizeMode="contain"
           />
