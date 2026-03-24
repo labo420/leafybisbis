@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
-import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from "react-native-svg";
+import Svg, { Circle, Defs, G, LinearGradient as SvgLinearGradient, Stop, Text as SvgText } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PayPalLogo from "@/components/PayPalLogo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -60,45 +60,50 @@ function formatLea(n: number): string {
   return Math.floor(n).toLocaleString("it-IT", { maximumFractionDigits: 0 });
 }
 
+const CX = RING_SIZE / 2;
+const CY = RING_SIZE / 2;
+const FONT_SIZE = 52;
+
 function LeafyRing({ leaBalance }: { leaBalance: number }) {
+  const label = formatLea(leaBalance);
   return (
     <View style={styles.ringWrap}>
-      <Svg width={RING_SIZE} height={RING_SIZE} style={{ transform: [{ rotate: "-90deg" }] }}>
+      <Svg width={RING_SIZE} height={RING_SIZE}>
         <Defs>
           <SvgLinearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0%"   stopColor={LEAF_GREEN} />
             <Stop offset="100%" stopColor={LEAF_DARK}  />
           </SvgLinearGradient>
         </Defs>
-        <Circle
-          cx={RING_SIZE / 2}
-          cy={RING_SIZE / 2}
-          r={RADIUS}
-          fill="none"
-          stroke="rgba(77,184,71,0.15)"
-          strokeWidth={STROKE_WIDTH}
-        />
-        <Circle
-          cx={RING_SIZE / 2}
-          cy={RING_SIZE / 2}
-          r={RADIUS}
-          fill="none"
-          stroke="url(#ringGrad)"
-          strokeWidth={STROKE_WIDTH}
-          strokeLinecap="round"
-        />
+        {/* Ring rotated -90° around center */}
+        <G rotation={-90} origin={`${CX},${CY}`}>
+          <Circle cx={CX} cy={CY} r={RADIUS} fill="none" stroke="rgba(77,184,71,0.18)" strokeWidth={STROKE_WIDTH} />
+          <Circle cx={CX} cy={CY} r={RADIUS} fill="none" stroke="url(#ringGrad)" strokeWidth={STROKE_WIDTH} strokeLinecap="round" />
+        </G>
+        {/* Value with stroke — no rotation */}
+        <SvgText
+          x={CX}
+          y={CY + 22}
+          textAnchor="middle"
+          fontSize={FONT_SIZE}
+          fontFamily="Inter_700Bold"
+          fontWeight="bold"
+          fill="white"
+          stroke="black"
+          strokeWidth={3}
+          strokeLinejoin="round"
+        >
+          {label}
+        </SvgText>
       </Svg>
 
-      <View style={styles.ringCenter}>
+      {/* Leaf icon centred above the text */}
+      <View style={styles.ringLeafOverlay}>
         <Image
           source={require("@/assets/images/lea-icon.png")}
           style={styles.ringLeafIcon}
           resizeMode="contain"
         />
-        <View style={styles.ringAmountWrap}>
-          <Text style={[styles.ringAmount, styles.ringAmountOutline]}>{formatLea(leaBalance)}</Text>
-          <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
-        </View>
       </View>
     </View>
   );
@@ -401,37 +406,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  ringCenter: {
+  ringLeafOverlay: {
     position: "absolute",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 2,
-  },
-  ringAmountWrap: {
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringLeafIcon: {
-    width: 62,
-    height: 62,
-    marginBottom: 6,
-  },
-  ringAmount: {
-    fontSize: 52,
-    fontFamily: Fonts.bodyBold,
-    color: "#ffffff",
-    lineHeight: 56,
-  },
-  ringAmountOutline: {
-    position: "absolute",
-    color: "#000000",
     top: 0,
     left: 0,
-    transform: [{ scale: 1.03 }],
-    textShadowColor: "transparent",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 48,
+  },
+  ringLeafIcon: {
+    width: 56,
+    height: 56,
   },
 
   goldBadge: {
