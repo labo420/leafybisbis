@@ -1031,8 +1031,8 @@ export default function HomeScreen() {
             points={points}
             nextLevelPoints={nextLevelPoints}
           />
-          <ForestPeeker />
         </Animated.View>
+        <ForestPeeker />
       </View>
 
       {/* ── STREAK CLASSICA ── */}

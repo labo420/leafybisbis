@@ -228,6 +228,6 @@ export default function ForestPeeker() {
 const styles = StyleSheet.create({
   animal: {
     position: "absolute",
-    bottom: 18,
+    bottom: 26,
   },
 });
