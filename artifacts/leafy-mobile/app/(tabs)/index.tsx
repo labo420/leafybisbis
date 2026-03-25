@@ -22,6 +22,7 @@ import {
   Text,
   TextInput,
   UIManager,
+  useWindowDimensions,
   View,
 } from "react-native";
 import Animated, {
@@ -1199,6 +1200,10 @@ export default function HomeScreen() {
     );
   }
 
+  const { width: screenWidth } = useWindowDimensions();
+  // stampCardShadow: marginHorizontal 16 each side (32) + stampCard: padding 16 each side (32) = 64px total
+  const cellSize = Math.floor((screenWidth - 64) / 7) - 4;
+
   const username = profile?.username || user?.firstName || "Utente";
   const streak = profile?.streak ?? 0;
   const loginStreak = profile?.loginStreak ?? 0;
@@ -1360,7 +1365,7 @@ export default function HomeScreen() {
                 entering={FadeInDown.delay(280 + i * 60).springify()}
                 style={streakStyles.stampSlot}
               >
-                <Animated.View style={cellStyle}>
+                <Animated.View style={[cellStyle, { width: cellSize, height: cellSize }]}>
                   {done && (
                     <View style={streakStyles.stampCellDoneInner}>
                       <MaterialCommunityIcons name="check-bold" size={18} color="#fff" />
@@ -1488,6 +1493,7 @@ export default function HomeScreen() {
                       : isNext ? streakStyles.stampGoldCellNext
                       : streakStyles.stampGoldCellFuture,
                     isFinal && !done && streakStyles.stampGoldCellFinal,
+                    { width: cellSize, height: cellSize },
                   ]}>
                     {done && (
                       <View style={streakStyles.stampGoldCellDoneInner}>
@@ -2362,8 +2368,6 @@ const streakStyles = StyleSheet.create({
     flex: 1,
   },
   stampCell: {
-    width: "90%" as any,
-    aspectRatio: 1,
     borderRadius: 12,
     alignItems: "center" as const,
     justifyContent: "center" as const,
