@@ -409,45 +409,6 @@
     ]
   },
   {
-    "name": "Penny Market Milano Affori",
-    "chain": "Penny",
-    "type": "standard",
-    "address": "Via Pellegrino Rossi 40",
-    "city": "Milano",
-    "province": "MI",
-    "lat": 45.5132,
-    "lng": 9.1776,
-    "challenges": [
-      { "barcode": "8007735002412", "productName": "Latte Bio Penny", "productDescription": "Latte biologico intero a marchio Penny Market", "emoji": "🥛", "xpReward": 20 }
-    ]
-  },
-  {
-    "name": "Penny Market Roma Tuscolana",
-    "chain": "Penny",
-    "type": "standard",
-    "address": "Via Tuscolana 341",
-    "city": "Roma",
-    "province": "RM",
-    "lat": 41.8679,
-    "lng": 12.5367,
-    "challenges": [
-      { "barcode": "8007735002412", "productName": "Latte Bio Penny", "productDescription": "Latte biologico intero a marchio Penny Market", "emoji": "🥛", "xpReward": 20 }
-    ]
-  },
-  {
-    "name": "Pam Local Milano Centrale",
-    "chain": "Pam Local",
-    "type": "standard",
-    "address": "Piazza Duca d'Aosta 2",
-    "city": "Milano",
-    "province": "MI",
-    "lat": 45.4845,
-    "lng": 9.2046,
-    "challenges": [
-      { "barcode": "8001002010106", "productName": "Yogurt Bio Biologico", "productDescription": "Yogurt biologico da latte italiano, senza coloranti", "emoji": "🥛", "xpReward": 20 }
-    ]
-  },
-  {
     "name": "Sigma Roma Appio",
     "chain": "Sigma",
     "type": "standard",

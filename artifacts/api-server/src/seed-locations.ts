@@ -21,7 +21,7 @@ const locationsData: Array<{
   }>;
 }> = require("./data/locations.json");
 
-const REMOVED_CHAINS = ["NaturaSì", "Bioessepiù", "Mercato Bio", "Sfuso Bio"];
+const REMOVED_CHAINS = ["NaturaSì", "Bioessepiù", "Mercato Bio", "Sfuso Bio", "Penny", "Penny Market", "Pam", "Pam Local", "Panorama"];
 
 export async function seedLocations() {
   const deactivated = await db
