@@ -36,7 +36,6 @@ import type { Profile } from "@workspace/api-client-react";
 
 interface AcceptedStoresData {
   standard: string[];
-  bio: string[];
   discount: string[];
 }
 
@@ -130,10 +129,6 @@ function AcceptedStoresSection() {
           <View style={styles.storesCategory}>
             <Text style={[styles.storesCatTitle, { color: theme.text }]}>Supermercati</Text>
             <Text style={[styles.storesCatList, { color: theme.textSecondary }]}>{data.standard.join(", ")}</Text>
-          </View>
-          <View style={styles.storesCategory}>
-            <Text style={[styles.storesCatTitle, { color: theme.text }]}>Bio / Naturale</Text>
-            <Text style={[styles.storesCatList, { color: theme.textSecondary }]}>{data.bio.join(", ")}</Text>
           </View>
           <View style={styles.storesCategory}>
             <Text style={[styles.storesCatTitle, { color: theme.text }]}>Discount</Text>

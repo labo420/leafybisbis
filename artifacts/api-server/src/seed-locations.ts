@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { db, locationsTable, discoveryChallengesTable } from "@workspace/db";
 import { createRequire } from "module";
 
@@ -21,7 +21,19 @@ const locationsData: Array<{
   }>;
 }> = require("./data/locations.json");
 
+const REMOVED_CHAINS = ["NaturaSì", "Bioessepiù", "Mercato Bio", "Sfuso Bio"];
+
 export async function seedLocations() {
+  const deactivated = await db
+    .update(locationsTable)
+    .set({ isActive: false })
+    .where(inArray(locationsTable.chain, REMOVED_CHAINS))
+    .returning({ id: locationsTable.id });
+
+  if (deactivated.length > 0) {
+    console.log(`[seed-locations] Deactivated ${deactivated.length} removed-chain locations`);
+  }
+
   let seeded = 0;
   let skipped = 0;
 
