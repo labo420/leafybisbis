@@ -21,7 +21,7 @@ import Animated, {
   withSequence,
   Easing,
 } from "react-native-reanimated";
-import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PayPalLogo from "@/components/PayPalLogo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,8 +35,8 @@ const PAYPAL_BLUE = "#0070E0";
 const LEAF_GREEN = "#4DB847";
 const LEAF_DARK = "#2E6B50";
 
-const RING_SIZE = 260;
-const STROKE_WIDTH = 20;
+const RING_SIZE = 200;
+const STROKE_WIDTH = 16;
 const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
 
 const AMOUNTS = [
@@ -81,8 +81,8 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
     );
     pulse.value = withRepeat(
       withSequence(
-        withTiming(1.08, { duration: 2500, easing: Easing.inOut(Easing.cubic) }),
-        withTiming(1.00, { duration: 2500, easing: Easing.inOut(Easing.cubic) }),
+        withTiming(1.03, { duration: 2800, easing: Easing.inOut(Easing.cubic) }),
+        withTiming(1.00, { duration: 2800, easing: Easing.inOut(Easing.cubic) }),
       ),
       -1,
       false,
@@ -101,18 +101,12 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
     <Animated.View style={[styles.ringWrap, styles.ringGlow, pulseStyle]}>
       <Animated.View style={[{ position: "absolute", width: RING_SIZE, height: RING_SIZE }, rotateStyle]}>
         <Svg width={RING_SIZE} height={RING_SIZE}>
-          <Defs>
-            <SvgLinearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%"   stopColor={LEAF_GREEN} />
-              <Stop offset="100%" stopColor={LEAF_DARK}  />
-            </SvgLinearGradient>
-          </Defs>
           <Circle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
             r={RADIUS}
             fill="none"
-            stroke="rgba(77,184,71,0.18)"
+            stroke="rgba(46,107,80,0.15)"
             strokeWidth={STROKE_WIDTH}
           />
           <Circle
@@ -120,7 +114,7 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
             cy={RING_SIZE / 2}
             r={RADIUS}
             fill="none"
-            stroke="url(#ringGrad)"
+            stroke={LEAF_DARK}
             strokeWidth={STROKE_WIDTH}
             strokeLinecap="round"
           />
@@ -434,11 +428,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   ringGlow: {
-    shadowColor: LEAF_GREEN,
+    shadowColor: LEAF_DARK,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 22,
-    elevation: 14,
+    shadowOpacity: 0.20,
+    shadowRadius: 10,
+    elevation: 6,
   },
   ringCenter: {
     position: "absolute",
@@ -447,18 +441,18 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   ringLeafIcon: {
-    width: 62,
-    height: 62,
-    marginBottom: 6,
+    width: 46,
+    height: 46,
+    marginBottom: 4,
   },
   ringAmount: {
-    fontSize: 70,
+    fontSize: 44,
     fontFamily: Fonts.bodyBold,
     color: "#ffffff",
-    lineHeight: 78,
-    textShadowColor: "#000000",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    lineHeight: 50,
+    textShadowColor: "rgba(0,0,0,0.25)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 
   goldBadge: {

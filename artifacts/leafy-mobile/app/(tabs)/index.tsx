@@ -776,9 +776,6 @@ function GuestAuthScreen() {
 
   return (
     <View style={[authStyles.screen, { paddingTop: 0, paddingBottom: insets.bottom }]}>
-      <View style={authStyles.decoCircle1} />
-      <View style={authStyles.decoCircle2} />
-
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -2940,24 +2937,6 @@ const authStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#2E6B50",
     overflow: "hidden",
-  },
-  decoCircle1: {
-    position: "absolute",
-    top: -80,
-    right: -60,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: "rgba(255,255,255,0.06)",
-  },
-  decoCircle2: {
-    position: "absolute",
-    bottom: -40,
-    left: -50,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: "rgba(255,255,255,0.04)",
   },
   scrollContent: {
     flexGrow: 1,
