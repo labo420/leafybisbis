@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: Fonts.bodyRegular,
     color: "rgba(255,255,255,0.82)",
-    marginBottom: 12,
+    marginBottom: 2,
     textAlign: "center",
   },
   heroWrap: {
