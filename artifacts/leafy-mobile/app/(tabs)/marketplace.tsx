@@ -445,10 +445,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   ringAmount: {
-    fontSize: 52,
+    fontSize: 104,
     fontFamily: Fonts.bodyBold,
     color: "#ffffff",
-    lineHeight: 56,
+    lineHeight: 112,
     textShadowColor: "#000000",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
