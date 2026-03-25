@@ -1165,7 +1165,7 @@ const styles = StyleSheet.create({
   avatarBadgeIcon: {
     position: "absolute",
     top: 1,
-    right: -2,
+    right: 4,
     width: 56,
     height: 56,
   },
