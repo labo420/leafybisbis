@@ -1414,39 +1414,33 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View style={streakStyles.checkinBtnWrap}>
-          <Animated.View style={[{ width: "100%" }, combinedBtnStyle]}>
-            {checkedInToday ? (
-              <View style={streakStyles.checkinBtnDoneInner}>
-                <MaterialCommunityIcons name="check-circle" size={20} color="#0EA5E9" />
-                <Text style={streakStyles.checkinDoneText}>Torna domani</Text>
+        {/* ── OVERLAY CHECK IN — visibile solo se non ancora fatto oggi ── */}
+        {!checkedInToday && (
+          <Pressable
+            style={streakStyles.checkinOverlay}
+            onPress={handleCheckin}
+            disabled={checkingIn}
+          >
+            {checkinKey > 0 && (
+              <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">
+                <View style={{ width: 0, height: 0 }}>
+                  <CheckinDropBurst key={checkinKey} dist={confettiDist} alpha={confettiAlpha} />
+                </View>
               </View>
-            ) : (
-              <Pressable
-                onPress={handleCheckin}
-                disabled={checkingIn}
-                style={{ borderRadius: 14, overflow: "hidden" }}
-              >
-                {checkinKey > 0 && (
-                  <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">
-                    <View style={{ width: 0, height: 0 }}>
-                      <CheckinDropBurst key={checkinKey} dist={confettiDist} alpha={confettiAlpha} />
-                    </View>
-                  </View>
-                )}
-                <LinearGradient
-                  colors={["#38BDF8", "#0284C7", "#0369A1"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={streakStyles.checkinBtnGradient}
-                >
-                  <MaterialCommunityIcons name="water-plus" size={18} color="#fff" style={{ marginRight: 6 }} />
-                  <Text style={streakStyles.checkinBtnText}>Fai Check In</Text>
-                </LinearGradient>
-              </Pressable>
             )}
-          </Animated.View>
-        </View>
+            <Animated.View style={combinedBtnStyle}>
+              <LinearGradient
+                colors={["#38BDF8", "#0284C7", "#0369A1"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={streakStyles.checkinOverlayBtn}
+              >
+                <MaterialCommunityIcons name="water-plus" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={streakStyles.checkinBtnText}>Fai Check In</Text>
+              </LinearGradient>
+            </Animated.View>
+          </Pressable>
+        )}
       </View>
       </Animated.View>
 
@@ -2441,33 +2435,25 @@ const streakStyles = StyleSheet.create({
     fontSize: 14,
     color: "#0369A1",
   },
-  checkinBtnWrap: {
-    marginTop: 14,
-    overflow: "visible" as const,
+  checkinOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(224,244,255,0.90)",
+    borderRadius: 20,
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
   },
-  checkinBtnGradient: {
+  checkinOverlayBtn: {
     borderRadius: 14,
     paddingVertical: 14,
+    paddingHorizontal: 36,
     flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "center" as const,
-  },
-  checkinBtnDoneInner: {
-    borderRadius: 14,
-    paddingVertical: 14,
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
-    gap: 8,
-    backgroundColor: "rgba(14,165,233,0.06)",
-    borderWidth: 1.5,
-    borderColor: "rgba(14,165,233,0.18)",
-  },
-  checkinDoneText: {
-    fontFamily: "DMSans_700Bold",
-    fontSize: 14,
-    color: "#0369A1",
-    letterSpacing: 0.3,
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.30,
+    shadowRadius: 10,
+    elevation: 6,
   },
   checkinBtnText: {
     fontFamily: "DMSans_700Bold",
