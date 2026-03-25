@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: Fonts.bodyRegular,
     color: "rgba(255,255,255,0.82)",
-    marginBottom: 2,
+    marginBottom: -2,
     textAlign: "center",
   },
   heroWrap: {
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     elevation: 10,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginTop: 2,
+    marginTop: 32,
   },
   cardHeader: {
     flexDirection: "row",
