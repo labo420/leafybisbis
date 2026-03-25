@@ -830,7 +830,7 @@ function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: 
 
   return (
     <View style={[challengeStyles.cardShadow, { shadowColor: isCompleted ? "#51B888" : "#000" }]}>
-      <View style={[challengeStyles.card, { backgroundColor: theme.card }]}>
+      <View style={[challengeStyles.card, { backgroundColor: isCompleted ? "rgba(81,184,136,0.08)" : theme.card }]}>
         <View style={[challengeStyles.emojiCircle, { backgroundColor: isCompleted ? "rgba(81,184,136,0.15)" : "rgba(46,107,80,0.10)" }]}>
           <Text style={challengeStyles.emoji}>{ch.emoji}</Text>
         </View>

@@ -1160,6 +1160,9 @@ components:
           type: string
         emoji:
           type: string
+        challengeType:
+          type: string
+          description: "'daily' or 'weekly'"
         targetCount:
           type: integer
         currentCount:
@@ -1179,6 +1182,7 @@ components:
         - description
         - category
         - emoji
+        - challengeType
         - targetCount
         - currentCount
         - rewardPoints
