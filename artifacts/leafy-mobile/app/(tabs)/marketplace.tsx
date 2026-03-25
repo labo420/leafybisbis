@@ -81,8 +81,8 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
     );
     pulse.value = withRepeat(
       withSequence(
-        withTiming(1.05, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.00, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.08, { duration: 2500, easing: Easing.inOut(Easing.cubic) }),
+        withTiming(1.00, { duration: 2500, easing: Easing.inOut(Easing.cubic) }),
       ),
       -1,
       false,
