@@ -663,6 +663,13 @@ export default function ProfiloScreen() {
               <Text style={styles.avatarInitial}>{safeInitial}</Text>
             </View>
           )}
+          {hasLeafyGold && (
+            <Image
+              source={require("@/assets/images/leafy-gold-icon.png")}
+              style={styles.avatarBadgeIcon}
+              resizeMode="contain"
+            />
+          )}
           <Pressable
             style={[styles.cameraBtn, { backgroundColor: theme.leaf }]}
             onPress={handlePickImage}
@@ -1154,6 +1161,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
+  },
+  avatarBadgeIcon: {
+    position: "absolute",
+    top: 1,
+    right: -2,
+    width: 28,
+    height: 28,
   },
   username: {
     fontSize: 22,
