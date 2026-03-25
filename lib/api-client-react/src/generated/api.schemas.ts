@@ -56,6 +56,7 @@ export interface Profile {
   bpStreakDay?: number;
   bpStreakClaimed?: number;
   bpStreakCompleted?: boolean;
+  bpLastLoginDate?: string | null;
   referralDropsMultiplierRemaining?: number;
 }
 
@@ -72,10 +73,14 @@ export interface DailyCheckinResponse {
   loginStreak: number;
   bonusAwarded: boolean;
   dropsBonus: number;
-  bpPrize?: { drops: number; lea: number } | null;
+}
+
+export interface GoldCheckinResponse {
+  alreadyCheckedIn: boolean;
   bpStreakDay?: number;
   bpStreakClaimed?: number;
   bpStreakCompleted?: boolean;
+  bpPrize?: { drops: number; lea: number } | null;
 }
 
 export interface ReferralInfo {
