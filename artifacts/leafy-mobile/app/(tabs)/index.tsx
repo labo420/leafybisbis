@@ -2362,9 +2362,9 @@ const streakStyles = StyleSheet.create({
     flex: 1,
   },
   stampCell: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: "90%" as any,
+    aspectRatio: 1,
+    borderRadius: 12,
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
