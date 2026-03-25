@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   },
   proBadgeIcon: {
     position: "absolute",
-    top: 4,
+    top: 1,
     right: -2,
     width: 28,
     height: 28,
