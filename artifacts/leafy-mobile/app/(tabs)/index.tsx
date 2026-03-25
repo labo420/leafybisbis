@@ -49,7 +49,7 @@ import { useTheme } from "@/context/theme";
 import { apiFetch } from "@/lib/api";
 import { useNearbyLocations, type NearbyLocation } from "@/hooks/useNearbyLocations";
 import { useWalkin } from "@/hooks/useWalkin";
-import type { Profile, DailyCheckinResponse, Challenge } from "@workspace/api-client-react";
+import type { Profile, DailyCheckinResponse, GoldCheckinResponse, Challenge } from "@workspace/api-client-react";
 import LeafyGoldModal from "@/components/LeafyGoldModal";
 import CheckinDropBurst from "@/components/CheckinDropBurst";
 import { useLevelUp } from "@/context/level-up";
@@ -1050,6 +1050,7 @@ export default function HomeScreen() {
 
   const [inStoreModeEnabled, setInStoreModeEnabled] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [goldCheckingIn, setGoldCheckingIn] = useState(false);
   const [checkinKey, setCheckinKey] = useState(0);
   const [inStoreModeActive, setInStoreModeActive] = useState(false);
   const [walkinToast, setWalkinToast] = useState<{ locationName: string; drops: number } | null>(null);
@@ -1174,13 +1175,38 @@ export default function HomeScreen() {
           loginStreak: data.loginStreak,
           bonusAwarded: data.bonusAwarded,
           dropsBonus: data.dropsBonus,
-          bpPrize: data.bpPrize ?? null,
+          bpPrize: null,
         });
         setTimeout(() => setStreakToast(null), 4500);
         refetchProfile();
       }
     } catch {} finally {
       setCheckingIn(false);
+    }
+  };
+
+  const handleGoldCheckin = async () => {
+    if (goldCheckingIn) return;
+    setGoldCheckingIn(true);
+    checkinBtnScale.value = withSequence(
+      withSpring(0.88, { damping: 10, stiffness: 320 }),
+      withSpring(1.10, { damping: 9, stiffness: 260 }),
+      withSpring(1, { damping: 14, stiffness: 200 })
+    );
+    try {
+      const data: GoldCheckinResponse = await apiFetch("/profile/daily-checkin-gold", { method: "POST" });
+      if (!data.alreadyCheckedIn && data.bpPrize) {
+        setStreakToast({
+          loginStreak: 0,
+          bonusAwarded: false,
+          dropsBonus: 0,
+          bpPrize: data.bpPrize,
+        });
+        setTimeout(() => setStreakToast(null), 4500);
+      }
+      refetchProfile();
+    } catch {} finally {
+      setGoldCheckingIn(false);
     }
   };
 
@@ -1210,6 +1236,8 @@ export default function HomeScreen() {
   const today = new Date().toISOString().slice(0, 10);
   const checkedInToday = !!(profile?.lastLoginDate &&
     new Date(profile.lastLoginDate).toISOString().slice(0, 10) === today);
+  const bpCheckedInToday = !!(profile?.bpLastLoginDate &&
+    new Date(profile.bpLastLoginDate).toISOString().slice(0, 10) === today);
   const hasLeafyGold = profile?.hasLeafyGold ?? false;
   const bpStreakDay = profile?.bpStreakDay ?? 0;
   const bpStreakClaimed = profile?.bpStreakClaimed ?? 0;
@@ -1545,11 +1573,11 @@ export default function HomeScreen() {
           </View>
 
           {/* ── OVERLAY CHECK IN GOLD — visibile solo se Gold e non ancora fatto oggi ── */}
-          {hasLeafyGold && !checkedInToday && (
+          {hasLeafyGold && !bpCheckedInToday && (
             <Pressable
               style={streakStyles.checkinGoldOverlay}
-              onPress={handleCheckin}
-              disabled={checkingIn}
+              onPress={handleGoldCheckin}
+              disabled={goldCheckingIn}
             >
               {checkinKey > 0 && (
                 <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">

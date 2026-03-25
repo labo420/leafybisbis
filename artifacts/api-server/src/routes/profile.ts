@@ -171,6 +171,7 @@ router.get("/profile", async (req, res): Promise<void> => {
     hasLeafyGold: user.hasLeafyGold ?? false,
     loginStreak: user.loginStreak ?? 0,
     lastLoginDate: user.lastLoginDate ? user.lastLoginDate.toISOString() : null,
+    bpLastLoginDate: user.bpLastLoginDate ? user.bpLastLoginDate.toISOString() : null,
     referralDropsMultiplierRemaining: user.referralDropsMultiplierRemaining ?? 0,
     bpStreakDay: user.bpStreakDay ?? 0,
     bpStreakClaimed: user.bpStreakClaimed ?? 0,
@@ -335,7 +336,6 @@ router.post("/profile/daily-checkin", async (req, res): Promise<void> => {
 
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
-  const currentMonth = todayStr.slice(0, 7);
 
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
@@ -344,12 +344,65 @@ router.post("/profile/daily-checkin", async (req, res): Promise<void> => {
   const lastStr = user.lastLoginDate ? new Date(user.lastLoginDate).toISOString().slice(0, 10) : null;
 
   if (lastStr === todayStr) {
-    const bpCompleted = (user.bpStreakCompleted ?? false) && (user.bpStreakCompletedMonth === currentMonth);
     res.json({
       alreadyCheckedIn: true,
       loginStreak: user.loginStreak ?? 0,
       bonusAwarded: false,
       dropsBonus: 0,
+    });
+    return;
+  }
+
+  // ── Classic streak only ──
+  const STREAK_MAX = 7;
+  const STREAK_BONUS_XP = 250;
+  const prevStreak = user.loginStreak ?? 0;
+  let newStreak = lastStr === yesterdayStr ? prevStreak + 1 : 1;
+  const classicBonusAwarded = newStreak >= STREAK_MAX;
+  if (classicBonusAwarded) newStreak = 1;
+
+  const dropsGain = classicBonusAwarded ? STREAK_BONUS_XP : 0;
+
+  await db.update(usersTable).set({
+    loginStreak: newStreak,
+    lastLoginDate: today,
+    ...(dropsGain > 0 ? {
+      drops: sql`xp + ${dropsGain}`,
+      totalPoints: sql`total_points + ${dropsGain}`,
+    } : {}),
+  }).where(eq(usersTable.id, user.id));
+
+  res.json({
+    alreadyCheckedIn: false,
+    loginStreak: newStreak,
+    bonusAwarded: classicBonusAwarded,
+    dropsBonus: classicBonusAwarded ? STREAK_BONUS_XP : 0,
+  });
+});
+
+router.post("/profile/daily-checkin-gold", async (req, res): Promise<void> => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  if (!user.hasLeafyGold) {
+    res.status(403).json({ error: "Leafy Gold required" });
+    return;
+  }
+
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  const currentMonth = todayStr.slice(0, 7);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+  const bpLastStr = user.bpLastLoginDate ? new Date(user.bpLastLoginDate).toISOString().slice(0, 10) : null;
+
+  if (bpLastStr === todayStr) {
+    const bpCompleted = (user.bpStreakCompleted ?? false) && (user.bpStreakCompletedMonth === currentMonth);
+    res.json({
+      alreadyCheckedIn: true,
       bpStreakDay: user.bpStreakDay ?? 0,
       bpStreakClaimed: user.bpStreakClaimed ?? 0,
       bpStreakCompleted: bpCompleted,
@@ -358,58 +411,42 @@ router.post("/profile/daily-checkin", async (req, res): Promise<void> => {
     return;
   }
 
-  // ── Classic streak ──
-  const STREAK_MAX = 7;
-  const STREAK_BONUS_XP = 250;
-  const prevStreak = user.loginStreak ?? 0;
-  let newStreak = lastStr === yesterdayStr ? prevStreak + 1 : 1;
-  const classicBonusAwarded = newStreak >= STREAK_MAX;
-  if (classicBonusAwarded) newStreak = 1;
-
-  // ── Leafy Gold streak ──
   let bpPrize: { drops: number; lea: number } | null = null;
   let newBpDay = user.bpStreakDay ?? 0;
   let newBpClaimed = user.bpStreakClaimed ?? 0;
   let newBpCompleted = user.bpStreakCompleted ?? false;
   let newBpMonth = user.bpStreakCompletedMonth ?? null;
 
-  if (user.hasLeafyGold) {
-    // Reset monthly completion if month changed
-    if (newBpCompleted && newBpMonth !== currentMonth) {
-      newBpCompleted = false;
-      newBpClaimed = 0;
-      newBpDay = 0;
-      newBpMonth = null;
-    }
+  // Reset monthly completion if month changed
+  if (newBpCompleted && newBpMonth !== currentMonth) {
+    newBpCompleted = false;
+    newBpClaimed = 0;
+    newBpDay = 0;
+    newBpMonth = null;
+  }
 
-    if (!newBpCompleted) {
-      const bpLastStr = user.bpLastLoginDate ? new Date(user.bpLastLoginDate).toISOString().slice(0, 10) : null;
-      newBpDay = bpLastStr === yesterdayStr ? newBpDay + 1 : 1;
+  if (!newBpCompleted) {
+    newBpDay = bpLastStr === yesterdayStr ? newBpDay + 1 : 1;
 
-      // Prize unlocks when consecutive day reaches the next unclaimed slot
-      const nextPrizeDay = newBpClaimed + 1;
-      if (newBpDay >= nextPrizeDay && newBpClaimed < 7) {
-        bpPrize = BP_PRIZES[newBpClaimed];
-        newBpClaimed += 1;
-        if (newBpClaimed >= 7) {
-          newBpCompleted = true;
-          newBpMonth = currentMonth;
-        }
+    const nextPrizeDay = newBpClaimed + 1;
+    if (newBpDay >= nextPrizeDay && newBpClaimed < 7) {
+      bpPrize = BP_PRIZES[newBpClaimed];
+      newBpClaimed += 1;
+      if (newBpClaimed >= 7) {
+        newBpCompleted = true;
+        newBpMonth = currentMonth;
       }
     }
   }
 
-  // ── DB update ──
-  const totalDropsGain = (classicBonusAwarded ? STREAK_BONUS_XP : 0) + (bpPrize?.drops ?? 0);
+  const totalDropsGain = bpPrize?.drops ?? 0;
 
   await db.update(usersTable).set({
-    loginStreak: newStreak,
-    lastLoginDate: today,
     bpStreakDay: newBpDay,
     bpStreakClaimed: newBpClaimed,
     bpStreakCompleted: newBpCompleted,
     bpStreakCompletedMonth: newBpMonth,
-    ...(user.hasLeafyGold ? { bpLastLoginDate: today } : {}),
+    bpLastLoginDate: today,
     ...(totalDropsGain > 0 ? {
       drops: sql`xp + ${totalDropsGain}`,
       totalPoints: sql`total_points + ${totalDropsGain}`,
@@ -421,9 +458,6 @@ router.post("/profile/daily-checkin", async (req, res): Promise<void> => {
 
   res.json({
     alreadyCheckedIn: false,
-    loginStreak: newStreak,
-    bonusAwarded: classicBonusAwarded,
-    dropsBonus: classicBonusAwarded ? STREAK_BONUS_XP : 0,
     bpStreakDay: newBpDay,
     bpStreakClaimed: newBpClaimed,
     bpStreakCompleted: newBpCompleted,
