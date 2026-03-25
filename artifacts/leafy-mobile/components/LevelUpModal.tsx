@@ -263,19 +263,19 @@ export default function LevelUpModal({
 
         newTranslateX.value = withTiming(deltaX, {
           duration: SUCK_DURATION_MS,
-          easing: Easing.in(Easing.cubic),
+          easing: Easing.inOut(Easing.cubic),
         });
         newTranslateY.value = withTiming(deltaY, {
           duration: SUCK_DURATION_MS,
-          easing: Easing.in(Easing.cubic),
+          easing: Easing.inOut(Easing.cubic),
         });
         newScale.value = withTiming(targetScale, {
           duration: SUCK_DURATION_MS,
-          easing: Easing.in(Easing.cubic),
+          easing: Easing.inOut(Easing.cubic),
         });
         newOpacity.value = withDelay(
-          SUCK_DURATION_MS - 250,
-          withTiming(0, { duration: 250 }),
+          SUCK_DURATION_MS - 150,
+          withTiming(0, { duration: 150 }),
         );
         textOpacity.value = withTiming(0, { duration: 200 });
         backdropOpacity.value = withDelay(

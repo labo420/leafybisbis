@@ -438,7 +438,7 @@ function LevelProgressRing({
     // Al frame successivo: rivela il nuovo badge con animazione bounce
     const revealTimer = setTimeout(() => {
       badgeOpacity.value = withTiming(1, { duration: 350, easing: Easing.out(Easing.quad) });
-      badgeVScale.value = withSpring(1, { damping: 7, stiffness: 130 });
+      badgeVScale.value = withSpring(1, { damping: 12, stiffness: 100 });
       iconScale.value = withDelay(150, withSpring(newIconScale, { damping: 10, stiffness: 90 }));
     }, 50);
 
