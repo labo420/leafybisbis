@@ -74,8 +74,8 @@ const LEVEL_CONFIG = [
 
 
 
-const RING_SIZE = 240;
-const RING_STROKE = 16;
+const RING_SIZE = 190;
+const RING_STROKE = 14;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CX = RING_SIZE / 2;
 const RING_CY = RING_SIZE / 2;
@@ -130,7 +130,7 @@ const BP_PRIZES_DISPLAY = [
   { type: "both" as const, label: "150+15" },
 ];
 
-const ICON_BASE_SIZE = 90;
+const ICON_BASE_SIZE = 72;
 const ICON_MIN_SCALE = 0.75;
 const ICON_MAX_SCALE = 1.0;
 const CAN_TOP = 32;
@@ -522,7 +522,7 @@ function LevelProgressRing({
           </Animated.View>
           <Text style={[ringStyles.levelName, { color: nameColor }]}>{LEVEL_LABELS[displayedLevel] ?? displayedLevel}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-            <Text style={[ringStyles.xpProgress, { color: "#38BDF8" }]}>
+            <Text style={[ringStyles.xpProgress, { color: onDark ? "#51B888" : "#2E6B50" }]}>
               {new Intl.NumberFormat("it-IT").format(points)} / {new Intl.NumberFormat("it-IT").format(targetPts)}
             </Text>
             <XpIcon size={22} />
@@ -609,19 +609,19 @@ const ringStyles = StyleSheet.create({
   },
   outerBorder: {
     position: "absolute",
-    width: 243,
-    height: 243,
-    borderRadius: 121.5,
-    borderWidth: 2,
+    width: 193,
+    height: 193,
+    borderRadius: 96.5,
+    borderWidth: 1.5,
     top: -1.5,
     left: -1.5,
   },
   innerBorder: {
     position: "absolute",
-    width: 205,
-    height: 205,
-    borderRadius: 102.5,
-    borderWidth: 2,
+    width: 155,
+    height: 155,
+    borderRadius: 77.5,
+    borderWidth: 1.5,
     top: 17.5,
     left: 17.5,
   },
@@ -857,7 +857,7 @@ function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: 
   const pct = ch.progressPercent;
   const isCompleted = ch.isCompleted;
   const typeLabel = ch.challengeType === "daily" ? "Giornaliera" : "Settimanale";
-  const typeColor = ch.challengeType === "daily" ? "#38BDF8" : "#51B888";
+  const typeColor = ch.challengeType === "daily" ? theme.leaf : theme.mint;
 
   return (
     <View style={[challengeStyles.cardShadow, { shadowColor: isCompleted ? "#51B888" : "#000" }]}>
@@ -1313,7 +1313,7 @@ export default function HomeScreen() {
       <View
         style={[
           styles.heroSection,
-          { backgroundColor: mode === "dark" ? "#142A20" : "#F2F9F5" }
+          { backgroundColor: mode === "dark" ? "#142A20" : theme.background }
         ]}
       >
         <View style={[styles.header, { paddingTop: topPadding + 12 }]}>
@@ -1354,14 +1354,6 @@ export default function HomeScreen() {
       {/* ── STREAK CLASSICA — WOW REDESIGN ── */}
       <Animated.View entering={FadeInDown.delay(180).springify()} style={streakStyles.stampCardShadow}>
       <View style={streakStyles.stampCard}>
-        <LinearGradient
-          colors={["#E0F4FF", "#F0F9FF", "#E8F7FF"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
-        />
-        <View style={streakStyles.decorCircle1} />
-        <View style={streakStyles.decorCircle2} />
 
         <View style={streakStyles.stampHeader}>
           <View style={streakStyles.stampTitleRow}>
@@ -1371,7 +1363,7 @@ export default function HomeScreen() {
             <Text style={streakStyles.stampTitle}>CHECK IN</Text>
           </View>
           <View style={streakStyles.stampWeekPill}>
-            <MaterialCommunityIcons name="calendar-week" size={12} color="#0369A1" />
+            <MaterialCommunityIcons name="calendar-week" size={12} color="#2E6B50" />
             <Text style={streakStyles.stampWeekLabel}>{loginStreak}/7</Text>
           </View>
         </View>
@@ -1401,11 +1393,11 @@ export default function HomeScreen() {
                   )}
                   {isNext && (
                     <View style={streakStyles.stampCellGlow}>
-                      <Image source={require("@/assets/images/drop-xp.png")} style={{ width: 20, height: 20 }} resizeMode="contain" />
+                      <MaterialCommunityIcons name="plus" size={18} color="#2E6B50" />
                     </View>
                   )}
                   {!done && !isNext && isFinal && (
-                    <MaterialCommunityIcons name="trophy" size={18} color="rgba(3,105,161,0.35)" />
+                    <MaterialCommunityIcons name="trophy" size={18} color="rgba(0,0,0,0.25)" />
                   )}
                   {!done && !isNext && !isFinal && (
                     <Text style={streakStyles.stampCellFutureNum}>{i + 1}</Text>
@@ -1418,15 +1410,6 @@ export default function HomeScreen() {
               </Animated.View>
             );
           })}
-        </View>
-
-        <View style={streakStyles.progressBarBg}>
-          <LinearGradient
-            colors={["#38BDF8", "#0EA5E9", "#0369A1"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[streakStyles.progressBarFill, { width: `${Math.min((loginStreak / 7) * 100, 100)}%` }]}
-          />
         </View>
 
         <View style={streakStyles.stampFooter}>
@@ -1457,15 +1440,10 @@ export default function HomeScreen() {
               </View>
             )}
             <Animated.View style={combinedBtnStyle}>
-              <LinearGradient
-                colors={["#38BDF8", "#0284C7", "#0369A1"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={streakStyles.checkinOverlayBtn}
-              >
-                <MaterialCommunityIcons name="water-plus" size={20} color="#fff" style={{ marginRight: 8 }} />
+              <View style={streakStyles.checkinOverlayBtn}>
+                <MaterialCommunityIcons name="calendar-check" size={20} color="#fff" style={{ marginRight: 8 }} />
                 <Text style={streakStyles.checkinBtnText}>Fai Check In</Text>
-              </LinearGradient>
+              </View>
             </Animated.View>
           </Pressable>
         )}
@@ -1475,14 +1453,6 @@ export default function HomeScreen() {
       {/* ── STREAK GOLD — sempre visibile, lucchettato se no LeafyGold ── */}
       <Animated.View entering={FadeInDown.delay(220).springify()} style={streakStyles.stampGoldCardShadow}>
         <View style={streakStyles.stampGoldCard}>
-          <LinearGradient
-            colors={["#FFF8E1", "#FFFBF0", "#FEF3C7"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
-          />
-          <View style={streakStyles.decorCircleGold1} />
-          <View style={streakStyles.decorCircleGold2} />
 
           <View style={streakStyles.stampHeader}>
             <View style={streakStyles.stampTitleRow}>
@@ -1543,15 +1513,6 @@ export default function HomeScreen() {
             })}
           </View>
 
-          <View style={streakStyles.progressBarBgGold}>
-            <LinearGradient
-              colors={["#FBBF24", "#F59E0B", "#D97706"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[streakStyles.progressBarFillGold, { width: `${Math.min((bpStreakClaimed / 7) * 100, 100)}%` }]}
-            />
-          </View>
-
           <View style={streakStyles.stampFooter}>
             <View style={streakStyles.stampFooterLeft}>
               <MaterialCommunityIcons name="shield-star" size={16} color="#B8860B" />
@@ -1587,15 +1548,10 @@ export default function HomeScreen() {
                 </View>
               )}
               <Animated.View style={combinedBtnStyle}>
-                <LinearGradient
-                  colors={["#FFD700", "#F59E0B", "#D97706"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={streakStyles.checkinGoldOverlayBtn}
-                >
+                <View style={streakStyles.checkinGoldOverlayBtn}>
                   <MaterialCommunityIcons name="star-four-points" size={18} color="#fff" style={{ marginRight: 8 }} />
                   <Text style={streakStyles.checkinGoldBtnText}>Fai Check In</Text>
-                </LinearGradient>
+                </View>
               </Animated.View>
             </Pressable>
           )}
@@ -2327,37 +2283,29 @@ const streakStyles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 12,
     borderRadius: 20,
-    shadowColor: "#0EA5E9",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   stampCard: {
     borderRadius: 20,
     padding: 16,
-    backgroundColor: "#F0F9FF",
-    borderWidth: 1.5,
-    borderColor: "rgba(56,189,248,0.25)",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.06)",
     overflow: "hidden" as const,
   },
   decorCircle1: {
     position: "absolute" as const,
-    top: -30,
-    right: -30,
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(56,189,248,0.12)",
+    width: 0,
+    height: 0,
   },
   decorCircle2: {
     position: "absolute" as const,
-    bottom: -20,
-    left: -20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "rgba(14,165,233,0.08)",
+    width: 0,
+    height: 0,
   },
   stampHeader: {
     flexDirection: "row" as const,
@@ -2374,21 +2322,21 @@ const streakStyles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: "rgba(56,189,248,0.15)",
+    backgroundColor: "rgba(46,107,80,0.10)",
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   stampTitle: {
     fontFamily: "DMSans_700Bold",
     fontSize: 15,
-    color: "#0369A1",
-    letterSpacing: 1.5,
+    color: "#2E6B50",
+    letterSpacing: 0.5,
   },
   stampWeekPill: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     gap: 4,
-    backgroundColor: "rgba(3,105,161,0.08)",
+    backgroundColor: "rgba(46,107,80,0.08)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -2396,7 +2344,7 @@ const streakStyles = StyleSheet.create({
   stampWeekLabel: {
     fontFamily: "DMSans_700Bold",
     fontSize: 12,
-    color: "#0369A1",
+    color: "#2E6B50",
   },
   stampRow: {
     flexDirection: "row" as const,
@@ -2415,45 +2363,45 @@ const streakStyles = StyleSheet.create({
   stampCellFutureNum: {
     fontFamily: "DMSans_700Bold",
     fontSize: 12,
-    color: "rgba(3,105,161,0.22)",
+    color: "rgba(0,0,0,0.18)",
   },
   stampCellDone: {
-    backgroundColor: "#0EA5E9",
+    backgroundColor: "#2E6B50",
   },
   stampCellDoneInner: {
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   stampCellNext: {
-    backgroundColor: "rgba(56,189,248,0.12)",
+    backgroundColor: "rgba(46,107,80,0.08)",
     borderWidth: 2,
-    borderColor: "#38BDF8",
+    borderColor: "#2E6B50",
   },
   stampCellGlow: {
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   stampCellFuture: {
-    backgroundColor: "rgba(224,242,254,0.60)",
+    backgroundColor: "rgba(0,0,0,0.03)",
     borderWidth: 1,
-    borderColor: "rgba(56,189,248,0.20)",
+    borderColor: "rgba(0,0,0,0.08)",
     ...(Platform.OS === "ios" ? { borderStyle: "dashed" as const } : {}),
   },
   stampCellFinal: {
     borderWidth: 1.5,
-    borderColor: "rgba(3,105,161,0.30)",
+    borderColor: "rgba(0,0,0,0.12)",
     ...(Platform.OS === "ios" ? { borderStyle: "dashed" as const } : {}),
-    backgroundColor: "rgba(224,242,254,0.80)",
+    backgroundColor: "rgba(0,0,0,0.03)",
   },
   stampLabel: {
     fontFamily: "DMSans_700Bold",
     fontSize: 9,
   },
   stampLabelDone: {
-    color: "#0369A1",
+    color: "#2E6B50",
   },
   stampLabelNext: {
-    color: "rgba(3,105,161,0.65)",
+    color: "rgba(46,107,80,0.65)",
   },
   stampLabelFuture: {
     color: "rgba(0,0,0,0.15)",
@@ -2481,7 +2429,7 @@ const streakStyles = StyleSheet.create({
     flexDirection: "row" as const,
     alignItems: "center" as const,
     gap: 4,
-    backgroundColor: "rgba(3,105,161,0.08)",
+    backgroundColor: "rgba(46,107,80,0.08)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -2489,11 +2437,11 @@ const streakStyles = StyleSheet.create({
   stampFooterRewardText: {
     fontFamily: "DMSans_700Bold",
     fontSize: 14,
-    color: "#0369A1",
+    color: "#2E6B50",
   },
   checkinOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(224,244,255,0.90)",
+    backgroundColor: "rgba(248,249,250,0.94)",
     borderRadius: 20,
     justifyContent: "center" as const,
     alignItems: "center" as const,
@@ -2505,9 +2453,10 @@ const streakStyles = StyleSheet.create({
     flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "center" as const,
-    shadowColor: "#0284C7",
+    backgroundColor: "#2E6B50",
+    shadowColor: "#2E6B50",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.30,
+    shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 6,
   },
@@ -2525,9 +2474,10 @@ const streakStyles = StyleSheet.create({
     flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "center" as const,
-    shadowColor: "#D97706",
+    backgroundColor: "#D4A017",
+    shadowColor: "#D4A017",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.30,
     shadowRadius: 10,
     elevation: 6,
   },
@@ -2564,18 +2514,18 @@ const streakStyles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 12,
     borderRadius: 20,
-    shadowColor: "#F59E0B",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.20,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   stampGoldCard: {
     borderRadius: 20,
     padding: 16,
-    backgroundColor: "#FFFBF0",
-    borderWidth: 1.5,
-    borderColor: "rgba(255,215,0,0.45)",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "rgba(212,160,23,0.18)",
     overflow: "hidden" as const,
   },
   goldLockedOverlay: {
@@ -2628,21 +2578,13 @@ const streakStyles = StyleSheet.create({
   },
   decorCircleGold1: {
     position: "absolute" as const,
-    top: -30,
-    right: -30,
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(245,158,11,0.10)",
+    width: 0,
+    height: 0,
   },
   decorCircleGold2: {
     position: "absolute" as const,
-    bottom: -20,
-    left: -20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "rgba(251,191,36,0.08)",
+    width: 0,
+    height: 0,
   },
   stampGoldIconWrap: {
     width: 32,

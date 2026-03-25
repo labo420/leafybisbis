@@ -85,7 +85,7 @@ function FloatingScanButton({ focused }: { focused: boolean }) {
           end={{ x: 1, y: 1 }}
           style={styles.scanBtnGradient}
         >
-          <MaterialCommunityIcons name="camera-outline" size={30} color="#fff" />
+          <MaterialCommunityIcons name="camera-outline" size={24} color="#fff" />
         </LinearGradient>
       </Animated.View>
       {focused && <View style={styles.scanBtnRing} />}
@@ -281,8 +281,8 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   balanceBar: {
     backgroundColor: "#2E6B50",
-    paddingTop: 6,
-    paddingBottom: 10,
+    paddingTop: 4,
+    paddingBottom: 6,
     paddingHorizontal: 16,
   },
   balanceInner: {
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   balanceChipValue: {
-    fontSize: 32,
+    fontSize: 18,
     fontFamily: Fonts.bodyBold,
     color: "#ffffff",
   },
@@ -324,31 +324,31 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   scanBtnOuter: {
-    width: 79,
-    height: 79,
-    borderRadius: 39.5,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 8,
   },
   scanBtnGradient: {
-    width: 73,
-    height: 73,
-    borderRadius: 36.5,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: "center",
     justifyContent: "center",
   },
   scanBtnRing: {
     position: "absolute",
-    width: 91,
-    height: 91,
-    borderRadius: 45.5,
-    borderWidth: 3,
-    borderColor: "rgba(46,107,80,0.20)",
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    borderWidth: 2,
+    borderColor: "rgba(46,107,80,0.18)",
   },
   proBadgeIcon: {
     position: "absolute",
