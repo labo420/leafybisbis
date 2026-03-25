@@ -1127,68 +1127,109 @@ export default function HomeScreen() {
         </Animated.View>
       </View>
 
-      {/* ── STREAK CLASSICA ── */}
-      <Animated.View entering={FadeInDown.delay(180).springify()} style={streakStyles.stampCard}>
-        {/* Header */}
+      {/* ── STREAK CLASSICA — WOW REDESIGN ── */}
+      <Animated.View entering={FadeInDown.delay(180).springify()} style={streakStyles.stampCardShadow}>
+      <View style={streakStyles.stampCard}>
+        <LinearGradient
+          colors={["#E0F4FF", "#F0F9FF", "#E8F7FF"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
+        />
+        <View style={streakStyles.decorCircle1} />
+        <View style={streakStyles.decorCircle2} />
+
         <View style={streakStyles.stampHeader}>
           <View style={streakStyles.stampTitleRow}>
-            <Image source={require("@/assets/images/streak-icon.png")} style={{ width: 16, height: 16 }} resizeMode="contain" />
+            <View style={streakStyles.stampIconWrap}>
+              <Image source={require("@/assets/images/streak-icon.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />
+            </View>
             <Text style={streakStyles.stampTitle}>CHECK IN</Text>
           </View>
-          <Text style={streakStyles.stampWeekLabel}>7 giorni</Text>
+          <View style={streakStyles.stampWeekPill}>
+            <MaterialCommunityIcons name="calendar-week" size={12} color="#0369A1" />
+            <Text style={streakStyles.stampWeekLabel}>{loginStreak}/7</Text>
+          </View>
         </View>
-        <View style={streakStyles.stampDivider} />
-        {/* 7 timbri */}
+
         <View style={streakStyles.stampRow}>
           {Array.from({ length: 7 }, (_, i) => {
             const done = i < loginStreak;
             const isNext = i === loginStreak && loginStreak < 7;
+            const isFinal = i === 6;
             const cellStyle = [
               streakStyles.stampCell,
               done ? streakStyles.stampCellDone : isNext ? streakStyles.stampCellNext : streakStyles.stampCellFuture,
+              isFinal && !done && streakStyles.stampCellFinal,
               isNext ? cellBounceStyle : undefined,
             ];
             return (
-              <View key={i} style={streakStyles.stampSlot}>
+              <Animated.View
+                key={i}
+                entering={FadeInDown.delay(280 + i * 60).springify()}
+                style={streakStyles.stampSlot}
+              >
                 <Animated.View style={cellStyle}>
-                  {done && <Image source={require("@/assets/images/streak-icon.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />}
-                  {isNext && <Text style={streakStyles.stampCellNextNum}>{i + 1}</Text>}
-                  {!done && !isNext && <Text style={streakStyles.stampCellFutureNum}>{i + 1}</Text>}
+                  {done && (
+                    <View style={streakStyles.stampCellDoneInner}>
+                      <MaterialCommunityIcons name="check-bold" size={18} color="#fff" />
+                    </View>
+                  )}
+                  {isNext && (
+                    <View style={streakStyles.stampCellGlow}>
+                      <Image source={require("@/assets/images/drop-xp.png")} style={{ width: 20, height: 20 }} resizeMode="contain" />
+                    </View>
+                  )}
+                  {!done && !isNext && isFinal && (
+                    <MaterialCommunityIcons name="trophy" size={18} color="rgba(3,105,161,0.35)" />
+                  )}
+                  {!done && !isNext && !isFinal && (
+                    <Text style={streakStyles.stampCellFutureNum}>{i + 1}</Text>
+                  )}
                 </Animated.View>
                 <Text style={[
                   streakStyles.stampLabel,
-                  { color: done ? "#0369A1" : isNext ? "rgba(3,105,161,0.65)" : "rgba(0,0,0,0.18)" },
-                ]}>{i + 1}</Text>
-              </View>
+                  done ? streakStyles.stampLabelDone : isNext ? streakStyles.stampLabelNext : streakStyles.stampLabelFuture,
+                ]}>{done ? "fatto" : isFinal ? "bonus" : `G${i + 1}`}</Text>
+              </Animated.View>
             );
           })}
         </View>
-        {/* Progress bar */}
+
         <View style={streakStyles.progressBarBg}>
-          <View style={[streakStyles.progressBarFill, { width: `${Math.min((loginStreak / 7) * 100, 100)}%` }]} />
+          <LinearGradient
+            colors={["#38BDF8", "#0EA5E9", "#0369A1"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[streakStyles.progressBarFill, { width: `${Math.min((loginStreak / 7) * 100, 100)}%` }]}
+          />
         </View>
-        {/* Footer: giorno e premio */}
+
         <View style={streakStyles.stampFooter}>
-          <Text style={streakStyles.stampFooterDay}>Giorno {loginStreak}/7</Text>
+          <View style={streakStyles.stampFooterLeft}>
+            <MaterialCommunityIcons name="fire" size={16} color="#F97316" />
+            <Text style={streakStyles.stampFooterDay}>{loginStreak > 0 ? `${loginStreak} giorni di fila` : "Inizia oggi"}</Text>
+          </View>
           <View style={streakStyles.stampFooterReward}>
-            <Text style={streakStyles.stampFooterRewardText}>+250</Text>
-            <XpIcon size={15} />
+            <View style={streakStyles.rewardPill}>
+              <Text style={streakStyles.stampFooterRewardText}>+250</Text>
+              <XpIcon size={14} />
+            </View>
           </View>
         </View>
 
-        {/* Check-in button */}
         <View style={streakStyles.checkinBtnWrap}>
           <Animated.View style={[{ width: "100%" }, combinedBtnStyle]}>
             {checkedInToday ? (
               <View style={streakStyles.checkinBtnDoneInner}>
-                <Text style={streakStyles.checkinDoneCheckmark}>✓</Text>
+                <MaterialCommunityIcons name="check-circle" size={20} color="#0EA5E9" />
                 <Text style={streakStyles.checkinDoneText}>Torna domani</Text>
               </View>
             ) : (
               <Pressable
                 onPress={handleCheckin}
                 disabled={checkingIn}
-                style={{ borderRadius: 12, overflow: "hidden" }}
+                style={{ borderRadius: 14, overflow: "hidden" }}
               >
                 {checkinKey > 0 && (
                   <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">
@@ -1198,87 +1239,120 @@ export default function HomeScreen() {
                   </View>
                 )}
                 <LinearGradient
-                  colors={["#38BDF8", "#0369A1"]}
+                  colors={["#38BDF8", "#0284C7", "#0369A1"]}
                   start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+                  end={{ x: 1, y: 1 }}
                   style={streakStyles.checkinBtnGradient}
                 >
+                  <MaterialCommunityIcons name="water-plus" size={18} color="#fff" style={{ marginRight: 6 }} />
                   <Text style={streakStyles.checkinBtnText}>Fai Check In</Text>
                 </LinearGradient>
               </Pressable>
             )}
           </Animated.View>
         </View>
+      </View>
       </Animated.View>
 
-      {/* ── STREAK BATTLE PASS ── */}
+      {/* ── STREAK GOLD — WOW REDESIGN ── */}
       {hasLeafyGold && (
-        <Animated.View entering={FadeInDown.delay(220).springify()} style={streakStyles.stampGoldCard}>
+        <Animated.View entering={FadeInDown.delay(220).springify()} style={streakStyles.stampGoldCardShadow}>
+          <View style={streakStyles.stampGoldCard}>
           <LinearGradient
-            colors={["#FFFBF0", "#FEF3C7"]}
+            colors={["#FFF8E1", "#FFFBF0", "#FEF3C7"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
+            style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
           />
-          {/* Header */}
+          <View style={streakStyles.decorCircleGold1} />
+          <View style={streakStyles.decorCircleGold2} />
+
           <View style={streakStyles.stampHeader}>
             <View style={streakStyles.stampTitleRow}>
-              <Image source={require("@/assets/images/leafy-gold-icon.png")} style={{ width: 16, height: 16 }} resizeMode="contain" />
+              <View style={streakStyles.stampGoldIconWrap}>
+                <Image source={require("@/assets/images/leafy-gold-icon.png")} style={{ width: 18, height: 18 }} resizeMode="contain" />
+              </View>
               <Text style={streakStyles.stampGoldTitle}>CHECK IN GOLD</Text>
             </View>
-            <Text style={[streakStyles.stampWeekLabel, { color: "rgba(184,134,11,0.50)" }]}>7 giorni</Text>
+            <View style={streakStyles.stampWeekPillGold}>
+              <MaterialCommunityIcons name="star-four-points" size={12} color="#B8860B" />
+              <Text style={[streakStyles.stampWeekLabel, { color: "#B8860B" }]}>{bpStreakClaimed}/7</Text>
+            </View>
           </View>
-          <View style={streakStyles.stampGoldDivider} />
 
-          {/* 7 celle timbro */}
           <View style={streakStyles.stampRow}>
             {BP_PRIZES_DISPLAY.map((prize, i) => {
               const done = i < bpStreakClaimed;
               const isNext = i === bpStreakClaimed && !bpStreakCompleted;
+              const isFinal = i === 6;
               return (
-                <View key={i} style={streakStyles.stampSlot}>
+                <Animated.View
+                  key={i}
+                  entering={FadeInDown.delay(320 + i * 60).springify()}
+                  style={streakStyles.stampSlot}
+                >
                   <View style={[
                     streakStyles.stampCell,
                     done ? streakStyles.stampGoldCellDone
                       : isNext ? streakStyles.stampGoldCellNext
                       : streakStyles.stampGoldCellFuture,
+                    isFinal && !done && streakStyles.stampGoldCellFinal,
                   ]}>
                     {done && (
-                      prize.type === "both" ? <Text style={{ fontSize: 14 }}>⭐</Text>
-                      : prize.type === "lea" ? <LeaIcon size={16} />
-                      : <XpIcon size={16} />
+                      <View style={streakStyles.stampGoldCellDoneInner}>
+                        {prize.type === "both" ? <Text style={{ fontSize: 14 }}>⭐</Text>
+                          : prize.type === "lea" ? <LeaIcon size={16} />
+                          : <MaterialCommunityIcons name="check-bold" size={16} color="#fff" />
+                        }
+                      </View>
                     )}
-                    {isNext && <Text style={[streakStyles.stampCellNextNum, { color: "#B8860B" }]}>{i + 1}</Text>}
-                    {!done && !isNext && <Text style={streakStyles.stampGoldFutureNum}>{i + 1}</Text>}
+                    {isNext && (
+                      <View style={streakStyles.stampCellGlow}>
+                        <MaterialCommunityIcons name="star-four-points" size={18} color="#B8860B" />
+                      </View>
+                    )}
+                    {!done && !isNext && isFinal && (
+                      <MaterialCommunityIcons name="crown" size={18} color="rgba(184,134,11,0.35)" />
+                    )}
+                    {!done && !isNext && !isFinal && <Text style={streakStyles.stampGoldFutureNum}>{i + 1}</Text>}
                   </View>
                   <Text style={[
                     streakStyles.goldPrizeLabel,
-                    { color: done ? "#B8860B" : isNext ? "rgba(184,134,11,0.85)" : "rgba(245,158,11,0.45)" },
+                    { color: done ? "#B8860B" : isNext ? "rgba(184,134,11,0.85)" : "rgba(245,158,11,0.40)" },
                   ]}>{prize.label}</Text>
-                </View>
+                </Animated.View>
               );
             })}
           </View>
 
-          {/* Progress bar gold */}
           <View style={streakStyles.progressBarBgGold}>
-            <View style={[streakStyles.progressBarFillGold, { width: `${Math.min((bpStreakClaimed / 7) * 100, 100)}%` }]} />
+            <LinearGradient
+              colors={["#FBBF24", "#F59E0B", "#D97706"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[streakStyles.progressBarFillGold, { width: `${Math.min((bpStreakClaimed / 7) * 100, 100)}%` }]}
+            />
           </View>
 
-          {/* Footer */}
           <View style={streakStyles.stampFooter}>
-            <Text style={streakStyles.stampFooterDay}>
-              {bpStreakCompleted ? "Completata ✓" : `Premio ${bpStreakClaimed}/7`}
-            </Text>
+            <View style={streakStyles.stampFooterLeft}>
+              <MaterialCommunityIcons name="shield-star" size={16} color="#B8860B" />
+              <Text style={[streakStyles.stampFooterDay, { color: "rgba(146,64,14,0.60)" }]}>
+                {bpStreakCompleted ? "Completata" : `Premio ${bpStreakClaimed}/7`}
+              </Text>
+            </View>
             {!bpStreakCompleted && (
               <View style={streakStyles.stampFooterReward}>
-                <Text style={streakStyles.stampGoldFooterRewardText}>
-                  +{BP_PRIZES_DISPLAY[bpStreakClaimed]?.label ?? ""}
-                </Text>
-                {(BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "drops" || BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "both") && <XpIcon size={15} />}
-                {(BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "lea" || BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "both") && <LeaIcon size={15} />}
+                <View style={streakStyles.rewardPillGold}>
+                  <Text style={streakStyles.stampGoldFooterRewardText}>
+                    +{BP_PRIZES_DISPLAY[bpStreakClaimed]?.label ?? ""}
+                  </Text>
+                  {(BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "drops" || BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "both") && <XpIcon size={13} />}
+                  {(BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "lea" || BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "both") && <LeaIcon size={13} />}
+                </View>
               </View>
             )}
+          </View>
           </View>
         </Animated.View>
       )}
@@ -1980,46 +2054,80 @@ const streakStyles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 11,
   },
-  stampCard: {
+  stampCardShadow: {
     marginHorizontal: 16,
-    marginTop: 8,
-    borderRadius: 16,
-    padding: 14,
+    marginTop: 12,
+    borderRadius: 20,
+    shadowColor: "#0EA5E9",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  stampCard: {
+    borderRadius: 20,
+    padding: 16,
     backgroundColor: "#F0F9FF",
-    borderWidth: 1,
-    borderColor: "rgba(56,189,248,0.30)",
-    shadowColor: "#38BDF8",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 6,
-    overflow: "visible" as const,
+    borderWidth: 1.5,
+    borderColor: "rgba(56,189,248,0.25)",
+    overflow: "hidden" as const,
+  },
+  decorCircle1: {
+    position: "absolute" as const,
+    top: -30,
+    right: -30,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(56,189,248,0.12)",
+  },
+  decorCircle2: {
+    position: "absolute" as const,
+    bottom: -20,
+    left: -20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(14,165,233,0.08)",
   },
   stampHeader: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "space-between" as const,
+    marginBottom: 14,
   },
   stampTitleRow: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
-    gap: 6,
+    gap: 8,
+  },
+  stampIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "rgba(56,189,248,0.15)",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
   stampTitle: {
     fontFamily: "DMSans_700Bold",
-    fontSize: 13,
+    fontSize: 15,
     color: "#0369A1",
-    letterSpacing: 1.2,
+    letterSpacing: 1.5,
+  },
+  stampWeekPill: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 4,
+    backgroundColor: "rgba(3,105,161,0.08)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   stampWeekLabel: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 11,
-    color: "rgba(3,105,161,0.45)",
-  },
-  stampDivider: {
-    height: 1,
-    backgroundColor: "rgba(56,189,248,0.18)",
-    marginVertical: 10,
+    fontFamily: "DMSans_700Bold",
+    fontSize: 12,
+    color: "#0369A1",
   },
   stampRow: {
     flexDirection: "row" as const,
@@ -2031,84 +2139,122 @@ const streakStyles = StyleSheet.create({
     flex: 1,
   },
   stampCell: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   stampCellFutureNum: {
     fontFamily: "DMSans_700Bold",
     fontSize: 12,
-    color: "rgba(3,105,161,0.25)",
+    color: "rgba(3,105,161,0.22)",
   },
   stampCellDone: {
     backgroundColor: "#0EA5E9",
+    shadowColor: "#0EA5E9",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  stampCellDoneInner: {
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
   stampCellNext: {
-    backgroundColor: "rgba(56,189,248,0.10)",
-    borderWidth: 1.5,
+    backgroundColor: "rgba(56,189,248,0.08)",
+    borderWidth: 2,
     borderColor: "#38BDF8",
+    shadowColor: "#38BDF8",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  stampCellGlow: {
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
   stampCellFuture: {
-    backgroundColor: "#E0F2FE",
+    backgroundColor: "rgba(224,242,254,0.60)",
     borderWidth: 1,
-    borderColor: "rgba(56,189,248,0.30)",
+    borderColor: "rgba(56,189,248,0.20)",
+    ...(Platform.OS === "ios" ? { borderStyle: "dashed" as const } : {}),
+  },
+  stampCellFinal: {
+    borderWidth: 1.5,
+    borderColor: "rgba(3,105,161,0.30)",
+    ...(Platform.OS === "ios" ? { borderStyle: "dashed" as const } : {}),
+    backgroundColor: "rgba(224,242,254,0.80)",
   },
   stampLabel: {
     fontFamily: "DMSans_700Bold",
     fontSize: 9,
   },
-  stampCellNextNum: {
-    fontFamily: "DMSans_700Bold",
-    fontSize: 13,
+  stampLabelDone: {
     color: "#0369A1",
+  },
+  stampLabelNext: {
+    color: "rgba(3,105,161,0.65)",
+  },
+  stampLabelFuture: {
+    color: "rgba(0,0,0,0.15)",
   },
   stampFooter: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "space-between" as const,
   },
-  stampFooterDay: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    color: "rgba(0,0,0,0.40)",
-  },
-  stampFooterReward: {
+  stampFooterLeft: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     gap: 5,
   },
+  stampFooterDay: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: "rgba(0,0,0,0.45)",
+  },
+  stampFooterReward: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+  },
+  rewardPill: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 4,
+    backgroundColor: "rgba(3,105,161,0.08)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
   stampFooterRewardText: {
     fontFamily: "DMSans_700Bold",
-    fontSize: 16,
+    fontSize: 14,
     color: "#0369A1",
   },
   checkinBtnWrap: {
-    marginTop: 12,
+    marginTop: 14,
     overflow: "visible" as const,
   },
   checkinBtnGradient: {
-    borderRadius: 12,
-    paddingVertical: 13,
+    borderRadius: 14,
+    paddingVertical: 14,
+    flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   checkinBtnDoneInner: {
-    borderRadius: 12,
-    paddingVertical: 13,
+    borderRadius: 14,
+    paddingVertical: 14,
     flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "center" as const,
     gap: 8,
-    backgroundColor: "rgba(14,165,233,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(14,165,233,0.22)",
-  },
-  checkinDoneCheckmark: {
-    fontFamily: "DMSans_700Bold",
-    fontSize: 17,
-    color: "#0EA5E9",
+    backgroundColor: "rgba(14,165,233,0.06)",
+    borderWidth: 1.5,
+    borderColor: "rgba(14,165,233,0.18)",
   },
   checkinDoneText: {
     fontFamily: "DMSans_700Bold",
@@ -2118,76 +2264,138 @@ const streakStyles = StyleSheet.create({
   },
   checkinBtnText: {
     fontFamily: "DMSans_700Bold",
-    fontSize: 14,
+    fontSize: 15,
     color: "#ffffff",
     letterSpacing: 0.5,
   },
   progressBarBg: {
-    height: 4,
-    backgroundColor: "rgba(56,189,248,0.15)",
-    borderRadius: 2,
-    marginTop: 10,
-    marginBottom: 8,
+    height: 6,
+    backgroundColor: "rgba(56,189,248,0.12)",
+    borderRadius: 3,
+    marginTop: 12,
+    marginBottom: 10,
     overflow: "hidden" as const,
   },
   progressBarFill: {
-    height: 4,
-    backgroundColor: "#38BDF8",
-    borderRadius: 2,
+    height: 6,
+    borderRadius: 3,
   },
   cardHint: {
     fontFamily: "Inter_400Regular",
     fontSize: 11,
     lineHeight: 15,
   },
-  stampGoldCard: {
+  stampGoldCardShadow: {
     marginHorizontal: 16,
-    marginTop: 8,
-    borderRadius: 16,
-    padding: 14,
+    marginTop: 12,
+    borderRadius: 20,
+    shadowColor: "#F59E0B",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.20,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  stampGoldCard: {
+    borderRadius: 20,
+    padding: 16,
     backgroundColor: "#FFFBF0",
     borderWidth: 1.5,
-    borderColor: "rgba(255,215,0,0.60)",
-    shadowColor: "#FFD700",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 6,
+    borderColor: "rgba(255,215,0,0.45)",
     overflow: "hidden" as const,
+  },
+  decorCircleGold1: {
+    position: "absolute" as const,
+    top: -30,
+    right: -30,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(245,158,11,0.10)",
+  },
+  decorCircleGold2: {
+    position: "absolute" as const,
+    bottom: -20,
+    left: -20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(251,191,36,0.08)",
+  },
+  stampGoldIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "rgba(245,158,11,0.12)",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+  stampWeekPillGold: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 4,
+    backgroundColor: "rgba(184,134,11,0.08)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   stampGoldTitle: {
     fontFamily: "DMSans_700Bold",
-    fontSize: 13,
+    fontSize: 15,
     color: "#B8860B",
     letterSpacing: 1.5,
   },
-  stampGoldDivider: {
-    height: 1,
-    backgroundColor: "rgba(245,158,11,0.20)",
-    marginVertical: 10,
-  },
   stampGoldCellDone: {
     backgroundColor: "#F59E0B",
+    shadowColor: "#F59E0B",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  stampGoldCellDoneInner: {
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
   stampGoldCellNext: {
-    backgroundColor: "rgba(245,158,11,0.10)",
-    borderWidth: 1.5,
+    backgroundColor: "rgba(245,158,11,0.08)",
+    borderWidth: 2,
     borderColor: "#F59E0B",
+    shadowColor: "#FBBF24",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 6,
   },
   stampGoldCellFuture: {
-    backgroundColor: "#FEF3C7",
+    backgroundColor: "rgba(254,243,199,0.60)",
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.30)",
+    borderColor: "rgba(245,158,11,0.20)",
+    ...(Platform.OS === "ios" ? { borderStyle: "dashed" as const } : {}),
+  },
+  stampGoldCellFinal: {
+    borderWidth: 1.5,
+    borderColor: "rgba(184,134,11,0.30)",
+    ...(Platform.OS === "ios" ? { borderStyle: "dashed" as const } : {}),
+    backgroundColor: "rgba(254,243,199,0.80)",
   },
   stampGoldFooterRewardText: {
     fontFamily: "DMSans_700Bold",
-    fontSize: 16,
+    fontSize: 13,
     color: "#92400E",
+  },
+  rewardPillGold: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 4,
+    backgroundColor: "rgba(184,134,11,0.08)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   stampGoldFutureNum: {
     fontFamily: "DMSans_700Bold",
     fontSize: 12,
-    color: "rgba(184,134,11,0.30)",
+    color: "rgba(184,134,11,0.22)",
   },
   goldPrizeLabel: {
     fontFamily: "DMSans_700Bold",
@@ -2195,17 +2403,16 @@ const streakStyles = StyleSheet.create({
     textAlign: "center" as const,
   },
   progressBarBgGold: {
-    height: 4,
-    backgroundColor: "rgba(245,158,11,0.15)",
-    borderRadius: 2,
-    marginTop: 10,
-    marginBottom: 8,
+    height: 6,
+    backgroundColor: "rgba(245,158,11,0.12)",
+    borderRadius: 3,
+    marginTop: 12,
+    marginBottom: 10,
     overflow: "hidden" as const,
   },
   progressBarFillGold: {
-    height: 4,
-    backgroundColor: "#F59E0B",
-    borderRadius: 2,
+    height: 6,
+    borderRadius: 3,
   },
 });
 
