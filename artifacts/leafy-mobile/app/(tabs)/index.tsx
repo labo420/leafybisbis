@@ -2152,25 +2152,15 @@ const streakStyles = StyleSheet.create({
   },
   stampCellDone: {
     backgroundColor: "#0EA5E9",
-    shadowColor: "#0EA5E9",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 4,
   },
   stampCellDoneInner: {
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   stampCellNext: {
-    backgroundColor: "rgba(56,189,248,0.08)",
+    backgroundColor: "rgba(56,189,248,0.12)",
     borderWidth: 2,
     borderColor: "#38BDF8",
-    shadowColor: "#38BDF8",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 10,
-    elevation: 6,
   },
   stampCellGlow: {
     alignItems: "center" as const,
@@ -2346,25 +2336,15 @@ const streakStyles = StyleSheet.create({
   },
   stampGoldCellDone: {
     backgroundColor: "#F59E0B",
-    shadowColor: "#F59E0B",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 4,
   },
   stampGoldCellDoneInner: {
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   stampGoldCellNext: {
-    backgroundColor: "rgba(245,158,11,0.08)",
+    backgroundColor: "rgba(245,158,11,0.12)",
     borderWidth: 2,
     borderColor: "#F59E0B",
-    shadowColor: "#FBBF24",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 10,
-    elevation: 6,
   },
   stampGoldCellFuture: {
     backgroundColor: "rgba(254,243,199,0.60)",
