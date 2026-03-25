@@ -1544,6 +1544,34 @@ export default function HomeScreen() {
             )}
           </View>
 
+          {/* ── OVERLAY CHECK IN GOLD — visibile solo se Gold e non ancora fatto oggi ── */}
+          {hasLeafyGold && !checkedInToday && (
+            <Pressable
+              style={streakStyles.checkinGoldOverlay}
+              onPress={handleCheckin}
+              disabled={checkingIn}
+            >
+              {checkinKey > 0 && (
+                <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]} pointerEvents="none">
+                  <View style={{ width: 0, height: 0 }}>
+                    <CheckinDropBurst key={checkinKey} dist={confettiDist} alpha={confettiAlpha} />
+                  </View>
+                </View>
+              )}
+              <Animated.View style={combinedBtnStyle}>
+                <LinearGradient
+                  colors={["#FFD700", "#F59E0B", "#D97706"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={streakStyles.checkinGoldOverlayBtn}
+                >
+                  <MaterialCommunityIcons name="star-four-points" size={18} color="#fff" style={{ marginRight: 8 }} />
+                  <Text style={streakStyles.checkinGoldBtnText}>Fai Check In</Text>
+                </LinearGradient>
+              </Animated.View>
+            </Pressable>
+          )}
+
           {/* ── OVERLAY LUCCHETTO per non-Gold ── */}
           {!hasLeafyGold && (
             <Pressable
@@ -2454,6 +2482,32 @@ const streakStyles = StyleSheet.create({
     shadowOpacity: 0.30,
     shadowRadius: 10,
     elevation: 6,
+  },
+  checkinGoldOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,248,220,0.92)",
+    borderRadius: 20,
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+  },
+  checkinGoldOverlayBtn: {
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 36,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    shadowColor: "#D97706",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  checkinGoldBtnText: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 15,
+    color: "#fff",
+    letterSpacing: 0.5,
   },
   checkinBtnText: {
     fontFamily: "DMSans_700Bold",
