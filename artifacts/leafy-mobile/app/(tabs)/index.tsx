@@ -1450,10 +1450,9 @@ export default function HomeScreen() {
       </View>
       </Animated.View>
 
-      {/* ── STREAK GOLD — WOW REDESIGN ── */}
-      {hasLeafyGold && (
-        <Animated.View entering={FadeInDown.delay(220).springify()} style={streakStyles.stampGoldCardShadow}>
-          <View style={streakStyles.stampGoldCard}>
+      {/* ── STREAK GOLD — sempre visibile, lucchettato se no LeafyGold ── */}
+      <Animated.View entering={FadeInDown.delay(220).springify()} style={streakStyles.stampGoldCardShadow}>
+        <View style={streakStyles.stampGoldCard}>
           <LinearGradient
             colors={["#FFF8E1", "#FFFBF0", "#FEF3C7"]}
             start={{ x: 0, y: 0 }}
@@ -1550,47 +1549,38 @@ export default function HomeScreen() {
               </View>
             )}
           </View>
-          </View>
-        </Animated.View>
-      )}
 
-      {/* ── BATTLE PASS CTA ── */}
-      {!hasLeafyGold && (
-        <Animated.View entering={FadeInDown.delay(260).springify()} style={styles.bpCtaOuter}>
-          <Pressable
-            onPress={() => setShowLeafyGoldModal(true)}
-            style={({ pressed }) => [{ opacity: pressed ? 0.88 : 1 }]}
-          >
-            <View style={styles.bpCtaCard}>
-              {/* Foglia gold centrata */}
-              <View style={styles.bpCtaIconWrap}>
+          {/* ── OVERLAY LUCCHETTO per non-Gold ── */}
+          {!hasLeafyGold && (
+            <Pressable
+              style={streakStyles.goldLockedOverlay}
+              onPress={() => setShowLeafyGoldModal(true)}
+            >
+              <View style={streakStyles.goldLockedIconWrap}>
+                <MaterialCommunityIcons name="lock" size={32} color="#B8860B" />
+              </View>
+              <View style={streakStyles.goldLockedBadgeRow}>
                 <Image
                   source={require("@/assets/images/leafy-gold-icon.png")}
-                  style={{ width: 24, height: 24 }}
+                  style={{ width: 18, height: 18 }}
                   resizeMode="contain"
                 />
+                <Text style={streakStyles.goldLockedTitle}>Leafy Gold</Text>
               </View>
-
-              {/* Titolo + prezzo */}
-              <Text style={styles.bpCtaTitle}>Leafy Gold</Text>
-              <Text style={styles.bpCtaPrice}>0,89€<Text style={styles.bpCtaPriceSub}>/mese</Text></Text>
-
-              {/* Sottotitolo */}
-              <Text style={styles.bpCtaSub}>2× $LEA · Streak protetta · Badge esclusivi</Text>
-
-              {/* CTA full-width */}
+              <Text style={streakStyles.goldLockedSub}>2× $LEA · Streak protetta · Badge esclusivi</Text>
               <LinearGradient
                 colors={["#FFD700", "#FFA500"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={styles.bpCtaBtn}
+                style={streakStyles.goldLockedBtn}
               >
-                <Text style={styles.bpCtaBtnText}>Attiva ora</Text>
+                <Text style={streakStyles.goldLockedBtnText}>Attiva ora · 0,89€/mese</Text>
               </LinearGradient>
-            </View>
-          </Pressable>
-        </Animated.View>
-      )}
+            </Pressable>
+          )}
+        </View>
+      </Animated.View>
+
       <LeafyGoldModal
         visible={showLeafyGoldModal}
         onClose={() => {
@@ -2519,6 +2509,54 @@ const streakStyles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(255,215,0,0.45)",
     overflow: "hidden" as const,
+  },
+  goldLockedOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 248, 220, 0.93)",
+    borderRadius: 20,
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    gap: 6,
+    padding: 16,
+  },
+  goldLockedIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(251,191,36,0.20)",
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    marginBottom: 2,
+  },
+  goldLockedBadgeRow: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 6,
+  },
+  goldLockedTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 17,
+    color: "#92400E",
+    letterSpacing: 0.2,
+  },
+  goldLockedSub: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: "rgba(146,64,14,0.75)",
+    textAlign: "center" as const,
+  },
+  goldLockedBtn: {
+    marginTop: 6,
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: "center" as const,
+  },
+  goldLockedBtnText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 14,
+    color: "#fff",
+    letterSpacing: 0.3,
   },
   decorCircleGold1: {
     position: "absolute" as const,
