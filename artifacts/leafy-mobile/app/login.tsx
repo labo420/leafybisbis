@@ -395,16 +395,16 @@ export default function LoginScreen() {
               </Pressable>
 
               <Pressable
-                style={({ pressed }) => [styles.oauthIconBtn, pressed && { opacity: 0.8 }]}
+                style={({ pressed }) => [styles.oauthIconBtn, styles.facebookBtn, pressed && { opacity: 0.8 }]}
                 onPress={() => handleOAuth("facebook")}
                 disabled={!!oauthLoading}
               >
                 {oauthLoading === "facebook" ? (
-                  <ActivityIndicator color={Colors.forest} size="small" />
+                  <ActivityIndicator color="#fff" size="small" />
                 ) : (
                   <>
-                    <FontAwesome5 name="facebook" size={18} color="#1877F2" />
-                    <Text style={styles.oauthIconLabel}>Facebook</Text>
+                    <FontAwesome5 name="facebook" size={18} color="#fff" />
+                    <Text style={[styles.oauthIconLabel, { color: "#fff" }]}>Facebook</Text>
                   </>
                 )}
               </Pressable>
@@ -591,16 +591,15 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "100%",
-    marginTop: 16,
     backgroundColor: Colors.card,
-    borderRadius: 24,
+    borderRadius: 28,
     padding: 20,
-    gap: 11,
+    gap: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowOpacity: 0.10,
+    shadowRadius: 28,
+    elevation: 10,
     borderWidth: 1,
     borderColor: Colors.border,
     marginTop: 2,
@@ -641,9 +640,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: Fonts.bodyMedium,
     color: Colors.textMuted,
+    letterSpacing: 0.1,
   },
   tabTextActive: {
     color: Colors.forest,
@@ -652,11 +652,11 @@ const styles = StyleSheet.create({
   inputWrap: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 13,
     backgroundColor: Colors.background,
     gap: 8,
   },
@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: Fonts.bodyRegular,
     color: Colors.text,
   },
@@ -687,6 +687,11 @@ const styles = StyleSheet.create({
   primaryBtn: {
     borderRadius: 14,
     overflow: "hidden",
+    shadowColor: "#1A4D38",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
   },
   primaryBtnGradient: {
     paddingVertical: 15,
@@ -697,7 +702,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Fonts.displayBold,
     color: "#fff",
-    letterSpacing: 0.2,
+    letterSpacing: 0.5,
   },
   divider: {
     flexDirection: "row",
@@ -710,9 +715,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
   },
   dividerText: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: Fonts.bodyRegular,
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
   },
   oauthRow: {
     flexDirection: "row",
@@ -725,23 +730,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     borderRadius: 14,
-    paddingVertical: 12,
+    paddingVertical: 13,
     backgroundColor: Colors.card,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  facebookBtn: {
+    backgroundColor: "#1877F2",
+    borderColor: "#1877F2",
   },
   oauthIconLabel: {
     fontSize: 14,
-    fontFamily: Fonts.bodyMedium,
+    fontFamily: Fonts.bodySemiBold,
     color: Colors.text,
+    letterSpacing: 0.2,
   },
   terms: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: Fonts.bodyRegular,
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     textAlign: "center",
-    lineHeight: 16,
+    lineHeight: 18,
     marginTop: 2,
   },
 });
