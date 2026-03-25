@@ -38,7 +38,7 @@ import type {
   MyBadgesResponse,
 } from "@workspace/api-client-react";
 
-type BadgeTab = "traguardi" | "sfide";
+type BadgeTab = "traguardi";
 
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "";
@@ -471,8 +471,7 @@ export default function ProfiloScreen() {
   }, [queryClient]);
 
   useEffect(() => {
-    if (params.tab === "sfide") setBadgeTab("sfide");
-    else if (params.tab === "traguardi") setBadgeTab("traguardi");
+    if (params.tab === "traguardi") setBadgeTab("traguardi");
   }, [params.tab]);
 
   const topPadding = Platform.OS === "web" ? 67 : 0;
@@ -496,11 +495,6 @@ export default function ProfiloScreen() {
     enabled: !!user,
   });
 
-  const { data: challenges } = useQuery<Challenge[]>({
-    queryKey: ["challenges"],
-    queryFn: () => apiFetch("/challenges"),
-    enabled: !!user,
-  });
 
   const { data: badgesData } = useQuery<MyBadgesResponse>({
     queryKey: ["badges"],
@@ -752,47 +746,6 @@ export default function ProfiloScreen() {
         </Animated.View>
       )}
 
-      {challenges && challenges.length > 0 && (
-        <Animated.View entering={FadeInDown.delay(250).springify()} style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Feather name="target" size={18} color={theme.leaf} />
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Sfide Attive</Text>
-            <View style={[styles.monthBadge, { backgroundColor: "rgba(46,107,80,0.1)" }]}>
-              <Text style={[styles.monthBadgeText, { color: theme.leaf }]}>Mese in corso</Text>
-            </View>
-          </View>
-          {challenges.map((c) => (
-            <View key={c.id} style={[styles.challengeCard, { backgroundColor: theme.card }]}>
-              <View style={styles.challengeHeader}>
-                <Text style={[styles.challengeName, { color: theme.text }]}>{c.title}</Text>
-                {c.isCompleted ? (
-                  <View style={[styles.completedBadge, { backgroundColor: theme.primaryLight }]}>
-                    <Feather name="check" size={12} color={theme.leaf} />
-                    <Text style={[styles.completedText, { color: theme.leaf }]}>Completata</Text>
-                  </View>
-                ) : (
-                  <Text style={[styles.challengeBonus, { color: theme.amber }]}>+{c.rewardPoints} pt</Text>
-                )}
-              </View>
-              <Text style={[styles.challengeDesc, { color: theme.textSecondary }]}>{c.description}</Text>
-              <View style={[styles.challengeProgressWrap, { backgroundColor: theme.border }]}>
-                <View
-                  style={[
-                    styles.challengeProgressFill,
-                    {
-                      width: `${Math.min(100, c.progressPercent)}%`,
-                      backgroundColor: c.isCompleted ? theme.leaf : theme.primary,
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={[styles.challengeProgressLabel, { color: theme.textMuted }]}>
-                {c.currentCount} / {c.targetCount}
-              </Text>
-            </View>
-          ))}
-        </Animated.View>
-      )}
 
       {kits && kits.length > 0 && (
         <Animated.View entering={FadeInDown.delay(270).springify()} style={styles.section}>
@@ -875,83 +828,22 @@ export default function ProfiloScreen() {
               Traguardi
             </Text>
           </Pressable>
-          <Pressable
-            style={[styles.tab, badgeTab === "sfide" && [styles.tabActive, { backgroundColor: theme.card }]]}
-            onPress={() => setBadgeTab("sfide")}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                { color: theme.textSecondary },
-                badgeTab === "sfide" && [styles.tabTextActive, { color: theme.leaf }],
-              ]}
-            >
-              Sfide
-            </Text>
-          </Pressable>
         </View>
 
-        {badgeTab === "traguardi" ? (
-          <View style={styles.badgeGrid}>
-            {lifetimeBadges.length > 0 ? (
-              lifetimeBadges.map((badge) => (
-                <LifetimeBadgeCard key={badge.id} badge={badge} theme={theme} />
-              ))
-            ) : (
-              <View style={styles.emptyBadges}>
-                <Feather name="award" size={28} color={theme.textMuted} />
-                <Text style={[styles.emptyBadgesText, { color: theme.textSecondary }]}>
-                  Nessun traguardo ancora. Inizia a scansionare!
-                </Text>
-              </View>
-            )}
-          </View>
-        ) : (
-          <View>
-            {activeTemporal.length > 0 && (
-              <View style={{ marginBottom: 16 }}>
-                <View style={styles.temporalSectionHeader}>
-                  <Feather name="clock" size={12} color={theme.leaf} />
-                  <Text style={[styles.temporalSectionTitle, { color: theme.text }]}>Attive</Text>
-                </View>
-                <View style={styles.badgeGrid}>
-                  {activeTemporal.map((badge, i) => (
-                    <TemporalBadgeCard
-                      key={`${badge.id}-${badge.periodKey}-${i}`}
-                      badge={badge}
-                      theme={theme}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {archivedTemporal.length > 0 && (
-              <View>
-                <Text style={[styles.archivedSectionTitle, { color: theme.textMuted }]}>Archivio</Text>
-                <View style={styles.archivedGrid}>
-                  {archivedTemporal.map((badge, i) => (
-                    <TemporalBadgeCard
-                      key={`${badge.id}-${badge.periodKey}-${i}`}
-                      badge={badge}
-                      compact
-                      theme={theme}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {activeTemporal.length === 0 && archivedTemporal.length === 0 && (
-              <View style={styles.emptyBadges}>
-                <Feather name="target" size={28} color={theme.textMuted} />
-                <Text style={[styles.emptyBadgesText, { color: theme.textSecondary }]}>
-                  Le sfide a tempo appariranno qui.
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
+        <View style={styles.badgeGrid}>
+          {lifetimeBadges.length > 0 ? (
+            lifetimeBadges.map((badge) => (
+              <LifetimeBadgeCard key={badge.id} badge={badge} theme={theme} />
+            ))
+          ) : (
+            <View style={styles.emptyBadges}>
+              <Feather name="award" size={28} color={theme.textMuted} />
+              <Text style={[styles.emptyBadgesText, { color: theme.textSecondary }]}>
+                Nessun traguardo ancora. Inizia a scansionare!
+              </Text>
+            </View>
+          )}
+        </View>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(320).springify()} style={styles.section}>
