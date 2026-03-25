@@ -128,12 +128,12 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
       </Animated.View>
 
       <View style={styles.ringCenter}>
+        <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
         <Image
           source={require("@/assets/images/lea-icon.png")}
           style={styles.ringLeafIcon}
           resizeMode="contain"
         />
-        <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
       </View>
     </Animated.View>
   );
