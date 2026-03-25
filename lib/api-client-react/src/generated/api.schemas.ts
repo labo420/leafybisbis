@@ -313,6 +313,7 @@ export interface Challenge {
   description: string;
   category: string;
   emoji: string;
+  challengeType: string;
   targetCount: number;
   currentCount: number;
   rewardPoints: number;

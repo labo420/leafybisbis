@@ -30,6 +30,7 @@ router.get("/challenges", async (req, res): Promise<void> => {
       description: c.description,
       category: c.category,
       emoji: c.emoji,
+      challengeType: c.challengeType,
       targetCount: c.targetCount,
       currentCount,
       rewardPoints: c.rewardPoints,

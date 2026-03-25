@@ -2,6 +2,7 @@ import app from "./app";
 import { seedAllBadges } from "./seed-badges";
 import { seedKits } from "./seed-kits";
 import { seedLocations } from "./seed-locations";
+import { seedChallenges } from "./seed-challenges";
 import { cleanupExpiredReceiptImages } from "./lib/receiptImageCleanup";
 
 const rawPort = process.env["PORT"];
@@ -26,8 +27,9 @@ app.listen(port, async () => {
     await seedAllBadges();
     await seedKits();
     await seedLocations();
+    await seedChallenges();
   } catch (e) {
-    console.error("Failed to seed badges/kits/locations:", e);
+    console.error("Failed to seed badges/kits/locations/challenges:", e);
   }
 
   cleanupExpiredReceiptImages().catch(e =>

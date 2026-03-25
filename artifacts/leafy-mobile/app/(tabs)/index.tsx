@@ -48,7 +48,7 @@ import { useTheme } from "@/context/theme";
 import { apiFetch } from "@/lib/api";
 import { useNearbyLocations, type NearbyLocation } from "@/hooks/useNearbyLocations";
 import { useWalkin } from "@/hooks/useWalkin";
-import type { Profile, DailyCheckinResponse } from "@workspace/api-client-react";
+import type { Profile, DailyCheckinResponse, Challenge } from "@workspace/api-client-react";
 import LeafyGoldModal from "@/components/LeafyGoldModal";
 import CheckinDropBurst from "@/components/CheckinDropBurst";
 
@@ -822,6 +822,142 @@ function GuestAuthScreen() {
   );
 }
 
+function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: ReturnType<typeof useTheme>["theme"] }) {
+  const pct = ch.progressPercent;
+  const isCompleted = ch.isCompleted;
+  const typeLabel = ch.challengeType === "daily" ? "Giornaliera" : "Settimanale";
+  const typeColor = ch.challengeType === "daily" ? "#38BDF8" : "#51B888";
+
+  return (
+    <View style={[challengeStyles.cardShadow, { shadowColor: isCompleted ? "#51B888" : "#000" }]}>
+      <View style={[challengeStyles.card, { backgroundColor: theme.card }]}>
+        <View style={[challengeStyles.emojiCircle, { backgroundColor: isCompleted ? "rgba(81,184,136,0.15)" : "rgba(46,107,80,0.10)" }]}>
+          <Text style={challengeStyles.emoji}>{ch.emoji}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <View style={challengeStyles.cardTopRow}>
+            <Text style={[challengeStyles.cardTitle, { color: theme.text }]} numberOfLines={1}>{ch.title}</Text>
+            {isCompleted && (
+              <MaterialCommunityIcons name="check-circle" size={16} color="#51B888" style={{ marginLeft: 6 }} />
+            )}
+          </View>
+          <Text style={[challengeStyles.cardDesc, { color: theme.textSecondary }]} numberOfLines={2}>{ch.description}</Text>
+          <View style={challengeStyles.progressRow}>
+            <View style={[challengeStyles.progressBg, { backgroundColor: theme.border }]}>
+              <View style={[challengeStyles.progressFill, { width: `${pct}%` as any, backgroundColor: isCompleted ? "#51B888" : typeColor }]} />
+            </View>
+            <Text style={[challengeStyles.progressLabel, { color: theme.textSecondary }]}>{ch.currentCount}/{ch.targetCount}</Text>
+          </View>
+        </View>
+        <View style={[challengeStyles.typePill, { backgroundColor: `${typeColor}22` }]}>
+          <Text style={[challengeStyles.typePillText, { color: typeColor }]}>{typeLabel}</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const challengeStyles = StyleSheet.create({
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontFamily: "DMSans_700Bold",
+    letterSpacing: -0.2,
+  },
+  subLabel: {
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  cardShadow: {
+    marginHorizontal: 20,
+    marginBottom: 10,
+    borderRadius: 16,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  card: {
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    overflow: "hidden",
+  },
+  emojiCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  emoji: {
+    fontSize: 22,
+  },
+  cardTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 2,
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontFamily: "DMSans_700Bold",
+    flex: 1,
+  },
+  cardDesc: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    marginBottom: 8,
+    lineHeight: 16,
+  },
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  progressBg: {
+    flex: 1,
+    height: 5,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 4,
+  },
+  progressLabel: {
+    fontSize: 11,
+    fontFamily: "DMSans_700Bold",
+    minWidth: 28,
+    textAlign: "right",
+  },
+  typePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    alignSelf: "flex-start",
+    flexShrink: 0,
+  },
+  typePillText: {
+    fontSize: 10,
+    fontFamily: "DMSans_700Bold",
+    letterSpacing: 0.2,
+  },
+});
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
@@ -845,6 +981,12 @@ export default function HomeScreen() {
   }>({
     queryKey: ["profile/impact"],
     queryFn: () => apiFetch("/profile/impact"),
+    enabled: !!user,
+  });
+
+  const { data: challenges, refetch: refetchChallenges } = useQuery<Challenge[]>({
+    queryKey: ["challenges"],
+    queryFn: () => apiFetch("/challenges"),
     enabled: !!user,
   });
 
@@ -907,7 +1049,7 @@ export default function HomeScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetchProfile(), refetchImpact()]);
+    await Promise.all([refetchProfile(), refetchImpact(), refetchChallenges()]);
     setRefreshing(false);
   };
 
@@ -1475,6 +1617,38 @@ export default function HomeScreen() {
         )}
       </Animated.View>
 
+
+      {/* ── SFIDE ── */}
+      {challenges && challenges.length > 0 && (() => {
+        const daily = challenges.filter(c => c.challengeType === "daily");
+        const weekly = challenges.filter(c => c.challengeType === "weekly");
+        return (
+          <Animated.View entering={FadeInDown.delay(350).springify()} style={{ marginTop: 24 }}>
+            <View style={challengeStyles.sectionHeader}>
+              <MaterialCommunityIcons name="flag-checkered" size={18} color={theme.leaf} />
+              <Text style={[challengeStyles.sectionTitle, { color: theme.text }]}>Sfide</Text>
+            </View>
+
+            {daily.length > 0 && (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={[challengeStyles.subLabel, { color: theme.textSecondary }]}>Giornaliere</Text>
+                {daily.map(ch => (
+                  <ChallengeCard key={ch.id} challenge={ch} theme={theme} />
+                ))}
+              </View>
+            )}
+
+            {weekly.length > 0 && (
+              <View>
+                <Text style={[challengeStyles.subLabel, { color: theme.textSecondary }]}>Settimanali</Text>
+                {weekly.map(ch => (
+                  <ChallengeCard key={ch.id} challenge={ch} theme={theme} />
+                ))}
+              </View>
+            )}
+          </Animated.View>
+        );
+      })()}
 
     </ScrollView>
     </View>

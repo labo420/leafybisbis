@@ -386,6 +386,7 @@ export const GetChallengesResponseItem = zod.object({
   description: zod.string(),
   category: zod.string(),
   emoji: zod.string(),
+  challengeType: zod.string(),
   targetCount: zod.number(),
   currentCount: zod.number(),
   rewardPoints: zod.number(),

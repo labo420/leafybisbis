@@ -9,6 +9,7 @@ export const challengesTable = pgTable("challenges", {
   description: text("description").notNull(),
   category: text("category").notNull(),
   emoji: text("emoji").notNull(),
+  challengeType: text("challenge_type").notNull().default("weekly"),
   targetCount: integer("target_count").notNull(),
   rewardPoints: integer("reward_points").notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
