@@ -1166,8 +1166,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 1,
     right: -2,
-    width: 28,
-    height: 28,
+    width: 56,
+    height: 56,
   },
   username: {
     fontSize: 22,
