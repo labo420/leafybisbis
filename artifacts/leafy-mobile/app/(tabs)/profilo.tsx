@@ -502,18 +502,6 @@ export default function ProfiloScreen() {
     enabled: !!user,
   });
 
-  type KitSlotData = { id: string; label: string; matchCategories: string[]; completed: boolean };
-  type KitData = {
-    id: string; name: string; description: string | null; rewardDrops: number;
-    isCompleted: boolean; completedAt: string | null;
-    slots: KitSlotData[]; completedCount: number; totalCount: number; progressPercent: number;
-  };
-
-  const { data: kits } = useQuery<KitData[]>({
-    queryKey: ["kits"],
-    queryFn: () => apiFetch("/kits"),
-    enabled: !!user,
-  });
 
   const lifetimeBadges = badgesData?.lifetime ?? [];
   const temporalBadges = badgesData?.temporal ?? [];
@@ -730,13 +718,13 @@ export default function ProfiloScreen() {
           </Pressable>
 
           {(profile?.referralDropsMultiplierRemaining ?? 0) > 0 && (
-            <View style={[kitStyles.multiplierBanner, { backgroundColor: mode === "dark" ? "#1E3328" : "#D1FAE5" }]}>
+            <View style={[multiplierStyles.multiplierBanner, { backgroundColor: mode === "dark" ? "#1E3328" : "#D1FAE5" }]}>
               <Text style={{ fontSize: 18 }}>⚡</Text>
               <View style={{ flex: 1 }}>
-                <Text style={[kitStyles.multiplierTitle, { color: theme.leaf }]}>
+                <Text style={[multiplierStyles.multiplierTitle, { color: theme.leaf }]}>
                   Moltiplicatore drops attivo!
                 </Text>
-                <Text style={[kitStyles.multiplierSub, { color: mode === "dark" ? "#86EFAC" : "#166534" }]}>
+                <Text style={[multiplierStyles.multiplierSub, { color: mode === "dark" ? "#86EFAC" : "#166534" }]}>
                   +20% drops sui prossimi {profile?.referralDropsMultiplierRemaining} scontrini
                 </Text>
               </View>
@@ -747,65 +735,6 @@ export default function ProfiloScreen() {
       )}
 
 
-      {kits && kits.length > 0 && (
-        <Animated.View entering={FadeInDown.delay(270).springify()} style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <MaterialCommunityIcons name="basket-outline" size={18} color={theme.leaf} />
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Kit Sostenibilità</Text>
-          </View>
-          {kits.map((kit) => (
-            <View key={kit.id} style={[kitStyles.kitCard, { backgroundColor: theme.card }]}>
-              <View style={kitStyles.kitHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text style={[kitStyles.kitName, { color: theme.text }]}>{kit.name}</Text>
-                  {kit.description ? (
-                    <Text style={[kitStyles.kitDesc, { color: theme.textSecondary }]}>{kit.description}</Text>
-                  ) : null}
-                </View>
-                <View style={[kitStyles.kitXpPill, { backgroundColor: kit.isCompleted ? theme.primaryLight : theme.cardAlt }]}>
-                  {kit.isCompleted ? (
-                    <>
-                      <Feather name="check" size={11} color={theme.leaf} />
-                      <Text style={[kitStyles.kitDropsText, { color: theme.leaf }]}>Completato</Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={[kitStyles.kitDropsText, { color: "#38BDF8" }]}>+{kit.rewardDrops}</Text>
-                      <XpIcon size={20} />
-                    </>
-                  )}
-                </View>
-              </View>
-
-              <View style={kitStyles.slotsRow}>
-                {kit.slots.map((slot) => (
-                  <View key={slot.id} style={[kitStyles.slot, { backgroundColor: slot.completed ? (mode === "dark" ? "#1E3328" : "#D1FAE5") : theme.cardAlt, borderColor: slot.completed ? theme.leaf : theme.border }]}>
-                    {slot.completed ? (
-                      <Feather name="check-circle" size={13} color={theme.leaf} />
-                    ) : (
-                      <Feather name="circle" size={13} color={theme.textMuted} />
-                    )}
-                    <Text style={[kitStyles.slotLabel, { color: slot.completed ? theme.leaf : theme.textSecondary }]} numberOfLines={1}>
-                      {slot.label}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-
-              {!kit.isCompleted && (
-                <>
-                  <View style={[kitStyles.kitProgressTrack, { backgroundColor: theme.border }]}>
-                    <View style={[kitStyles.kitProgressFill, { width: `${kit.progressPercent}%`, backgroundColor: theme.leaf }]} />
-                  </View>
-                  <Text style={[kitStyles.kitProgressText, { color: theme.textMuted }]}>
-                    {kit.completedCount}/{kit.totalCount} prodotti
-                  </Text>
-                </>
-              )}
-            </View>
-          ))}
-        </Animated.View>
-      )}
 
       <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.section}>
         <View style={styles.sectionHeader}>
@@ -1336,73 +1265,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const kitStyles = StyleSheet.create({
-  kitCard: {
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 10,
-    gap: 10,
-  },
-  kitHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-  },
-  kitName: {
-    fontSize: 15,
-    fontFamily: "DMSans_700Bold",
-  },
-  kitDesc: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    marginTop: 2,
-  },
-  kitXpPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  kitDropsText: {
-    fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-  },
-  slotsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-  },
-  slot: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    maxWidth: "48%",
-  },
-  slotLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
-    flexShrink: 1,
-  },
-  kitProgressTrack: {
-    height: 4,
-    borderRadius: 2,
-    overflow: "hidden",
-  },
-  kitProgressFill: {
-    height: 4,
-    borderRadius: 2,
-  },
-  kitProgressText: {
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-    textAlign: "right",
-  },
+const multiplierStyles = StyleSheet.create({
   multiplierBanner: {
     flexDirection: "row",
     alignItems: "center",
