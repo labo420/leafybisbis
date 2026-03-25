@@ -313,9 +313,16 @@ export default function WalletScreen() {
                     <Text style={[styles.tileEuros, { color: isSelected ? LEAF_GREEN : theme.text }]}>
                       €{amount.euros}
                     </Text>
-                    <Text style={[styles.tileLea, { color: theme.textMuted }]}>
-                      {formatLea(amount.lea)} LEA
-                    </Text>
+                    <View style={styles.tileLeaRow}>
+                      <Text style={[styles.tileLea, { color: theme.textMuted }]}>
+                        {formatLea(amount.lea)}
+                      </Text>
+                      <Image
+                        source={require("@/assets/images/lea-icon.png")}
+                        style={styles.tileLeaIcon}
+                        resizeMode="contain"
+                      />
+                    </View>
                     {isGoldLocked && (
                       <View style={styles.goldTag}>
                         <Feather name="star" size={8} color="#FFD700" />
@@ -505,6 +512,15 @@ const styles = StyleSheet.create({
   tileLea: {
     fontSize: 10,
     fontFamily: Fonts.bodyMedium,
+  },
+  tileLeaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+  },
+  tileLeaIcon: {
+    width: 10,
+    height: 10,
   },
   goldTag: {
     position: "absolute",
