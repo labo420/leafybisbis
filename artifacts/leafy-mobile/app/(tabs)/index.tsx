@@ -133,12 +133,12 @@ const BP_PRIZES_DISPLAY = [
 const ICON_BASE_SIZE = 72;
 const ICON_MIN_SCALE = 0.75;
 const ICON_MAX_SCALE = 1.0;
-const CAN_TOP = 32;
-const CAN_LEFT = RING_SIZE / 2 + 12;
-const CAN_PIVOT = 17;
-const DROP_TOP = 62;
-const DROP_LEFT = RING_SIZE / 2 + 14;
-const DROP_TRAVEL = 50;
+const CAN_TOP = 25;
+const CAN_LEFT = RING_SIZE / 2 + 10;
+const CAN_PIVOT = 14;
+const DROP_TOP = 49;
+const DROP_LEFT = RING_SIZE / 2 + 11;
+const DROP_TRAVEL = 40;
 
 function LevelProgressRing({
   progress,
@@ -532,7 +532,7 @@ function LevelProgressRing({
         {/* Watering can overlay */}
         <Animated.Image
           source={require("@/assets/images/watering-can-icon.png")}
-          style={[ringStyles.wateringCan, canAnimStyle, { width: 52, height: 52 }]}
+          style={[ringStyles.wateringCan, canAnimStyle, { width: 42, height: 42 }]}
           resizeMode="contain"
         />
 
@@ -602,9 +602,9 @@ const ringStyles = StyleSheet.create({
   droplet: {
     position: "absolute",
     top: DROP_TOP,
-    left: DROP_LEFT - 7,
-    width: 18,
-    height: 24,
+    left: DROP_LEFT - 5,
+    width: 14,
+    height: 19,
     zIndex: 10,
   },
   outerBorder: {
