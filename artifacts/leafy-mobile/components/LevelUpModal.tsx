@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef } from "react";
 import {
   Dimensions,
   Modal,
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -19,9 +18,9 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import ConfettiCannon from "react-native-confetti-cannon";
-import { useTheme } from "@/context/theme";
+import type { RingLayout } from "@/context/level-up";
 
-const { width: SCREEN_W } = Dimensions.get("window");
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
 const LEVEL_BADGE_IMAGES: Record<string, ImageSourcePropType> = {
   Germoglio: require("@/assets/badges/level-germoglio.png"),
@@ -45,43 +44,75 @@ interface LevelUpModalProps {
   visible: boolean;
   fromLevel: string;
   toLevel: string;
+  ringTargetLayout: RingLayout | null;
   onClose: () => void;
 }
 
-const PULSE_DURATION = 400;
-const FLASH_DELAY = PULSE_DURATION;
-const REVEAL_DELAY = FLASH_DELAY + 200;
-const AUTO_CLOSE_DELAY = REVEAL_DELAY + 2800;
+const OLD_BADGE_EXPLODE_MS = 400;
+const FLASH_DELAY_MS = OLD_BADGE_EXPLODE_MS;
+const SHOCKWAVE_DELAY_MS = OLD_BADGE_EXPLODE_MS;
+const PARTICLE_DELAY_MS = FLASH_DELAY_MS + 100;
+const NEW_BADGE_DELAY_MS = 600;
+const TEXT_DELAY_MS = 1100;
+const SUCK_DELAY_MS = 2300;
+const SUCK_DURATION_MS = 700;
+const AUTO_CLOSE_MS = SUCK_DELAY_MS + SUCK_DURATION_MS + 100;
 
-const PARTICLE_COUNT = 12;
+const PARTICLE_COUNT = 20;
+const BADGE_DISPLAY_SIZE = 150;
+const RING_BADGE_SIZE = 90;
 
-function RadialParticle({ index, total, delay }: { index: number; total: number; delay: number }) {
+function RadialParticle({
+  index,
+  total,
+  delay,
+}: {
+  index: number;
+  total: number;
+  delay: number;
+}) {
   const angle = (index / total) * 2 * Math.PI;
-  const tx = Math.cos(angle) * 120;
-  const ty = Math.sin(angle) * 120;
+  const dist = 100 + (index % 3) * 40;
+  const tx = Math.cos(angle) * dist;
+  const ty = Math.sin(angle) * dist;
 
   const progress = useSharedValue(0);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    opacity.value = withDelay(delay, withSequence(
-      withTiming(1, { duration: 80 }),
-      withDelay(200, withTiming(0, { duration: 300 })),
-    ));
-    progress.value = withDelay(delay, withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) }));
+    opacity.value = withDelay(
+      delay,
+      withSequence(
+        withTiming(1, { duration: 60 }),
+        withDelay(250, withTiming(0, { duration: 350 })),
+      ),
+    );
+    progress.value = withDelay(
+      delay,
+      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }),
+    );
   }, [delay]);
 
   const style = useAnimatedStyle(() => ({
     transform: [
       { translateX: tx * progress.value },
       { translateY: ty * progress.value },
-      { scale: 1 - progress.value * 0.6 },
+      { scale: 1 - progress.value * 0.5 },
     ],
     opacity: opacity.value,
   }));
 
-  const size = 8 + (index % 3) * 4;
-  const colors = ["#4CAF50", "#81C784", "#FFD700", "#A5D6A7", "#66BB6A", "#C8E6C9"];
+  const size = 6 + (index % 4) * 4;
+  const colors = [
+    "#4CAF50",
+    "#81C784",
+    "#FFD700",
+    "#A5D6A7",
+    "#66BB6A",
+    "#C8E6C9",
+    "#FFF176",
+    "#FF8A65",
+  ];
 
   return (
     <Animated.View
@@ -103,17 +134,27 @@ export default function LevelUpModal({
   visible,
   fromLevel,
   toLevel,
+  ringTargetLayout,
   onClose,
 }: LevelUpModalProps) {
-  const { theme, mode } = useTheme();
+
+  const backdropOpacity = useSharedValue(0);
+
   const oldScale = useSharedValue(1);
   const oldOpacity = useSharedValue(1);
-  const flashScale = useSharedValue(0);
+
   const flashOpacity = useSharedValue(0);
-  const newScale = useSharedValue(0);
+  const flashScale = useSharedValue(0.01);
+
+  const shockwaveScale = useSharedValue(0.01);
+  const shockwaveOpacity = useSharedValue(0);
+
+  const newScale = useSharedValue(4);
   const newOpacity = useSharedValue(0);
+  const newTranslateX = useSharedValue(0);
+  const newTranslateY = useSharedValue(0);
+
   const textOpacity = useSharedValue(0);
-  const backdropOpacity = useSharedValue(0);
 
   const confettiRef = useRef<ConfettiCannon | null>(null);
   const autoCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -122,12 +163,20 @@ export default function LevelUpModal({
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const clearTimers = () => {
-    if (autoCloseTimer.current) { clearTimeout(autoCloseTimer.current); autoCloseTimer.current = null; }
-    if (confettiTimer.current) { clearTimeout(confettiTimer.current); confettiTimer.current = null; }
+    if (autoCloseTimer.current) {
+      clearTimeout(autoCloseTimer.current);
+      autoCloseTimer.current = null;
+    }
+    if (confettiTimer.current) {
+      clearTimeout(confettiTimer.current);
+      confettiTimer.current = null;
+    }
   };
 
   useEffect(() => {
@@ -136,60 +185,116 @@ export default function LevelUpModal({
       return;
     }
 
+    backdropOpacity.value = 0;
     oldScale.value = 1;
     oldOpacity.value = 1;
-    flashScale.value = 0;
     flashOpacity.value = 0;
-    newScale.value = 0;
+    flashScale.value = 0.01;
+    shockwaveScale.value = 0.01;
+    shockwaveOpacity.value = 0;
+    newScale.value = 4;
     newOpacity.value = 0;
+    newTranslateX.value = 0;
+    newTranslateY.value = 0;
     textOpacity.value = 0;
-    backdropOpacity.value = 0;
 
     backdropOpacity.value = withTiming(1, { duration: 250 });
 
     oldScale.value = withSequence(
-      withTiming(1.1,  { duration: 80,  easing: Easing.out(Easing.quad) }),
-      withTiming(2.6,  { duration: 320, easing: Easing.in(Easing.quad) }),
+      withTiming(1.05, { duration: 60, easing: Easing.out(Easing.quad) }),
+      withTiming(2.8, { duration: OLD_BADGE_EXPLODE_MS - 60, easing: Easing.in(Easing.cubic) }),
     );
-
     oldOpacity.value = withSequence(
-      withTiming(1,    { duration: 120 }),
-      withTiming(0,    { duration: 280 }),
+      withTiming(1, { duration: 80 }),
+      withTiming(0, { duration: OLD_BADGE_EXPLODE_MS - 80 }),
     );
 
+    flashScale.value = withDelay(
+      FLASH_DELAY_MS,
+      withTiming(20, { duration: 350, easing: Easing.out(Easing.quad) }),
+    );
     flashOpacity.value = withDelay(
-      FLASH_DELAY,
+      FLASH_DELAY_MS,
       withSequence(
-        withTiming(1, { duration: 50 }),
-        withTiming(0, { duration: 280 }),
+        withTiming(1, { duration: 40 }),
+        withTiming(0, { duration: 310 }),
       ),
     );
-    flashScale.value = withDelay(
-      FLASH_DELAY,
-      withTiming(5, { duration: 300, easing: Easing.out(Easing.quad) }),
+
+    shockwaveScale.value = withDelay(
+      SHOCKWAVE_DELAY_MS,
+      withTiming(15, { duration: 700, easing: Easing.out(Easing.quad) }),
+    );
+    shockwaveOpacity.value = withDelay(
+      SHOCKWAVE_DELAY_MS,
+      withSequence(
+        withTiming(0.6, { duration: 60 }),
+        withTiming(0, { duration: 640 }),
+      ),
     );
 
-    newScale.value = withDelay(
-      REVEAL_DELAY,
-      withSpring(1, { damping: 5, stiffness: 250, mass: 0.5 }),
-    );
     newOpacity.value = withDelay(
-      REVEAL_DELAY,
-      withTiming(1, { duration: 100 }),
+      NEW_BADGE_DELAY_MS,
+      withTiming(1, { duration: 80 }),
+    );
+    newScale.value = withDelay(
+      NEW_BADGE_DELAY_MS,
+      withSpring(1, { damping: 4, stiffness: 120, mass: 0.9 }),
     );
 
     textOpacity.value = withDelay(
-      REVEAL_DELAY + 300,
-      withTiming(1, { duration: 300 }),
+      TEXT_DELAY_MS,
+      withTiming(1, { duration: 350 }),
     );
 
     confettiTimer.current = setTimeout(() => {
       if (mountedRef.current) confettiRef.current?.start();
-    }, REVEAL_DELAY + 150);
+    }, NEW_BADGE_DELAY_MS + 200);
 
     autoCloseTimer.current = setTimeout(() => {
-      if (mountedRef.current) onClose();
-    }, AUTO_CLOSE_DELAY);
+      if (!mountedRef.current) return;
+
+      if (ringTargetLayout) {
+        const ringCenterX = ringTargetLayout.x + ringTargetLayout.width / 2;
+        const ringCenterY = ringTargetLayout.y + ringTargetLayout.height / 2;
+        const deltaX = ringCenterX - SCREEN_W / 2;
+        const deltaY = ringCenterY - SCREEN_H / 2;
+        const targetScale = RING_BADGE_SIZE / BADGE_DISPLAY_SIZE;
+
+        newTranslateX.value = withTiming(deltaX, {
+          duration: SUCK_DURATION_MS,
+          easing: Easing.in(Easing.cubic),
+        });
+        newTranslateY.value = withTiming(deltaY, {
+          duration: SUCK_DURATION_MS,
+          easing: Easing.in(Easing.cubic),
+        });
+        newScale.value = withTiming(targetScale, {
+          duration: SUCK_DURATION_MS,
+          easing: Easing.in(Easing.cubic),
+        });
+        newOpacity.value = withDelay(
+          SUCK_DURATION_MS - 250,
+          withTiming(0, { duration: 250 }),
+        );
+        textOpacity.value = withTiming(0, { duration: 200 });
+        backdropOpacity.value = withDelay(
+          SUCK_DURATION_MS - 200,
+          withTiming(0, { duration: 250 }),
+        );
+
+        const closeTimer = setTimeout(() => {
+          if (mountedRef.current) onClose();
+        }, SUCK_DURATION_MS + 50);
+
+        autoCloseTimer.current = closeTimer;
+      } else {
+        backdropOpacity.value = withTiming(0, { duration: 300 });
+        setTimeout(() => {
+          if (mountedRef.current) onClose();
+        }, 350);
+      }
+    }, SUCK_DELAY_MS);
 
     return clearTimers;
   }, [visible]);
@@ -208,8 +313,17 @@ export default function LevelUpModal({
     opacity: flashOpacity.value,
   }));
 
+  const shockwaveStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: shockwaveScale.value }],
+    opacity: shockwaveOpacity.value,
+  }));
+
   const newBadgeStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: newScale.value }],
+    transform: [
+      { translateX: newTranslateX.value },
+      { translateY: newTranslateY.value },
+      { scale: newScale.value },
+    ],
     opacity: newOpacity.value,
   }));
 
@@ -230,43 +344,50 @@ export default function LevelUpModal({
 
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
-      <Pressable style={s.overlay} onPress={onClose}>
+      <View style={s.overlay} pointerEvents="none">
         <Animated.View style={[s.backdrop, backdropStyle]} />
 
+        <Animated.View style={[s.flash, flashStyle]} />
+
+        <Animated.View style={[s.shockwave, shockwaveStyle]} />
+
         <View style={s.center}>
-          <Animated.View style={[s.badgeWrap, oldBadgeStyle]}>
-            <Image source={fromImage} style={s.badgeImage} resizeMode="contain" />
+          <Animated.View style={[s.oldBadgeWrap, oldBadgeStyle]}>
+            <Image source={fromImage} style={s.oldBadgeImage} resizeMode="contain" />
           </Animated.View>
 
           {particles.map((i) => (
-            <RadialParticle key={i} index={i} total={PARTICLE_COUNT} delay={FLASH_DELAY} />
+            <RadialParticle
+              key={i}
+              index={i}
+              total={PARTICLE_COUNT}
+              delay={PARTICLE_DELAY_MS}
+            />
           ))}
 
-          <Animated.View style={[s.flash, flashStyle]} />
-
-          <Animated.View style={[s.badgeWrap, newBadgeStyle]}>
-            <Image source={toImage} style={s.badgeImage} resizeMode="contain" />
+          <Animated.View style={[s.newBadgeWrap, newBadgeStyle]}>
+            <Image source={toImage} style={s.newBadgeImage} resizeMode="contain" />
           </Animated.View>
         </View>
 
-        <Animated.View style={[s.textBox, textStyle, { backgroundColor: theme.modalBackground === "#FFFFFF" ? "transparent" : "rgba(30,30,30,0.8)", borderRadius: 16, paddingHorizontal: 24, paddingVertical: 12 }]}>
-          <Text style={[s.title, { color: "#fff" }]}>Nuovo livello!</Text>
-          <Text style={[s.subtitle, { color: "rgba(255,255,255,0.85)" }]}>
+        <Animated.View style={[s.textBox, textStyle]}>
+          <Text style={s.title}>Nuovo livello!</Text>
+          <Text style={s.subtitle}>
             Sei diventato un {toLevel}! {toEmoji}
           </Text>
         </Animated.View>
 
         <ConfettiCannon
           ref={confettiRef}
-          count={80}
+          count={100}
           origin={{ x: SCREEN_W / 2, y: -20 }}
           autoStart={false}
           fadeOut
           fallSpeed={3000}
-          explosionSpeed={400}
+          explosionSpeed={450}
           colors={["#2E6B50", "#4CAF50", "#81C784", "#FFD700", "#A5D6A7", "#C8E6C9"]}
         />
-      </Pressable>
+      </View>
     </Modal>
   );
 }
@@ -279,45 +400,69 @@ const s = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.75)",
-  },
-  center: {
-    width: 160,
-    height: 160,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeWrap: {
-    position: "absolute",
-    width: 140,
-    height: 140,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeImage: {
-    width: 140,
-    height: 140,
+    backgroundColor: "rgba(0,0,0,0.82)",
   },
   flash: {
     position: "absolute",
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: "#A5D6A7",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#FFFFFF",
+  },
+  shockwave: {
+    position: "absolute",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: "rgba(165,214,167,0.8)",
+    backgroundColor: "transparent",
+  },
+  center: {
+    width: 180,
+    height: 180,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  oldBadgeWrap: {
+    position: "absolute",
+    width: BADGE_DISPLAY_SIZE,
+    height: BADGE_DISPLAY_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  oldBadgeImage: {
+    width: BADGE_DISPLAY_SIZE,
+    height: BADGE_DISPLAY_SIZE,
+  },
+  newBadgeWrap: {
+    position: "absolute",
+    width: BADGE_DISPLAY_SIZE,
+    height: BADGE_DISPLAY_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  newBadgeImage: {
+    width: BADGE_DISPLAY_SIZE,
+    height: BADGE_DISPLAY_SIZE,
   },
   textBox: {
-    marginTop: 32,
+    marginTop: 24,
     alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 10,
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontFamily: "DMSans_700Bold",
     color: "#fff",
-    marginBottom: 8,
+    marginBottom: 6,
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 18,
     fontFamily: "Inter_500Medium",
     color: "rgba(255,255,255,0.85)",
+    textAlign: "center",
   },
 });

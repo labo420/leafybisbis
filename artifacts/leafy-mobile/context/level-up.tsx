@@ -10,11 +10,24 @@ import LevelUpModal from "@/components/LevelUpModal";
 const PREV_LEVEL_KEY_PREFIX = "leafy_prev_level:";
 const WATERING_CAN_DURATION_MS = 2700;
 
+export type RingLayout = { x: number; y: number; width: number; height: number };
+export type LevelUpPhase = "idle" | "animating" | "exploded";
+
 interface LevelUpContextValue {
   checkForLevelUp: () => void;
+  levelUpPhase: LevelUpPhase;
+  levelUpToLevel: string;
+  ringTargetLayout: RingLayout | null;
+  setRingLayout: (layout: RingLayout) => void;
 }
 
-const LevelUpContext = createContext<LevelUpContextValue>({ checkForLevelUp: () => {} });
+const LevelUpContext = createContext<LevelUpContextValue>({
+  checkForLevelUp: () => {},
+  levelUpPhase: "idle",
+  levelUpToLevel: "",
+  ringTargetLayout: null,
+  setRingLayout: () => {},
+});
 
 export function useLevelUp() {
   return useContext(LevelUpContext);
@@ -25,9 +38,12 @@ export function LevelUpProvider({ children }: { children: React.ReactNode }) {
   const [visible, setVisible] = useState(false);
   const [fromLevel, setFromLevel] = useState("");
   const [toLevel, setToLevel] = useState("");
+  const [phase, setPhase] = useState<LevelUpPhase>("idle");
+  const [ringTargetLayout, setRingTargetLayout] = useState<RingLayout | null>(null);
   const prevLevelRef = useRef<string | null>(null);
   const [storageReady, setStorageReady] = useState(false);
   const levelUpTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const phaseResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const storageKey = user?.id ? `${PREV_LEVEL_KEY_PREFIX}${user.id}` : null;
 
@@ -40,9 +56,7 @@ export function LevelUpProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setStorageReady(false);
     prevLevelRef.current = null;
-
     if (!storageKey) return;
-
     AsyncStorage.getItem(storageKey).then((stored) => {
       if (stored) prevLevelRef.current = stored;
       setStorageReady(true);
@@ -51,12 +65,12 @@ export function LevelUpProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!profile?.level || !storageReady || !storageKey) return;
-
     const currentLevel = profile.level;
 
     if (prevLevelRef.current && prevLevelRef.current !== currentLevel && !visible) {
       const from = prevLevelRef.current;
       if (levelUpTimeoutRef.current) clearTimeout(levelUpTimeoutRef.current);
+      setPhase("animating");
       levelUpTimeoutRef.current = setTimeout(() => {
         setFromLevel(from);
         setToLevel(currentLevel);
@@ -72,6 +86,7 @@ export function LevelUpProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     return () => {
       if (levelUpTimeoutRef.current) clearTimeout(levelUpTimeoutRef.current);
+      if (phaseResetRef.current) clearTimeout(phaseResetRef.current);
     };
   }, []);
 
@@ -87,14 +102,35 @@ export function LevelUpProvider({ children }: { children: React.ReactNode }) {
     refetch();
   }, [refetch]);
 
+  const handleModalClose = useCallback(() => {
+    setVisible(false);
+    setPhase("exploded");
+    if (phaseResetRef.current) clearTimeout(phaseResetRef.current);
+    phaseResetRef.current = setTimeout(() => {
+      setPhase("idle");
+      phaseResetRef.current = null;
+    }, 400);
+  }, []);
+
+  const setRingLayout = useCallback((layout: RingLayout) => {
+    setRingTargetLayout(layout);
+  }, []);
+
   return (
-    <LevelUpContext.Provider value={{ checkForLevelUp }}>
+    <LevelUpContext.Provider value={{
+      checkForLevelUp,
+      levelUpPhase: phase,
+      levelUpToLevel: toLevel,
+      ringTargetLayout,
+      setRingLayout,
+    }}>
       {children}
       <LevelUpModal
         visible={visible}
         fromLevel={fromLevel}
         toLevel={toLevel}
-        onClose={() => setVisible(false)}
+        ringTargetLayout={ringTargetLayout}
+        onClose={handleModalClose}
       />
     </LevelUpContext.Provider>
   );

@@ -7,7 +7,7 @@ import { FacebookIcon } from "../../components/FacebookIcon";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { Redirect, router, useFocusEffect } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -51,6 +51,7 @@ import { useWalkin } from "@/hooks/useWalkin";
 import type { Profile, DailyCheckinResponse, Challenge } from "@workspace/api-client-react";
 import LeafyGoldModal from "@/components/LeafyGoldModal";
 import CheckinDropBurst from "@/components/CheckinDropBurst";
+import { useLevelUp } from "@/context/level-up";
 
 const LEVEL_LABELS: Record<string, string> = {
   Germoglio: "Germoglio",
@@ -150,12 +151,11 @@ function LevelProgressRing({
   nextLevelPoints: number;
 }) {
   const { mode } = useTheme();
+  const { levelUpPhase, levelUpToLevel, setRingLayout } = useLevelUp();
   const onDark = mode === "dark";
   const trackColor = onDark ? "rgba(255,255,255,0.15)" : "rgba(46,107,80,0.13)";
   const borderColor = onDark ? "rgba(255,255,255,0.20)" : "rgba(46,107,80,0.22)";
-  const iconColor = onDark ? "rgba(255,255,255,0.90)" : "#2E6B50";
   const nameColor = onDark ? "rgba(255,255,255,0.85)" : "#1A3028";
-  const xpSubColor = onDark ? "rgba(255,255,255,0.55)" : "rgba(26,48,40,0.55)";
   const nextLvlColor = onDark ? "rgba(255,255,255,0.70)" : "rgba(26,48,40,0.60)";
 
   // ── Ring entry spring ──
@@ -177,13 +177,26 @@ function LevelProgressRing({
   // ── Badge level cross-fade ──
   const prevLevelRef = useRef(level);
   const [displayedLevel, setDisplayedLevel] = useState(level);
-  const swapLevelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const badgeOpacity = useSharedValue(1);
   const badgeVScale = useSharedValue(1);
   const badgeAnimStyle = useAnimatedStyle(() => ({
     opacity: badgeOpacity.value,
     transform: [{ scale: badgeVScale.value }],
   }));
+
+  // ── Ring badge position measurement (for modal suck animation) ──
+  const ringBadgeRef = useRef<View>(null);
+  const handleBadgeLayout = useCallback(() => {
+    setTimeout(() => {
+      (ringBadgeRef.current as any)?.measureInWindow(
+        (x: number, y: number, width: number, height: number) => {
+          if (width > 0 && height > 0) {
+            setRingLayout({ x, y, width, height });
+          }
+        },
+      );
+    }, 80);
+  }, [setRingLayout]);
 
   // ── Watering can animation ──
   const prevPointsRef = useRef<number | null>(null);
@@ -196,13 +209,12 @@ function LevelProgressRing({
   const progTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hapticTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const animateProgress = React.useCallback((from: number, to: number) => {
+  const animateProgress = useCallback((from: number, to: number, durationMs = 700) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    const duration = 700;
     const start = Date.now();
     const step = () => {
       const elapsed = Date.now() - start;
-      const t = Math.min(1, elapsed / duration);
+      const t = Math.min(1, elapsed / durationMs);
       const eased = 1 - Math.pow(1 - t, 3);
       const val = from + eased * (to - from);
       displayProgressRef.current = val;
@@ -233,6 +245,7 @@ function LevelProgressRing({
     transform: [{ translateY: dropY.value }],
   }));
 
+  // ── Main animation logic ──
   useEffect(() => {
     if (!mountedRef.current) {
       mountedRef.current = true;
@@ -249,14 +262,14 @@ function LevelProgressRing({
     const newIconScale = ICON_MIN_SCALE + (progress / 100) * (ICON_MAX_SCALE - ICON_MIN_SCALE);
 
     // ── Branch A: livello cambiato E nuovi drops ──
-    // Mostra prima l'annafiatoio, poi anima il badge livello dopo 2700ms
+    // Annafiatoio → barra al 100% → crescendo → modal (gestita da context)
+    // Il badge swap avviene solo dopo la chiusura del modal (phase="exploded")
     if (prevLev !== level && points > prev && prev > 0) {
       if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
       if (hapticTimeoutRef.current) clearTimeout(hapticTimeoutRef.current);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
       const oldP = displayProgressRef.current;
-      const newP = progress;
 
       // Watering can: fade in (450ms), hold (1750ms), fade out (500ms) → 2700ms totali
       canOpacity.value = withSequence(
@@ -264,14 +277,14 @@ function LevelProgressRing({
         withTiming(1, { duration: 1750 }),
         withTiming(0, { duration: 500 }),
       );
-      // Can inclina 35° per versare poi ritorna → 2200ms totali
+      // Can inclina 35° per versare poi ritorna
       canRotate.value = withSequence(
         withTiming(0, { duration: 100 }),
         withTiming(35, { duration: 750, easing: Easing.out(Easing.quad) }),
         withTiming(35, { duration: 700 }),
         withTiming(0, { duration: 650, easing: Easing.inOut(Easing.quad) }),
       );
-      // Goccia: attesa 950ms, appare 120ms, cade 900ms, svanisce 300ms → 2270ms
+      // Goccia: attesa 950ms, appare 120ms, cade 900ms, svanisce 300ms
       dropOpacity.value = withSequence(
         withTiming(0, { duration: 950 }),
         withTiming(1, { duration: 120 }),
@@ -284,80 +297,67 @@ function LevelProgressRing({
         withTiming(0, { duration: 0 }),
       );
 
-      // Haptic e progress bar all'atterraggio goccia (1970ms)
+      // Haptic all'atterraggio goccia (1970ms)
       hapticTimeoutRef.current = setTimeout(() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }, 1970);
-      progTimeoutRef.current = setTimeout(() => animateProgress(oldP, newP), 1970);
+      // Barra va al 100% (non al valore reale — avverrà dopo il modal in phase=exploded)
+      progTimeoutRef.current = setTimeout(() => animateProgress(oldP, 100), 1970);
 
-      // Crescendo badge: 11 cicli con ampiezza crescente (±2%→±18%) e periodo decrescente
-      // (380ms→155ms), totale ~2705ms = durata annaffiatoio, poi swap al nuovo livello
-      if (swapLevelTimerRef.current) clearTimeout(swapLevelTimerRef.current);
+      // Crescendo badge: 12 cicli con ampiezza crescente (±3%→±35%) e periodo decrescente
+      // Totale ~2530ms + fine animation ~170ms ≈ 2700ms
       badgeVScale.value = withSequence(
-        withTiming(1.02, { duration: 190, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 190, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.04, { duration: 170, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 170, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.06, { duration: 152, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 153, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.08, { duration: 140, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 140, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.10, { duration: 127, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.03, { duration: 175, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 175, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.06, { duration: 158, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 158, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.09, { duration: 142, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 142, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.13, { duration: 128, easing: Easing.inOut(Easing.ease) }),
         withTiming(1.0,  { duration: 128, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.12, { duration: 117, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 118, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.14, { duration: 107, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration: 108, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.16, { duration:  97, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration:  98, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.18, { duration:  90, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration:  90, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.18, { duration:  82, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration:  83, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.18, { duration:  77, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0,  { duration:  78, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.45, { duration: 220, easing: Easing.out(Easing.quad) }),
-        withDelay(60, withSpring(1, { damping: 9, stiffness: 130 })),
+        withTiming(1.16, { duration: 115, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 115, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.20, { duration: 104, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 104, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.23, { duration:  93, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration:  93, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.26, { duration:  84, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration:  84, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.29, { duration:  76, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration:  76, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.32, { duration:  69, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration:  69, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.35, { duration:  63, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration:  63, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.35, { duration:  58, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration:  58, easing: Easing.inOut(Easing.ease) }),
+        // Fine: compressione prima dell'esplosione
+        withTiming(0.42, { duration: 170, easing: Easing.out(Easing.quad) }),
       );
-      badgeOpacity.value = withDelay(2700, withSequence(
-        withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) }),
-        withDelay(60, withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) })),
-      ));
-      iconScale.value = withDelay(2980, withSpring(newIconScale, { damping: 10, stiffness: 90 }));
-      swapLevelTimerRef.current = setTimeout(() => {
-        setDisplayedLevel(level);
-        swapLevelTimerRef.current = null;
-      }, 3200);
+      // badge opacity: resta visibile, poi si nasconde al momento giusto
+      badgeOpacity.value = 1;
+
       return () => {
         if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
         if (hapticTimeoutRef.current) clearTimeout(hapticTimeoutRef.current);
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
-        if (swapLevelTimerRef.current) clearTimeout(swapLevelTimerRef.current);
       };
     }
 
     // ── Branch B: livello cambiato senza nuovi drops (es. ripristino app) ──
-    // Animazione badge immediata, nessun annafiatoio
+    // La barra va al 100%, poi il badge swap avverrà via phase="exploded"
     if (prevLev !== level) {
-      displayProgressRef.current = progress;
-      setDisplayProgress(progress);
-      if (swapLevelTimerRef.current) clearTimeout(swapLevelTimerRef.current);
-      setDisplayedLevel(level);
-      badgeOpacity.value = withSequence(
-        withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) }),
-        withDelay(60, withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) })),
-      );
-      badgeVScale.value = withSequence(
-        withTiming(0.45, { duration: 220, easing: Easing.out(Easing.quad) }),
-        withDelay(60, withSpring(1, { damping: 9, stiffness: 130 })),
-      );
-      iconScale.value = withDelay(280, withSpring(newIconScale, { damping: 10, stiffness: 90 }));
-      return;
+      if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      const oldP = displayProgressRef.current;
+      progTimeoutRef.current = setTimeout(() => animateProgress(oldP, 100, 500), 200);
+      return () => {
+        if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
+      };
     }
 
     // ── Branch C: solo nuovi drops, nessun cambio livello ──
     if (points > prev && prev > 0) {
-      // Cancel any in-flight animations
       if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
       if (hapticTimeoutRef.current) clearTimeout(hapticTimeoutRef.current);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -365,20 +365,17 @@ function LevelProgressRing({
       const oldP = displayProgressRef.current;
       const newP = progress;
 
-      // Can fades in (450ms), holds (1750ms), fades out (500ms) → total 2700ms
       canOpacity.value = withSequence(
         withTiming(1, { duration: 450 }),
         withTiming(1, { duration: 1750 }),
         withTiming(0, { duration: 500 }),
       );
-      // Can tilts 35° to pour then returns → total 2200ms
       canRotate.value = withSequence(
         withTiming(0, { duration: 100 }),
         withTiming(35, { duration: 750, easing: Easing.out(Easing.quad) }),
         withTiming(35, { duration: 700 }),
         withTiming(0, { duration: 650, easing: Easing.inOut(Easing.quad) }),
       );
-      // Droplet: wait 950ms, appear 120ms, fall 900ms, fade 300ms → total 2270ms
       dropOpacity.value = withSequence(
         withTiming(0, { duration: 950 }),
         withTiming(1, { duration: 120 }),
@@ -391,28 +388,18 @@ function LevelProgressRing({
         withTiming(0, { duration: 0 }),
       );
 
-      // ── AT DROP LANDING (950 + 1020 = 1970ms) ──
-
-      // 1. Badge shimmer just before spring (1920ms)
       badgeOpacity.value = withDelay(1920, withSequence(
         withTiming(0.5, { duration: 90, easing: Easing.out(Easing.quad) }),
         withTiming(1, { duration: 200, easing: Easing.out(Easing.quad) }),
       ));
-
-      // 2. Badge springs when drop lands
       iconScale.value = withDelay(
         1970,
         withSpring(newIconScale, { damping: 6, stiffness: 130, mass: 0.8 }),
       );
-
-      // 3. Haptic tick at landing
       hapticTimeoutRef.current = setTimeout(() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }, 1970);
-
-      // 4. Progress bar fills at landing
       progTimeoutRef.current = setTimeout(() => animateProgress(oldP, newP), 1970);
-
     } else {
       displayProgressRef.current = progress;
       setDisplayProgress(progress);
@@ -425,6 +412,45 @@ function LevelProgressRing({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, [points, progress, level]);
+
+  // ── Phase "exploded": il modal ha finito → swap badge + barra al valore reale ──
+  useEffect(() => {
+    if (levelUpPhase !== "exploded" || !levelUpToLevel) return;
+
+    const newIconScale = ICON_MIN_SCALE + (progress / 100) * (ICON_MAX_SCALE - ICON_MIN_SCALE);
+
+    // Haptic Heavy per enfatizzare il reveal
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+    // Nascondi immediatamente il badge prima dello swap per evitare flash
+    badgeOpacity.value = 0;
+    badgeVScale.value = 0.25;
+
+    // Swap badge (si aggiorna al nuovo livello mentre è nascosto)
+    setDisplayedLevel(levelUpToLevel);
+
+    // Barra riparte da 0%
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    displayProgressRef.current = 0;
+    setDisplayProgress(0);
+
+    // Al frame successivo: rivela il nuovo badge con animazione bounce
+    const revealTimer = setTimeout(() => {
+      badgeOpacity.value = withTiming(1, { duration: 350, easing: Easing.out(Easing.quad) });
+      badgeVScale.value = withSpring(1, { damping: 7, stiffness: 130 });
+      iconScale.value = withDelay(150, withSpring(newIconScale, { damping: 10, stiffness: 90 }));
+    }, 50);
+
+    // Barra avanza al valore reale del nuovo livello (con leggero ritardo)
+    const progressTimer = setTimeout(() => {
+      animateProgress(0, progress, 950);
+    }, 300);
+
+    return () => {
+      clearTimeout(revealTimer);
+      clearTimeout(progressTimer);
+    };
+  }, [levelUpPhase, levelUpToLevel]);
 
   const currentIdx = LEVEL_CONFIG.findIndex(l => l.name === level);
   const safeIdx = currentIdx >= 0 ? currentIdx : 0;
@@ -484,7 +510,11 @@ function LevelProgressRing({
 
         {/* Center: badge icon + text */}
         <View style={ringStyles.innerContent}>
-          <Animated.View style={badgeAnimStyle}>
+          <Animated.View
+            ref={ringBadgeRef as any}
+            onLayout={handleBadgeLayout}
+            style={badgeAnimStyle}
+          >
             <Animated.View style={iconAnimStyle}>
               <BadgeIcon3D name={displayedLevel} category="Livello" emoji="" isUnlocked={true} size={ICON_BASE_SIZE} />
             </Animated.View>
