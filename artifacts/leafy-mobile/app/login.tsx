@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
   },
   appNameContainer: {
     height: 120,
-    marginTop: SCREEN_HEIGHT * 0.15,
+    marginTop: SCREEN_HEIGHT * 0.10,
     marginBottom: 8,
     justifyContent: "center",
     alignItems: "center",
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: Fonts.bodyRegular,
     color: "rgba(255,255,255,0.82)",
-    marginBottom: 6,
+    marginBottom: 12,
     textAlign: "center",
   },
   heroWrap: {
