@@ -844,13 +844,19 @@ function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: 
           <Text style={[challengeStyles.cardDesc, { color: theme.textSecondary }]} numberOfLines={2}>{ch.description}</Text>
           <View style={challengeStyles.progressRow}>
             <View style={[challengeStyles.progressBg, { backgroundColor: theme.border }]}>
-              <View style={[challengeStyles.progressFill, { width: `${pct}%` as any, backgroundColor: isCompleted ? "#51B888" : typeColor }]} />
+              <View style={[challengeStyles.progressFill, { width: `${pct}%`, backgroundColor: isCompleted ? "#51B888" : typeColor }]} />
             </View>
             <Text style={[challengeStyles.progressLabel, { color: theme.textSecondary }]}>{ch.currentCount}/{ch.targetCount}</Text>
           </View>
         </View>
-        <View style={[challengeStyles.typePill, { backgroundColor: `${typeColor}22` }]}>
-          <Text style={[challengeStyles.typePillText, { color: typeColor }]}>{typeLabel}</Text>
+        <View style={{ alignItems: "flex-end", gap: 6 }}>
+          <View style={[challengeStyles.typePill, { backgroundColor: `${typeColor}22` }]}>
+            <Text style={[challengeStyles.typePillText, { color: typeColor }]}>{typeLabel}</Text>
+          </View>
+          <View style={challengeStyles.rewardPill}>
+            <MaterialCommunityIcons name="gift-outline" size={11} color={theme.textMuted} />
+            <Text style={[challengeStyles.rewardPillText, { color: theme.textMuted }]}>?</Text>
+          </View>
         </View>
       </View>
     </View>
@@ -955,6 +961,19 @@ const challengeStyles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "DMSans_700Bold",
     letterSpacing: 0.2,
+  },
+  rewardPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
+    backgroundColor: "rgba(0,0,0,0.05)",
+  },
+  rewardPillText: {
+    fontSize: 11,
+    fontFamily: "DMSans_700Bold",
   },
 });
 

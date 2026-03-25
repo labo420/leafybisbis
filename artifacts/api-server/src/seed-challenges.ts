@@ -1,8 +1,18 @@
 import { db, challengesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
-function endOfYear2027(): Date {
-  return new Date("2027-12-31T23:59:59Z");
+function endOfDay(): Date {
+  const d = new Date();
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+function endOfWeek(): Date {
+  const d = new Date();
+  const daysUntilSunday = 7 - d.getDay();
+  d.setDate(d.getDate() + (daysUntilSunday === 7 ? 0 : daysUntilSunday));
+  d.setHours(23, 59, 59, 999);
+  return d;
 }
 
 const seedChallengesList = [
@@ -14,7 +24,7 @@ const seedChallengesList = [
     challengeType: "daily",
     targetCount: 1,
     rewardPoints: 0,
-    expiresAt: endOfYear2027(),
+    expiresAt: endOfDay(),
     isActive: true,
   },
   {
@@ -25,7 +35,7 @@ const seedChallengesList = [
     challengeType: "daily",
     targetCount: 1,
     rewardPoints: 0,
-    expiresAt: endOfYear2027(),
+    expiresAt: endOfDay(),
     isActive: true,
   },
   {
@@ -36,7 +46,7 @@ const seedChallengesList = [
     challengeType: "weekly",
     targetCount: 3,
     rewardPoints: 0,
-    expiresAt: endOfYear2027(),
+    expiresAt: endOfWeek(),
     isActive: true,
   },
   {
@@ -47,7 +57,7 @@ const seedChallengesList = [
     challengeType: "weekly",
     targetCount: 5,
     rewardPoints: 0,
-    expiresAt: endOfYear2027(),
+    expiresAt: endOfWeek(),
     isActive: true,
   },
   {
@@ -58,7 +68,7 @@ const seedChallengesList = [
     challengeType: "weekly",
     targetCount: 3,
     rewardPoints: 0,
-    expiresAt: endOfYear2027(),
+    expiresAt: endOfWeek(),
     isActive: true,
   },
   {
@@ -69,7 +79,7 @@ const seedChallengesList = [
     challengeType: "weekly",
     targetCount: 1,
     rewardPoints: 0,
-    expiresAt: endOfYear2027(),
+    expiresAt: endOfWeek(),
     isActive: true,
   },
 ];
