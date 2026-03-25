@@ -286,16 +286,6 @@ export default function WalletScreen() {
         <View style={styles.mainBlock}>
           <Animated.View entering={FadeInDown.delay(50).springify()} style={styles.ringSection}>
             <LeafyRing leaBalance={leaBalance} />
-            {hasLeafyGold && (
-              <View style={styles.goldBadge}>
-                <Image
-                  source={require("@/assets/images/leafy-gold-icon.png")}
-                  style={{ width: 14, height: 14 }}
-                  resizeMode="contain"
-                />
-                <Text style={styles.goldBadgeText}>Leafy Gold · LEA x2</Text>
-              </View>
-            )}
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.gridSection}>
