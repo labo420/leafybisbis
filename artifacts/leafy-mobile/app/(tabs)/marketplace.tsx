@@ -442,12 +442,13 @@ const styles = StyleSheet.create({
   },
   ringLeafIcon: {
     width: 58,
+    height: 58,
   },
   ringAmount: {
     fontSize: 56,
     fontFamily: Fonts.bodyBold,
     color: "#ffffff",
-    lineHeight: 50,
+    lineHeight: 64,
     textShadowColor: "rgba(0,0,0,0.25)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
@@ -481,7 +482,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   tile: {
-    width: "33%",
+    flex: 1,
     borderRadius: 16,
     borderWidth: 1.5,
     paddingVertical: 16,
@@ -499,10 +500,10 @@ const styles = StyleSheet.create({
   tileEuros: {
     fontSize: 28,
     fontFamily: Fonts.displayBold,
-    lineHeight: 26,
+    lineHeight: 32,
   },
   tileLea: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: Fonts.bodyMedium,
   },
   tileLeaRow: {
@@ -511,8 +512,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   tileLeaIcon: {
-    width: 10,
-    height: 10,
+    width: 12,
+    height: 12,
   },
   goldTag: {
     position: "absolute",
