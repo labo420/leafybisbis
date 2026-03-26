@@ -35,7 +35,7 @@ const PAYPAL_BLUE = "#0070E0";
 const LEAF_GREEN = "#4DB847";
 const LEAF_DARK = "#2E6B50";
 
-const RING_SIZE = 200;
+const RING_SIZE = 240;
 const STROKE_WIDTH = 16;
 const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
 
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     padding: 32,
     gap: 12,
   },
-  guestTitle: { fontSize: 22, fontFamily: Fonts.displayBold, textAlign: "center" },
+  guestTitle: { fontSize: 28, fontFamily: Fonts.displayBold, textAlign: "center" },
   guestSub:   { fontSize: 14, fontFamily: Fonts.bodyRegular, textAlign: "center", lineHeight: 20 },
 
   mainBlock: {
@@ -441,12 +441,10 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   ringLeafIcon: {
-    width: 46,
-    height: 46,
-    marginBottom: 4,
+    width: 58,
   },
   ringAmount: {
-    fontSize: 44,
+    fontSize: 56,
     fontFamily: Fonts.bodyBold,
     color: "#ffffff",
     lineHeight: 50,
@@ -483,11 +481,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   tile: {
-    width: "30.5%",
+    width: "33%",
     borderRadius: 16,
     borderWidth: 1.5,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
     alignItems: "center",
     gap: 3,
     position: "relative",
@@ -499,7 +497,7 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   tileEuros: {
-    fontSize: 22,
+    fontSize: 28,
     fontFamily: Fonts.displayBold,
     lineHeight: 26,
   },
@@ -675,7 +673,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
   },
   historyIconWrap: {
