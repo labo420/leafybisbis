@@ -870,6 +870,7 @@ function LeaderboardMiniCard({
   const userEntry = entries.find(e => e.isCurrentUser);
 
   return (
+    <View style={lbCardStyles.cardShadow}>
     <Pressable
       style={lbCardStyles.card}
       onPress={() => router.push("/leaderboard")}
@@ -948,18 +949,22 @@ function LeaderboardMiniCard({
         </View>
       )}
     </Pressable>
+    </View>
   );
 }
 
 const lbCardStyles = StyleSheet.create({
-  card: {
+  cardShadow: {
     borderRadius: 18,
-    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.18,
     shadowRadius: 8,
     elevation: 4,
+  },
+  card: {
+    borderRadius: 18,
+    overflow: "hidden",
   },
   header: {
     flexDirection: "row",
@@ -1017,7 +1022,7 @@ const lbCardStyles = StyleSheet.create({
     paddingVertical: 9,
   },
   myRankText: { fontSize: 13, fontFamily: Fonts.bodyBold, color: "#fff" },
-  myRankScore: { fontSize: 12, fontFamily: Fonts.bodyMedium, color: "rgba(255,255,255,0.8)" },
+  myRankScore: { fontSize: 12, fontFamily: Fonts.bodyMedium, color: "#fff" },
 });
 
 function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: ReturnType<typeof useTheme>["theme"] }) {
