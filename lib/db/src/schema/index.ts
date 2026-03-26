@@ -12,3 +12,5 @@ export * from "./user-product-submissions";
 export * from "./withdrawals";
 export * from "./kits";
 export * from "./locations";
+export * from "./notifications";
+export * from "./friendships";

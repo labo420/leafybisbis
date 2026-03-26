@@ -54,6 +54,10 @@ Leafy è una piattaforma loyalty mobile-first per la sostenibilità. Gli utenti 
 - **Wallet Hero Ring Redesign (Task #6)**: Redesign del ring/hero nella schermata Wallet — nuova presentazione visiva del saldo $LEA e progressione.
 - **Fix icon & font rendering in Expo Go (Task #7)**: Risolti problemi di rendering per icone vettoriali e font custom su Expo Go (dispositivi fisici iOS/Android).
 - **Fix Metro CORS / PACKAGER_HOSTNAME (Task #8)**: Ripristinato `PACKAGER_HOSTNAME` nel bundler Metro per risolvere errori CORS con l'app su dispositivi fisici connessi via ngrok.
+- **Centro Notifiche in-app**: Campanella con badge rosso nell'header home (navigazione `/notifications`). Schermata notifiche con lista eventi (drops_earned, level_up, challenge_completed, checkin, walkin, friend_request, friend_accepted), icone per tipo, timestamp relativo, "segna tutte lette". Hook `useInAppNotifications` (react-query, polling 60s). Backend: tabella `notifications` (userId, type, title, body, icon, isRead), API `GET /api/notifications` + `PATCH /api/notifications/read-all`. Helper `createNotification()` riutilizzabile.
+- **Sistema Amici**: Schermata `/friends` con ricerca per username, invio richiesta, lista amici (accettati + richieste in arrivo/inviate). Accettazione/rifiuto/rimozione amici. Notifiche automatiche per richiesta e accettazione. Backend: tabella `friendships` (requesterId, addresseeId, status: pending/accepted), API REST completa. Leaderboard: toggle scope Globale/Amici — in scope "friends" si filtrano solo utenti reali amici (no fake), pulsante account-group header che naviga a `/friends`.
+- **Skeleton Loading States**: Componente `Skeleton.tsx` generico (`SkeletonBox`, `SkeletonCard`, `SkeletonReceiptCard`) con animazione pulsazione opacity. Usato in: home (sezioni classifica + sfide mostrano skeleton quando dati in caricamento), storico (4 skeleton card al posto di ActivityIndicator).
+- **Storico Visual Polish**: Sostituito `FlatList` con `SectionList` — i ricevute sono raggruppati per data di acquisto con intestazioni di sezione divider (riga + data + riga). Import `useMemo` per calcolo sezioni efficiente.
 
 ---
 

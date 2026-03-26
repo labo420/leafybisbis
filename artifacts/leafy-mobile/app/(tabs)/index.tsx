@@ -49,6 +49,8 @@ import { useTheme } from "@/context/theme";
 import { apiFetch } from "@/lib/api";
 import { useNearbyLocations, type NearbyLocation } from "@/hooks/useNearbyLocations";
 import { useWalkin } from "@/hooks/useWalkin";
+import { useInAppNotifications } from "@/hooks/useInAppNotifications";
+import { SkeletonBox, SkeletonCard } from "@/components/Skeleton";
 import type { Profile, DailyCheckinResponse, GoldCheckinResponse, Challenge, LeaderboardEntry } from "@workspace/api-client-react";
 import LeafyGoldModal from "@/components/LeafyGoldModal";
 import CheckinDropBurst from "@/components/CheckinDropBurst";
@@ -1428,6 +1430,7 @@ export default function HomeScreen() {
   const levelProgress = Math.max(0, Math.min(100, profile?.levelProgress ?? 0));
   const nextLevelPoints = profile?.nextLevelPoints ?? 0;
   const safeInitial = (username.trim().charAt(0) || "U").toUpperCase();
+  const { unreadCount: notifUnread } = useInAppNotifications(!!user);
 
   return (
     <View style={{ flex: 1 }}>
@@ -1509,6 +1512,14 @@ export default function HomeScreen() {
             </View>
           </View>
           <View style={styles.headerRight}>
+            <Pressable onPress={() => router.push("/notifications")} style={styles.bellBtn}>
+              <MaterialCommunityIcons name="bell-outline" size={24} color={mode === "dark" ? "rgba(255,255,255,0.85)" : "#1A3028"} />
+              {notifUnread > 0 && (
+                <View style={styles.bellBadge}>
+                  <Text style={styles.bellBadgeText}>{notifUnread > 9 ? "9+" : String(notifUnread)}</Text>
+                </View>
+              )}
+            </Pressable>
             <Pressable onPress={() => router.push("/(tabs)/profilo")}>
               <View style={[styles.avatarCircleHero, { backgroundColor: mode === "dark" ? "rgba(255,255,255,0.22)" : "rgba(46,107,80,0.12)", borderColor: mode === "dark" ? "rgba(255,255,255,0.35)" : "rgba(46,107,80,0.22)" }]}>
                 <Text style={[styles.avatarInitial, { color: mode === "dark" ? "#fff" : "#2E6B50" }]}>{safeInitial}</Text>
@@ -1790,10 +1801,33 @@ export default function HomeScreen() {
         </Animated.View>
       )}
 
+      {/* ── CLASSIFICA — Skeleton loading ── */}
+      {!leaderboard && (
+        <Animated.View entering={FadeInDown.delay(320).springify()} style={{ marginTop: 24, paddingHorizontal: 16, gap: 8 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+            <SkeletonBox width={120} height={16} />
+            <SkeletonBox width={60} height={12} />
+          </View>
+          {[0, 1, 2].map(i => <SkeletonCard key={i} />)}
+        </Animated.View>
+      )}
+
       {/* ── CLASSIFICA ── */}
       {leaderboard && leaderboard.length > 0 && (
         <Animated.View entering={FadeInDown.delay(320).springify()} style={{ marginTop: 24, paddingHorizontal: 16 }}>
           <LeaderboardMiniCard entries={leaderboard} theme={theme} />
+        </Animated.View>
+      )}
+
+      {/* ── SFIDE — Skeleton loading ── */}
+      {!challenges && (
+        <Animated.View entering={FadeInDown.delay(350).springify()} style={{ marginTop: 24, paddingHorizontal: 16, gap: 10 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <SkeletonBox width={18} height={18} borderRadius={9} />
+            <SkeletonBox width={80} height={16} />
+          </View>
+          <SkeletonCard />
+          <SkeletonCard />
         </Animated.View>
       )}
 
@@ -2848,6 +2882,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  bellBtn: {
+    position: "relative",
+    padding: 4,
+  },
+  bellBadge: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    backgroundColor: "#EF4444",
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  bellBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontFamily: Fonts.bodyBold,
   },
   dropsBadge: {
     backgroundColor: "rgba(255,255,255,0.12)",

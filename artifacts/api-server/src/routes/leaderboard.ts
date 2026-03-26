@@ -3,6 +3,7 @@ import { db, usersTable, receiptsTable } from "@workspace/db";
 import { GetLeaderboardResponse, GetLeaderboardQueryParams } from "@workspace/api-zod";
 import { requireUser } from "./profile";
 import { and, gte, eq, sql } from "drizzle-orm";
+import { getFriendIds } from "./friends";
 
 const router: IRouter = Router();
 
@@ -39,9 +40,17 @@ const FAKE_USERS = [
 router.get("/leaderboard", async (req, res): Promise<void> => {
   const queryParams = GetLeaderboardQueryParams.safeParse(req.query);
   const period = queryParams.success ? (queryParams.data.period ?? "all") : "all";
+  const scope = (req.query.scope as string | undefined) ?? "global";
 
   const user = await requireUser(req, res);
   if (!user) return;
+
+  // ── Friends scope: only include user + friends ──────────────────────────
+  let allowedUserIds: number[] | null = null;
+  if (scope === "friends") {
+    const friendIds = await getFriendIds(user.id);
+    allowedUserIds = [user.id, ...friendIds];
+  }
 
   // ── Compute real-user scores per period ──────────────────────────────────
   let realUserScores: { userId: number; score: number }[] = [];
@@ -89,8 +98,8 @@ router.get("/leaderboard", async (req, res): Promise<void> => {
     };
   });
 
-  // ── Fake users ────────────────────────────────────────────────────────────
-  const fakeCombined = FAKE_USERS.map(f => ({
+  // ── Fake users (only in global scope) ────────────────────────────────────
+  const fakeCombined = scope === "friends" ? [] : FAKE_USERS.map(f => ({
     id: f.id,
     username: f.username,
     score: period === "weekly"
@@ -102,7 +111,12 @@ router.get("/leaderboard", async (req, res): Promise<void> => {
     isFake: true,
   }));
 
-  const combined = [...realCombined, ...fakeCombined];
+  // ── Filter real users by allowedUserIds if friends scope ─────────────────
+  const filteredReal = allowedUserIds
+    ? realCombined.filter(u => allowedUserIds!.includes(u.id))
+    : realCombined;
+
+  const combined = [...filteredReal, ...fakeCombined];
   combined.sort((a, b) => b.score - a.score);
 
   // ── Find current user's global rank ───────────────────────────────────────
