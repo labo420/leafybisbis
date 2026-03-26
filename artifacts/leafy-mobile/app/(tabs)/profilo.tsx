@@ -26,8 +26,12 @@ import { Fonts } from "@/constants/typography";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/context/auth";
 import { useTheme } from "@/context/theme";
+import { useNotifications } from "@/context/notifications";
 import BadgeIcon3D from "@/components/BadgeIcon3D";
 import LeafyGoldModal from "@/components/LeafyGoldModal";
+import { useWalkin } from "@/hooks/useWalkin";
+import { useNearbyLocations } from "@/hooks/useNearbyLocations";
+import { InStoreLocationCard } from "@/components/InStoreLocationCard";
 import type {
   Profile,
   ImpactStats,
@@ -463,6 +467,42 @@ export default function ProfiloScreen() {
   const [impactVisible, setImpactVisible] = useState(false);
   const [showLeafyGoldModal, setShowLeafyGoldModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [inStoreModeEnabled, setInStoreModeEnabled] = useState(true);
+  const [inStoreModeActive, setInStoreModeActive] = useState(false);
+
+  const { pushEnabled } = useNotifications();
+  const { locations, permissionStatus, loading: locationsLoading, refresh: refreshLocations } =
+    useNearbyLocations(inStoreModeEnabled && !!user);
+  const walkin = useWalkin(locations, pushEnabled);
+
+  useEffect(() => {
+    if (inStoreModeEnabled) {
+      const t = setTimeout(() => {
+        if (!walkin.isDwelling && !walkin.isInsideStore) setInStoreModeEnabled(false);
+      }, 15000);
+      return () => clearTimeout(t);
+    }
+  }, [inStoreModeEnabled, walkin.isDwelling, walkin.isInsideStore]);
+
+  useEffect(() => {
+    if (!user) return;
+    if (inStoreModeEnabled) {
+      walkin.startGeofenceWatch();
+    } else {
+      walkin.stopGeofenceWatch();
+      walkin.reset();
+      setInStoreModeActive(false);
+    }
+  }, [inStoreModeEnabled, user?.id]);
+
+  useEffect(() => {
+    if (!user || !inStoreModeEnabled) return;
+    if (walkin.isInsideStore) {
+      setInStoreModeActive(true);
+    } else if (!walkin.isInsideStore && walkin.phase === "idle") {
+      setInStoreModeActive(false);
+    }
+  }, [walkin.isInsideStore, walkin.phase, inStoreModeEnabled, user?.id]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -825,6 +865,63 @@ export default function ProfiloScreen() {
             <View style={[styles.menuRowBadge, { backgroundColor: "#4ade80" }]}>
               <Text style={[styles.menuRowBadgeText, { color: "#fff" }]}>Attivo</Text>
             </View>
+          </View>
+        )}
+      </Animated.View>
+
+      {/* ── RILEVAMENTO NEGOZI ── */}
+      <Animated.View entering={FadeInDown.delay(0).springify()} style={{ marginHorizontal: 20, marginTop: 16, marginBottom: 0 }}>
+        <Pressable
+          style={[inStoreStyles.toggleRow, { backgroundColor: theme.card }]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setInStoreModeEnabled((prev) => !prev);
+          }}
+        >
+          <MaterialCommunityIcons name="store-marker" size={20} color={inStoreModeEnabled ? theme.leaf : theme.textMuted} />
+          <Text style={[inStoreStyles.toggleLabel, { color: inStoreModeEnabled ? theme.leaf : theme.text }]}>Rilevamento negozi</Text>
+          <View style={[inStoreStyles.togglePill, { backgroundColor: inStoreModeEnabled ? theme.leaf : theme.border }]}>
+            <View style={[inStoreStyles.toggleKnob, { transform: [{ translateX: inStoreModeEnabled ? 18 : 2 }] }]} />
+          </View>
+        </Pressable>
+
+        {inStoreModeEnabled && inStoreModeActive && (
+          <View style={[inStoreStyles.panel, { backgroundColor: theme.card }]}>
+            {permissionStatus === "denied" && (
+              <View style={inStoreStyles.permRow}>
+                <Feather name="map-pin" size={16} color={theme.amber} />
+                <Text style={[inStoreStyles.permText, { color: theme.textSecondary }]}>
+                  Posizione non autorizzata. Abilita la posizione nelle impostazioni.
+                </Text>
+              </View>
+            )}
+
+            {permissionStatus === "granted" && locationsLoading && locations.length === 0 && (
+              <View style={inStoreStyles.loadingRow}>
+                <ActivityIndicator size="small" color={theme.leaf} />
+                <Text style={[inStoreStyles.loadingText, { color: theme.textSecondary }]}>Ricerca negozi nelle vicinanze…</Text>
+              </View>
+            )}
+
+            {permissionStatus === "granted" && !locationsLoading && locations.length === 0 && (
+              <View style={inStoreStyles.emptyRow}>
+                <MaterialCommunityIcons name="store-off" size={28} color={theme.textMuted} />
+                <Text style={[inStoreStyles.emptyText, { color: theme.textSecondary }]}>Nessun negozio partner nelle vicinanze (300 m)</Text>
+                <Pressable onPress={refreshLocations} style={[inStoreStyles.refreshBtn, { borderColor: theme.border }]}>
+                  <Feather name="refresh-cw" size={13} color={theme.leaf} />
+                  <Text style={[inStoreStyles.refreshBtnText, { color: theme.leaf }]}>Riprova</Text>
+                </Pressable>
+              </View>
+            )}
+
+            {permissionStatus === "granted" && locations.map((loc) => (
+              <InStoreLocationCard
+                key={loc.id}
+                location={loc}
+                walkin={walkin}
+                theme={theme}
+              />
+            ))}
           </View>
         )}
       </Animated.View>
@@ -1282,5 +1379,99 @@ const multiplierStyles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Inter_400Regular",
     marginTop: 2,
+  },
+});
+
+const inStoreStyles = StyleSheet.create({
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 14,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  toggleLabel: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: "DMSans_600SemiBold",
+  },
+  togglePill: {
+    width: 42,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+  },
+  toggleKnob: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  panel: {
+    marginTop: 10,
+    borderRadius: 16,
+    padding: 12,
+    gap: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  permRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    padding: 8,
+  },
+  permText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 18,
+  },
+  loadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+  },
+  emptyRow: {
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 16,
+  },
+  emptyText: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+  },
+  refreshBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginTop: 4,
+  },
+  refreshBtnText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
   },
 });
