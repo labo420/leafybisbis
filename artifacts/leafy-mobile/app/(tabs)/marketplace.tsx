@@ -212,7 +212,7 @@ export default function WalletScreen() {
 
   if (!user) {
     return (
-      <View style={[styles.centered, { backgroundColor: theme.background }]}>
+      <View style={[styles.centered, { backgroundColor: "#E8F5E9" }]}>
         <MaterialCommunityIcons name="sprout-outline" size={48} color={theme.textMuted} />
         <Text style={[styles.guestTitle, { color: theme.text }]}>Il tuo Raccolto</Text>
         <Text style={[styles.guestSub, { color: theme.textSecondary }]}>
@@ -273,7 +273,7 @@ export default function WalletScreen() {
       </Modal>
 
       <ScrollView
-        style={[styles.container, { backgroundColor: theme.background }]}
+        style={[styles.container, { backgroundColor: "#E8F5E9" }]}
         contentContainerStyle={{ paddingTop: topPadding, paddingBottom: bottomPad }}
         showsVerticalScrollIndicator={false}
       >
