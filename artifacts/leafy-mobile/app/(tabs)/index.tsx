@@ -885,7 +885,7 @@ function LeaderboardMiniCard({
           <MaterialCommunityIcons name="trophy" size={18} color="#FFD700" />
           <Text style={lbCardStyles.title}>Classifica</Text>
           <View style={lbCardStyles.badge}>
-            <Text style={lbCardStyles.badgeText}>Settimana</Text>
+            <Text style={lbCardStyles.badgeText}>Questa settimana</Text>
           </View>
         </View>
         <View style={lbCardStyles.headerRight}>
@@ -937,20 +937,15 @@ function LeaderboardMiniCard({
 
       {/* La tua posizione (se fuori top 3) */}
       {userEntry && userEntry.rank > 3 && (
-        <LinearGradient
-          colors={["#2E6B50", "#1A3028"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={lbCardStyles.myRankRow}
-        >
-          <MaterialCommunityIcons name="account" size={15} color="#FFD700" />
+        <View style={[lbCardStyles.myRankRow, { backgroundColor: "#2E6B50" }]}>
+          <MaterialCommunityIcons name="account" size={15} color="#fff" />
           <Text style={lbCardStyles.myRankText}>
             La tua posizione: #{userEntry.rank}
           </Text>
           <Text style={lbCardStyles.myRankScore}>
             · {userEntry.score >= 1000 ? `${(userEntry.score / 1000).toFixed(1)}k` : userEntry.score} drops
           </Text>
-        </LinearGradient>
+        </View>
       )}
     </Pressable>
   );
