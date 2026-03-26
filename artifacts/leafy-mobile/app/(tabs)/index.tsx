@@ -49,7 +49,7 @@ import { useTheme } from "@/context/theme";
 import { apiFetch } from "@/lib/api";
 import { useNearbyLocations, type NearbyLocation } from "@/hooks/useNearbyLocations";
 import { useWalkin } from "@/hooks/useWalkin";
-import type { Profile, DailyCheckinResponse, GoldCheckinResponse, Challenge } from "@workspace/api-client-react";
+import type { Profile, DailyCheckinResponse, GoldCheckinResponse, Challenge, LeaderboardEntry } from "@workspace/api-client-react";
 import LeafyGoldModal from "@/components/LeafyGoldModal";
 import CheckinDropBurst from "@/components/CheckinDropBurst";
 import { useLevelUp } from "@/context/level-up";
@@ -850,6 +850,143 @@ function GuestAuthScreen() {
   );
 }
 
+function leaderboardAvatarColor(id: number): string {
+  const COLORS = ["#4CAF50","#2E7D32","#66BB6A","#43A047","#1B5E20","#388E3C","#81C784","#00897B","#00695C","#558B2F"];
+  return COLORS[id % COLORS.length];
+}
+
+function leaderboardInitials(username: string): string {
+  return (username ?? "").replace(/[^\p{L}\p{N}]/gu, "").slice(0, 2).toUpperCase() || "??";
+}
+
+function LeaderboardMiniCard({
+  entries,
+  theme,
+}: {
+  entries: LeaderboardEntry[];
+  theme: ReturnType<typeof useTheme>["theme"];
+}) {
+  const top3 = entries.filter(e => e.rank <= 3);
+  const userEntry = entries.find(e => e.isCurrentUser);
+
+  return (
+    <Pressable
+      style={[lbCardStyles.card, { backgroundColor: theme.card, borderColor: theme.border }]}
+      onPress={() => router.push("/leaderboard")}
+    >
+      {/* Header */}
+      <View style={lbCardStyles.header}>
+        <View style={lbCardStyles.headerLeft}>
+          <MaterialCommunityIcons name="trophy" size={16} color="#FFD700" />
+          <Text style={[lbCardStyles.title, { color: theme.text }]}>Classifica</Text>
+          <View style={[lbCardStyles.badge, { backgroundColor: `${theme.primary}18` }]}>
+            <Text style={[lbCardStyles.badgeText, { color: theme.primary }]}>Questa settimana</Text>
+          </View>
+        </View>
+        <View style={lbCardStyles.headerRight}>
+          <Text style={[lbCardStyles.viewAll, { color: theme.primary }]}>Vedi tutto</Text>
+          <MaterialCommunityIcons name="chevron-right" size={14} color={theme.primary} />
+        </View>
+      </View>
+
+      {/* Podio compatto */}
+      <View style={lbCardStyles.podiumRow}>
+        {top3.length === 0 ? (
+          <Text style={[lbCardStyles.emptyText, { color: theme.textMuted }]}>Nessun dato disponibile</Text>
+        ) : (
+          top3.map((entry) => {
+            const color = entry.avatarColor ?? leaderboardAvatarColor(entry.userId);
+            const medal = ["🥇","🥈","🥉"][entry.rank - 1];
+            return (
+              <View key={entry.userId} style={lbCardStyles.podiumItem}>
+                <Text style={lbCardStyles.medal}>{medal}</Text>
+                <View style={[
+                  lbCardStyles.avatar,
+                  { backgroundColor: color },
+                  entry.isCurrentUser && lbCardStyles.avatarMe,
+                ]}>
+                  <Text style={lbCardStyles.avatarText}>{leaderboardInitials(entry.username)}</Text>
+                </View>
+                <Text style={[lbCardStyles.podiumName, { color: theme.text }]} numberOfLines={1}>
+                  {entry.isCurrentUser ? "Tu 👋" : entry.username}
+                </Text>
+                <Text style={[lbCardStyles.podiumScore, { color: theme.primary }]}>
+                  {entry.score >= 1000 ? `${(entry.score / 1000).toFixed(1)}k` : entry.score} drops
+                </Text>
+              </View>
+            );
+          })
+        )}
+      </View>
+
+      {/* La tua posizione (se fuori top 3) */}
+      {userEntry && userEntry.rank > 3 && (
+        <View style={[lbCardStyles.myRankRow, { borderTopColor: theme.border, backgroundColor: `${theme.primary}08` }]}>
+          <MaterialCommunityIcons name="account-circle-outline" size={14} color={theme.primary} />
+          <Text style={[lbCardStyles.myRankText, { color: theme.primary }]}>
+            La tua posizione: #{userEntry.rank} · {userEntry.score >= 1000 ? `${(userEntry.score / 1000).toFixed(1)}k` : userEntry.score} drops
+          </Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+const lbCardStyles = StyleSheet.create({
+  card: {
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 2 },
+  title: { fontSize: 14, fontFamily: Fonts.bodyBold },
+  badge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  badgeText: { fontSize: 10, fontFamily: Fonts.bodyMedium },
+  viewAll: { fontSize: 12, fontFamily: Fonts.bodyMedium },
+  podiumRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    paddingTop: 4,
+  },
+  podiumItem: { alignItems: "center", gap: 3, flex: 1 },
+  medal: { fontSize: 20 },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarMe: { borderWidth: 2.5, borderColor: "#FFD700" },
+  avatarText: { color: "#fff", fontSize: 15, fontFamily: Fonts.bodyBold },
+  podiumName: { fontSize: 11, fontFamily: Fonts.bodyMedium, textAlign: "center" },
+  podiumScore: { fontSize: 11, fontFamily: Fonts.bodyMedium },
+  emptyText: { fontSize: 13, fontFamily: Fonts.bodyRegular, padding: 12 },
+  myRankRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  myRankText: { fontSize: 12, fontFamily: Fonts.bodyMedium },
+});
+
 function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: ReturnType<typeof useTheme>["theme"] }) {
   const pct = ch.progressPercent;
   const isCompleted = ch.isCompleted;
@@ -1035,6 +1172,13 @@ export default function HomeScreen() {
     queryKey: ["challenges"],
     queryFn: () => apiFetch("/challenges"),
     enabled: !!user,
+  });
+
+  const { data: leaderboard } = useQuery<LeaderboardEntry[]>({
+    queryKey: ["leaderboard", "weekly"],
+    queryFn: () => apiFetch("/leaderboard?period=weekly"),
+    enabled: !!user,
+    staleTime: 120_000,
   });
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -1665,6 +1809,13 @@ export default function HomeScreen() {
         )}
       </Animated.View>
 
+
+      {/* ── CLASSIFICA ── */}
+      {leaderboard && leaderboard.length > 0 && (
+        <Animated.View entering={FadeInDown.delay(320).springify()} style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <LeaderboardMiniCard entries={leaderboard} theme={theme} />
+        </Animated.View>
+      )}
 
       {/* ── SFIDE ── */}
       {challenges && challenges.length > 0 && (() => {

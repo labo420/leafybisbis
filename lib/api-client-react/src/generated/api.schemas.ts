@@ -335,6 +335,7 @@ export interface LeaderboardEntry {
   score: number;
   co2SavedKg: number;
   isCurrentUser: boolean;
+  avatarColor?: string;
 }
 
 export interface GreenProduct {

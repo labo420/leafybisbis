@@ -403,6 +403,7 @@ export const getLeaderboardQueryTypeDefault = `points`;
 
 export const GetLeaderboardQueryParams = zod.object({
   type: zod.enum(["points", "impact"]).default(getLeaderboardQueryTypeDefault),
+  period: zod.enum(["weekly", "monthly", "all"]).default("all"),
 });
 
 export const GetLeaderboardResponseItem = zod.object({
@@ -413,6 +414,7 @@ export const GetLeaderboardResponseItem = zod.object({
   score: zod.number(),
   co2SavedKg: zod.number(),
   isCurrentUser: zod.boolean(),
+  avatarColor: zod.string().optional(),
 });
 export const GetLeaderboardResponse = zod.array(GetLeaderboardResponseItem);
 
