@@ -479,10 +479,11 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    justifyContent: "space-between",
+    rowGap: 10,
   },
   tile: {
-    flex: 1,
+    width: "30%",
     borderRadius: 16,
     borderWidth: 1.5,
     paddingVertical: 16,
