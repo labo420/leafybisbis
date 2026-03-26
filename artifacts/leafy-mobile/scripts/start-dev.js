@@ -161,12 +161,16 @@ function rewriteBody(body) {
 
 function startProxy() {
   const server = http.createServer((req, res) => {
+    const fwdHeaders = { ...req.headers, host: `localhost:${METRO_PORT}` };
+    delete fwdHeaders["accept-encoding"];
+    delete fwdHeaders["origin"];
+    delete fwdHeaders["referer"];
     const opts = {
       hostname: "127.0.0.1",
       port: METRO_PORT,
       path: req.url,
       method: req.method,
-      headers: { ...req.headers, host: `localhost:${METRO_PORT}` },
+      headers: fwdHeaders,
     };
     const pReq = http.request(opts, (pRes) => {
       const ct = pRes.headers["content-type"] || "";
@@ -184,11 +188,13 @@ function startProxy() {
             "access-control-allow-origin": "*",
           };
           delete hdrs["transfer-encoding"];
+          delete hdrs["content-encoding"];
           res.writeHead(pRes.statusCode, hdrs);
           res.end(buf);
         });
       } else {
         const hdrs = { ...pRes.headers, "access-control-allow-origin": "*" };
+        delete hdrs["content-encoding"];
         res.writeHead(pRes.statusCode, hdrs);
         pRes.pipe(res);
       }
