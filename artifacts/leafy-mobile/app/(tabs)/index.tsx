@@ -871,47 +871,63 @@ function LeaderboardMiniCard({
 
   return (
     <Pressable
-      style={[lbCardStyles.card, { backgroundColor: theme.card, borderColor: theme.border }]}
+      style={lbCardStyles.card}
       onPress={() => router.push("/leaderboard")}
     >
-      {/* Header */}
-      <View style={lbCardStyles.header}>
+      {/* Header a gradiente */}
+      <LinearGradient
+        colors={["#1A3028", "#2E6B50"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={lbCardStyles.header}
+      >
         <View style={lbCardStyles.headerLeft}>
-          <MaterialCommunityIcons name="trophy" size={16} color="#FFD700" />
-          <Text style={[lbCardStyles.title, { color: theme.text }]}>Classifica</Text>
-          <View style={[lbCardStyles.badge, { backgroundColor: `${theme.primary}18` }]}>
-            <Text style={[lbCardStyles.badgeText, { color: theme.primary }]}>Questa settimana</Text>
+          <MaterialCommunityIcons name="trophy" size={18} color="#FFD700" />
+          <Text style={lbCardStyles.title}>Classifica</Text>
+          <View style={lbCardStyles.badge}>
+            <Text style={lbCardStyles.badgeText}>Settimana</Text>
           </View>
         </View>
         <View style={lbCardStyles.headerRight}>
-          <Text style={[lbCardStyles.viewAll, { color: theme.primary }]}>Vedi tutto</Text>
-          <MaterialCommunityIcons name="chevron-right" size={14} color={theme.primary} />
+          <Text style={lbCardStyles.viewAll}>Vedi tutto</Text>
+          <MaterialCommunityIcons name="chevron-right" size={15} color="rgba(255,255,255,0.8)" />
         </View>
-      </View>
+      </LinearGradient>
 
       {/* Podio compatto */}
-      <View style={lbCardStyles.podiumRow}>
+      <View style={[lbCardStyles.podiumRow, { backgroundColor: theme.card }]}>
         {top3.length === 0 ? (
           <Text style={[lbCardStyles.emptyText, { color: theme.textMuted }]}>Nessun dato disponibile</Text>
         ) : (
           top3.map((entry) => {
             const color = entry.avatarColor ?? leaderboardAvatarColor(entry.userId);
             const medal = ["🥇","🥈","🥉"][entry.rank - 1];
+            const isFirst = entry.rank === 1;
+            const avatarSize = isFirst ? 52 : 42;
             return (
               <View key={entry.userId} style={lbCardStyles.podiumItem}>
-                <Text style={lbCardStyles.medal}>{medal}</Text>
+                <Text style={[lbCardStyles.medal, isFirst && lbCardStyles.medalFirst]}>{medal}</Text>
                 <View style={[
                   lbCardStyles.avatar,
-                  { backgroundColor: color },
+                  {
+                    backgroundColor: color,
+                    width: avatarSize,
+                    height: avatarSize,
+                    borderRadius: avatarSize / 2,
+                  },
+                  isFirst && lbCardStyles.avatarFirst,
                   entry.isCurrentUser && lbCardStyles.avatarMe,
                 ]}>
-                  <Text style={lbCardStyles.avatarText}>{leaderboardInitials(entry.username)}</Text>
+                  <Text style={[lbCardStyles.avatarText, { fontSize: isFirst ? 17 : 14 }]}>
+                    {leaderboardInitials(entry.username)}
+                  </Text>
                 </View>
                 <Text style={[lbCardStyles.podiumName, { color: theme.text }]} numberOfLines={1}>
                   {entry.isCurrentUser ? "Tu 👋" : entry.username}
                 </Text>
-                <Text style={[lbCardStyles.podiumScore, { color: theme.primary }]}>
-                  {entry.score >= 1000 ? `${(entry.score / 1000).toFixed(1)}k` : entry.score} drops
+                <Text style={[lbCardStyles.podiumScore, { color: theme.primary, fontSize: isFirst ? 13 : 11 }]}>
+                  {entry.score >= 1000 ? `${(entry.score / 1000).toFixed(1)}k` : entry.score}
+                  <Text style={[lbCardStyles.dropsLabel, { color: theme.textMuted }]}> drops</Text>
                 </Text>
               </View>
             );
@@ -921,12 +937,20 @@ function LeaderboardMiniCard({
 
       {/* La tua posizione (se fuori top 3) */}
       {userEntry && userEntry.rank > 3 && (
-        <View style={[lbCardStyles.myRankRow, { borderTopColor: theme.border, backgroundColor: `${theme.primary}08` }]}>
-          <MaterialCommunityIcons name="account-circle-outline" size={14} color={theme.primary} />
-          <Text style={[lbCardStyles.myRankText, { color: theme.primary }]}>
-            La tua posizione: #{userEntry.rank} · {userEntry.score >= 1000 ? `${(userEntry.score / 1000).toFixed(1)}k` : userEntry.score} drops
+        <LinearGradient
+          colors={["#2E6B50", "#1A3028"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={lbCardStyles.myRankRow}
+        >
+          <MaterialCommunityIcons name="account" size={15} color="#FFD700" />
+          <Text style={lbCardStyles.myRankText}>
+            La tua posizione: #{userEntry.rank}
           </Text>
-        </View>
+          <Text style={lbCardStyles.myRankScore}>
+            · {userEntry.score >= 1000 ? `${(userEntry.score / 1000).toFixed(1)}k` : userEntry.score} drops
+          </Text>
+        </LinearGradient>
       )}
     </Pressable>
   );
@@ -935,56 +959,70 @@ function LeaderboardMiniCard({
 const lbCardStyles = StyleSheet.create({
   card: {
     borderRadius: 18,
-    borderWidth: 1,
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 4,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 11,
   },
-  headerLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 2 },
-  title: { fontSize: 14, fontFamily: Fonts.bodyBold },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 7 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 3 },
+  title: { fontSize: 15, fontFamily: Fonts.bodyBold, color: "#fff" },
   badge: {
-    paddingHorizontal: 7,
+    paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.18)",
   },
-  badgeText: { fontSize: 10, fontFamily: Fonts.bodyMedium },
-  viewAll: { fontSize: 12, fontFamily: Fonts.bodyMedium },
+  badgeText: { fontSize: 10, fontFamily: Fonts.bodyMedium, color: "rgba(255,255,255,0.9)" },
+  viewAll: { fontSize: 12, fontFamily: Fonts.bodyMedium, color: "rgba(255,255,255,0.85)" },
   podiumRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    paddingTop: 4,
+    alignItems: "flex-end",
+    paddingHorizontal: 12,
+    paddingBottom: 16,
+    paddingTop: 14,
   },
-  podiumItem: { alignItems: "center", gap: 3, flex: 1 },
+  podiumItem: { alignItems: "center", gap: 4, flex: 1 },
   medal: { fontSize: 20 },
+  medalFirst: { fontSize: 26 },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
   },
+  avatarFirst: {
+    borderWidth: 3,
+    borderColor: "#FFD700",
+    shadowColor: "#FFD700",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+    elevation: 6,
+  },
   avatarMe: { borderWidth: 2.5, borderColor: "#FFD700" },
-  avatarText: { color: "#fff", fontSize: 15, fontFamily: Fonts.bodyBold },
+  avatarText: { color: "#fff", fontFamily: Fonts.bodyBold },
   podiumName: { fontSize: 11, fontFamily: Fonts.bodyMedium, textAlign: "center" },
-  podiumScore: { fontSize: 11, fontFamily: Fonts.bodyMedium },
+  podiumScore: { fontFamily: Fonts.bodyBold, textAlign: "center" },
+  dropsLabel: { fontSize: 9, fontFamily: Fonts.bodyRegular },
   emptyText: { fontSize: 13, fontFamily: Fonts.bodyRegular, padding: 12 },
   myRankRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 6,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 9,
   },
-  myRankText: { fontSize: 12, fontFamily: Fonts.bodyMedium },
+  myRankText: { fontSize: 13, fontFamily: Fonts.bodyBold, color: "#fff" },
+  myRankScore: { fontSize: 12, fontFamily: Fonts.bodyMedium, color: "rgba(255,255,255,0.8)" },
 });
 
 function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: ReturnType<typeof useTheme>["theme"] }) {
