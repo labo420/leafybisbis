@@ -1790,64 +1790,6 @@ export default function HomeScreen() {
         </Animated.View>
       )}
 
-      {/* ── IN-STORE MODE ── */}
-      <Animated.View entering={FadeInDown.delay(300).springify()} style={{ marginHorizontal: 20, marginTop: 16, marginBottom: 0 }}>
-        <Pressable
-          style={[inStoreStyles.toggleRow, { backgroundColor: theme.card }]}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            setInStoreModeEnabled((prev) => !prev);
-          }}
-        >
-          <MaterialCommunityIcons name="store-marker" size={20} color={inStoreModeEnabled ? theme.leaf : theme.textMuted} />
-          <Text style={[inStoreStyles.toggleLabel, { color: inStoreModeEnabled ? theme.leaf : theme.text }]}>Rilevamento negozi</Text>
-          <View style={[inStoreStyles.togglePill, { backgroundColor: inStoreModeEnabled ? theme.leaf : theme.border }]}>
-            <View style={[inStoreStyles.toggleKnob, { transform: [{ translateX: inStoreModeEnabled ? 18 : 2 }] }]} />
-          </View>
-        </Pressable>
-
-        {inStoreModeEnabled && inStoreModeActive && (
-          <View style={[inStoreStyles.panel, { backgroundColor: theme.card }]}>
-            {permissionStatus === "denied" && (
-              <View style={inStoreStyles.permRow}>
-                <Feather name="map-pin" size={16} color={theme.amber} />
-                <Text style={[inStoreStyles.permText, { color: theme.textSecondary }]}>
-                  Posizione non autorizzata. Abilita la posizione nelle impostazioni.
-                </Text>
-              </View>
-            )}
-
-            {permissionStatus === "granted" && locationsLoading && locations.length === 0 && (
-              <View style={inStoreStyles.loadingRow}>
-                <ActivityIndicator size="small" color={theme.leaf} />
-                <Text style={[inStoreStyles.loadingText, { color: theme.textSecondary }]}>Ricerca negozi nelle vicinanze…</Text>
-              </View>
-            )}
-
-            {permissionStatus === "granted" && !locationsLoading && locations.length === 0 && (
-              <View style={inStoreStyles.emptyRow}>
-                <MaterialCommunityIcons name="store-off" size={28} color={theme.textMuted} />
-                <Text style={[inStoreStyles.emptyText, { color: theme.textSecondary }]}>Nessun negozio partner nelle vicinanze (300 m)</Text>
-                <Pressable onPress={refreshLocations} style={[inStoreStyles.refreshBtn, { borderColor: theme.border }]}>
-                  <Feather name="refresh-cw" size={13} color={theme.leaf} />
-                  <Text style={[inStoreStyles.refreshBtnText, { color: theme.leaf }]}>Riprova</Text>
-                </Pressable>
-              </View>
-            )}
-
-            {permissionStatus === "granted" && locations.map((loc) => (
-              <InStoreLocationCard
-                key={loc.id}
-                location={loc}
-                walkin={walkin}
-                theme={theme}
-              />
-            ))}
-          </View>
-        )}
-      </Animated.View>
-
-
       {/* ── CLASSIFICA ── */}
       {leaderboard && leaderboard.length > 0 && (
         <Animated.View entering={FadeInDown.delay(320).springify()} style={{ marginTop: 24, paddingHorizontal: 16 }}>
