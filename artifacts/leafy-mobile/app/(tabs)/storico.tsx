@@ -1,5 +1,5 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -10,12 +10,14 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
+  SectionList,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { SkeletonReceiptCard } from "@/components/Skeleton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -571,6 +573,21 @@ export default function StoricoScreen() {
     enabled: !!user,
   });
 
+  const sections = useMemo(() => {
+    if (!receipts) return [];
+    const groups: Record<string, Receipt[]> = {};
+    for (const r of receipts) {
+      const dateKey = r.purchaseDate
+        ? new Date(r.purchaseDate).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })
+        : r.scannedAt
+          ? new Date(r.scannedAt).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })
+          : "Data sconosciuta";
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push(r);
+    }
+    return Object.entries(groups).map(([title, data]) => ({ title, data }));
+  }, [receipts]);
+
   if (!user) {
     return (
       <View style={[styles.centered, { paddingTop: topPadding, backgroundColor: theme.background }]}>
@@ -593,16 +610,26 @@ export default function StoricoScreen() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator size="large" color={theme.leaf} style={{ marginTop: 40 }} />
+        <View style={{ paddingHorizontal: 20, gap: 10, paddingTop: 8 }}>
+          {[0, 1, 2, 3].map(i => <SkeletonReceiptCard key={i} />)}
+        </View>
       ) : (
-        <FlatList
-          data={receipts ?? []}
+        <SectionList
+          sections={sections}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <ReceiptCard receipt={item} onPress={() => setSelectedId(item.id)} />
           )}
-          contentContainerStyle={{ padding: 20, paddingBottom: bottomPad, flexGrow: 1 }}
+          renderSectionHeader={({ section }) => (
+            <View style={[styles.sectionHeaderRow, { backgroundColor: theme.background }]}>
+              <View style={[styles.sectionHeaderLine, { backgroundColor: theme.border }]} />
+              <Text style={[styles.sectionHeaderText, { color: theme.textMuted }]}>{section.title}</Text>
+              <View style={[styles.sectionHeaderLine, { backgroundColor: theme.border }]} />
+            </View>
+          )}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomPad, flexGrow: 1, paddingTop: 4 }}
           showsVerticalScrollIndicator={false}
+          stickySectionHeadersEnabled={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -641,6 +668,14 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 },
   title: { fontSize: 32, fontFamily: "DMSans_700Bold", marginBottom: 4 },
   subtitle: { fontSize: 14, fontFamily: "Inter_400Regular" },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 10,
+  },
+  sectionHeaderLine: { flex: 1, height: StyleSheet.hairlineWidth },
+  sectionHeaderText: { fontSize: 12, fontFamily: "Inter_500Medium", letterSpacing: 0.3 },
   receiptCard: {
     borderRadius: 24, padding: 16, marginBottom: 10,
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,

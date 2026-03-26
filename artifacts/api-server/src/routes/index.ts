@@ -15,6 +15,8 @@ import kitsRouter from "./kits";
 import locationsRouter from "./locations";
 import walkinRouter from "./walkin";
 import assetsRouter from "./assets";
+import notificationsRouter from "./notifications";
+import friendsRouter from "./friends";
 
 const router: IRouter = Router();
 
@@ -34,5 +36,7 @@ router.use(walletRouter);
 router.use(kitsRouter);
 router.use(locationsRouter);
 router.use(walkinRouter);
+router.use(notificationsRouter);
+router.use(friendsRouter);
 
 export default router;

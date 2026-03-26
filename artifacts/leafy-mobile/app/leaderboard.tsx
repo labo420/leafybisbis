@@ -14,10 +14,12 @@ import { useQuery } from "@tanstack/react-query";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { useTheme } from "@/context/theme";
+import { useAuth } from "@/context/auth";
 import { Fonts } from "@/constants/typography";
 import { apiFetch } from "@/lib/api";
 
 type Period = "weekly" | "monthly" | "all";
+type Scope = "global" | "friends";
 
 interface LeaderboardEntry {
   rank: number;
@@ -48,12 +50,14 @@ function formatScore(n: number): string {
 
 export default function LeaderboardScreen() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const [period, setPeriod] = useState<Period>("weekly");
+  const [scope, setScope] = useState<Scope>("global");
 
   const { data, isLoading, error, refetch } = useQuery<LeaderboardEntry[]>({
-    queryKey: ["leaderboard", period],
-    queryFn: () => apiFetch(`/leaderboard?period=${period}`),
+    queryKey: ["leaderboard", period, scope],
+    queryFn: () => apiFetch(`/leaderboard?period=${period}&scope=${scope}`),
     staleTime: 60_000,
   });
 
@@ -73,7 +77,29 @@ export default function LeaderboardScreen() {
           <MaterialCommunityIcons name="trophy" size={18} color="#FFD700" />
           <Text style={[s.headerTitle, { color: theme.text }]}>Classifica</Text>
         </View>
-        <View style={{ width: 34 }} />
+        <Pressable onPress={() => router.push("/friends")} hitSlop={8} style={s.friendsBtn}>
+          <MaterialCommunityIcons name="account-group-outline" size={22} color={theme.primary} />
+        </Pressable>
+      </View>
+
+      {/* ── Scope selector (Globale / Amici) ── */}
+      <View style={[s.scopeRow, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        {(["global", "friends"] as Scope[]).map(sc => (
+          <Pressable
+            key={sc}
+            style={[s.scopePill, scope === sc && { backgroundColor: theme.primary }]}
+            onPress={() => setScope(sc)}
+          >
+            <MaterialCommunityIcons
+              name={sc === "global" ? "earth" : "account-group"}
+              size={14}
+              color={scope === sc ? "#fff" : theme.textSecondary}
+            />
+            <Text style={[s.scopeText, { color: scope === sc ? "#fff" : theme.textSecondary }]}>
+              {sc === "global" ? "Globale" : "Amici"}
+            </Text>
+          </Pressable>
+        ))}
       </View>
 
       {/* ── Period selector ── */}
@@ -107,6 +133,22 @@ export default function LeaderboardScreen() {
             <Text style={[s.retryText, { color: theme.primary }]}>Riprova</Text>
           </Pressable>
         </View>
+      ) : scope === "friends" && data?.length === 1 ? (
+        <View style={s.center}>
+          <MaterialCommunityIcons name="account-group-outline" size={56} color={theme.textMuted} />
+          <Text style={[s.errorText, { color: theme.text, fontSize: 17, fontFamily: Fonts.bodyBold }]}>
+            Nessun amico ancora
+          </Text>
+          <Text style={[s.errorText, { color: theme.textSecondary, textAlign: "center" }]}>
+            Aggiungi amici per vederli in classifica!
+          </Text>
+          <Pressable
+            style={[s.retryBtn, { borderColor: theme.primary, backgroundColor: theme.primary }]}
+            onPress={() => router.push("/friends")}
+          >
+            <Text style={[s.retryText, { color: "#fff" }]}>Aggiungi amici</Text>
+          </Pressable>
+        </View>
       ) : (
         <ScrollView
           contentContainerStyle={[s.scrollContent, { paddingBottom: insets.bottom + 24 }]}
@@ -116,11 +158,8 @@ export default function LeaderboardScreen() {
           {top3.length > 0 && (
             <Animated.View entering={FadeInDown.delay(50).springify()} style={[s.podiumCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <View style={s.podiumRow}>
-                {/* 2° posto - sinistra */}
                 {top3[1] ? <PodiumItem entry={top3[1]} height={90} theme={theme} /> : <View style={{ flex: 1 }} />}
-                {/* 1° posto - centro (più alto) */}
                 {top3[0] ? <PodiumItem entry={top3[0]} height={116} theme={theme} /> : <View style={{ flex: 1 }} />}
-                {/* 3° posto - destra */}
                 {top3[2] ? <PodiumItem entry={top3[2]} height={74} theme={theme} /> : <View style={{ flex: 1 }} />}
               </View>
             </Animated.View>
@@ -214,9 +253,29 @@ const s = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  backBtn: { padding: 4 },
+  backBtn: { padding: 4, width: 34 },
   headerCenter: { flexDirection: "row", alignItems: "center", gap: 6 },
   headerTitle: { fontSize: 17, fontFamily: Fonts.bodyBold },
+  friendsBtn: { padding: 4, width: 34, alignItems: "flex-end" },
+
+  scopeRow: {
+    flexDirection: "row",
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: "hidden",
+  },
+  scopePill: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 9,
+    borderRadius: 20,
+  },
+  scopeText: { fontSize: 13, fontFamily: Fonts.bodyMedium },
 
   periodRow: {
     flexDirection: "row",
@@ -233,7 +292,7 @@ const s = StyleSheet.create({
   },
   periodPillText: { fontSize: 13, fontFamily: Fonts.bodyMedium },
 
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 24 },
   errorText: { fontSize: 14, fontFamily: Fonts.bodyRegular, textAlign: "center" },
   retryBtn: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
   retryText: { fontSize: 13, fontFamily: Fonts.bodyMedium },
