@@ -1310,16 +1310,20 @@ export default function HomeScreen() {
   }, [user?.id]);
 
   const prevProfileDropsRef = useRef<number | null>(null);
+  const prevProfileLeaRef = useRef<number | null>(null);
   useEffect(() => {
     if (!profile) return;
-    const newDrops = profile.drops ?? (profile as any).totalPoints ?? 0;
+    const newDrops = profile.drops ?? profile.totalPoints ?? 0;
     const newLea = profile.leaBalance ?? 0;
     const newLg = profile.hasLeafyGold ?? false;
-    if (prevProfileDropsRef.current !== null && prevProfileDropsRef.current !== newDrops) {
+    const prevDrops = prevProfileDropsRef.current;
+    const prevLea = prevProfileLeaRef.current;
+    if (prevDrops === null || prevDrops !== newDrops || prevLea !== newLea) {
       syncBalances(newDrops, newLea, newLg);
     }
     prevProfileDropsRef.current = newDrops;
-  }, [profile?.drops, profile?.leaBalance]);
+    prevProfileLeaRef.current = newLea;
+  }, [profile?.drops, profile?.leaBalance, profile?.hasLeafyGold]);
 
   const onRefresh = async () => {
     setRefreshing(true);
