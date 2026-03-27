@@ -1360,6 +1360,7 @@ export default function HomeScreen() {
         });
         setTimeout(() => setStreakToast(null), 4500);
         refetchProfile();
+        cellBounce.value = withTiming(1, { duration: 200 });
       }
     } catch {} finally {
       setCheckingIn(false);
@@ -1563,28 +1564,27 @@ export default function HomeScreen() {
             const done = i < loginStreak;
             const isNext = i === loginStreak && loginStreak < 7;
             const isFinal = i === 6;
-            const cellStyle = [
-              streakStyles.stampCell,
-              done ? streakStyles.stampCellDone : isNext ? streakStyles.stampCellNext : streakStyles.stampCellFuture,
-              isFinal && !done && streakStyles.stampCellFinal,
-              isNext ? cellBounceStyle : undefined,
-            ];
             return (
               <Animated.View
                 key={i}
                 entering={FadeInDown.delay(280 + i * 60).springify()}
                 style={streakStyles.stampSlot}
               >
-                <Animated.View style={[cellStyle, { width: cellSize, height: cellSize }]}>
+                <View style={[
+                  streakStyles.stampCell,
+                  done ? streakStyles.stampCellDone : isNext ? streakStyles.stampCellNext : streakStyles.stampCellFuture,
+                  isFinal && !done && streakStyles.stampCellFinal,
+                  { width: cellSize, height: cellSize },
+                ]}>
                   {done && (
                     <View style={streakStyles.stampCellDoneInner}>
                       <MaterialCommunityIcons name="check-bold" size={18} color="#fff" />
                     </View>
                   )}
                   {isNext && (
-                    <View style={streakStyles.stampCellGlow}>
+                    <Animated.View style={[streakStyles.stampCellGlow, cellBounceStyle]}>
                       <MaterialCommunityIcons name="plus" size={18} color="#2E6B50" />
-                    </View>
+                    </Animated.View>
                   )}
                   {!done && !isNext && isFinal && (
                     <MaterialCommunityIcons name="trophy" size={18} color="rgba(0,0,0,0.25)" />
@@ -1592,7 +1592,7 @@ export default function HomeScreen() {
                   {!done && !isNext && !isFinal && (
                     <Text style={streakStyles.stampCellFutureNum}>{i + 1}</Text>
                   )}
-                </Animated.View>
+                </View>
                 <Text style={[
                   streakStyles.stampLabel,
                   done ? streakStyles.stampLabelDone : isNext ? streakStyles.stampLabelNext : streakStyles.stampLabelFuture,
