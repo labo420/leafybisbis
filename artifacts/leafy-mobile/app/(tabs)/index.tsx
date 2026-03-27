@@ -1303,11 +1303,15 @@ export default function HomeScreen() {
   const checkinBtnScale = useSharedValue(1);
   const pulseScale = useSharedValue(1);
   const cellBounce = useSharedValue(1);
+  const goldCellBounce = useSharedValue(1);
   const combinedBtnStyle = useAnimatedStyle(() => ({
     transform: [{ scale: checkinBtnScale.value * pulseScale.value }],
   }));
   const cellBounceStyle = useAnimatedStyle(() => ({
     transform: [{ scale: cellBounce.value }],
+  }));
+  const goldCellBounceStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: goldCellBounce.value }],
   }));
 
   const _checkedInTodayForEffect = !!(profile?.lastLoginDate &&
@@ -1360,7 +1364,7 @@ export default function HomeScreen() {
         });
         setTimeout(() => setStreakToast(null), 4500);
         refetchProfile();
-        cellBounce.value = withTiming(1, { duration: 200 });
+        cellBounce.value = withTiming(1.05, { duration: 200 });
       }
     } catch {} finally {
       setCheckingIn(false);
@@ -1375,6 +1379,9 @@ export default function HomeScreen() {
       withSpring(1.10, { damping: 9, stiffness: 260 }),
       withSpring(1, { damping: 14, stiffness: 200 })
     );
+    goldCellBounce.value = withSpring(1.4, { damping: 8, stiffness: 400 }, () => {
+      goldCellBounce.value = withSpring(1, { damping: 12, stiffness: 200 });
+    });
     try {
       const data: GoldCheckinResponse = await apiFetch("/profile/daily-checkin-gold", { method: "POST" });
       if (!data.alreadyCheckedIn && data.bpPrize) {
@@ -1387,6 +1394,7 @@ export default function HomeScreen() {
         setTimeout(() => setStreakToast(null), 4500);
       }
       refetchProfile();
+      goldCellBounce.value = withTiming(1.05, { duration: 200 });
     } catch {} finally {
       setGoldCheckingIn(false);
     }
@@ -1685,9 +1693,9 @@ export default function HomeScreen() {
                       </View>
                     )}
                     {isNext && (
-                      <View style={streakStyles.stampCellGlow}>
+                      <Animated.View style={[streakStyles.stampCellGlow, goldCellBounceStyle]}>
                         <MaterialCommunityIcons name="star-four-points" size={18} color="#B8860B" />
-                      </View>
+                      </Animated.View>
                     )}
                     {!done && !isNext && isFinal && (
                       <MaterialCommunityIcons name="crown" size={18} color="rgba(184,134,11,0.35)" />
