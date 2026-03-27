@@ -1230,6 +1230,7 @@ export default function HomeScreen() {
   const { user, syncBalances } = useAuth();
   const { theme, mode } = useTheme();
   const queryClient = useQueryClient();
+  const [isHomeFocused, setIsHomeFocused] = React.useState(true);
 
   const {
     data: profile,
@@ -1239,7 +1240,7 @@ export default function HomeScreen() {
     queryKey: ["profile"],
     queryFn: () => apiFetch("/profile"),
     enabled: !!user,
-    refetchInterval: 30_000,
+    refetchInterval: isHomeFocused ? 5_000 : 60_000,
     refetchIntervalInBackground: false,
   });
 
@@ -1317,7 +1318,6 @@ export default function HomeScreen() {
     }
   }, [walkin.phase]);
 
-  const [isHomeFocused, setIsHomeFocused] = React.useState(true);
   useFocusEffect(
     React.useCallback(() => {
       setIsHomeFocused(true);
