@@ -10,6 +10,7 @@ import { Redirect, router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  AppState,
   Dimensions,
   Image,
   KeyboardAvoidingView,
@@ -147,11 +148,13 @@ function LevelProgressRing({
   level,
   points,
   nextLevelPoints: apiNextLevelPoints,
+  isFocused,
 }: {
   progress: number;
   level: string;
   points: number;
   nextLevelPoints: number;
+  isFocused: boolean;
 }) {
   const { mode } = useTheme();
   const { levelUpPhase, levelUpToLevel, setRingLayout } = useLevelUp();
@@ -259,6 +262,19 @@ function LevelProgressRing({
 
     const prev = prevPointsRef.current ?? points;
     const prevLev = prevLevelRef.current;
+
+    // ── Focus guard: if the home tab is not in focus, defer animation ──
+    // Preserve prevPointsRef / prevLevelRef so the gap is kept and the
+    // animation fires correctly when the user navigates back to the home tab.
+    if (!isFocused) {
+      if (points > prev || prevLev !== level) {
+        return;
+      }
+      prevPointsRef.current = points;
+      prevLevelRef.current = level;
+      return;
+    }
+
     prevPointsRef.current = points;
     prevLevelRef.current = level;
 
@@ -414,7 +430,7 @@ function LevelProgressRing({
       if (hapticTimeoutRef.current) clearTimeout(hapticTimeoutRef.current);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [points, progress, level]);
+  }, [points, progress, level, isFocused]);
 
   // ── Phase "exploded": il modal ha finito → swap badge + barra al valore reale ──
   useEffect(() => {
@@ -1184,7 +1200,7 @@ const challengeStyles = StyleSheet.create({
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const { user, syncBalances } = useAuth();
   const { theme, mode } = useTheme();
   const queryClient = useQueryClient();
 
@@ -1196,6 +1212,8 @@ export default function HomeScreen() {
     queryKey: ["profile"],
     queryFn: () => apiFetch("/profile"),
     enabled: !!user,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
   });
 
   const { data: impact, refetch: refetchImpact } = useQuery<{
@@ -1272,12 +1290,36 @@ export default function HomeScreen() {
     }
   }, [walkin.phase]);
 
+  const [isHomeFocused, setIsHomeFocused] = React.useState(true);
   useFocusEffect(
     React.useCallback(() => {
+      setIsHomeFocused(true);
       if (user) refetchProfile();
+      return () => setIsHomeFocused(false);
     }, [user?.id])
   );
 
+  useEffect(() => {
+    if (!user) return;
+    const sub = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "active") {
+        refetchProfile();
+      }
+    });
+    return () => sub.remove();
+  }, [user?.id]);
+
+  const prevProfileDropsRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!profile) return;
+    const newDrops = profile.drops ?? (profile as any).totalPoints ?? 0;
+    const newLea = profile.leaBalance ?? 0;
+    const newLg = profile.hasLeafyGold ?? false;
+    if (prevProfileDropsRef.current !== null && prevProfileDropsRef.current !== newDrops) {
+      syncBalances(newDrops, newLea, newLg);
+    }
+    prevProfileDropsRef.current = newDrops;
+  }, [profile?.drops, profile?.leaBalance]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -1548,6 +1590,7 @@ export default function HomeScreen() {
             level={level}
             points={points}
             nextLevelPoints={nextLevelPoints}
+            isFocused={isHomeFocused}
           />
         </Animated.View>
       </View>
