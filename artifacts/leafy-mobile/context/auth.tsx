@@ -10,6 +10,7 @@ type AuthContextType = {
   hasLeafyGold: boolean;
   refetch: () => void;
   refreshBalances: () => Promise<void>;
+  syncBalances: (drops: number, leaBalance: number, hasLeafyGold: boolean) => void;
   activateLeafyGold: () => Promise<void>;
   setUser: (user: AuthUser | null) => void;
   loginWithToken: (user: AuthUser, token: string) => Promise<void>;
@@ -24,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   hasLeafyGold: false,
   refetch: () => {},
   refreshBalances: async () => {},
+  syncBalances: () => {},
   activateLeafyGold: async () => {},
   setUser: () => {},
   loginWithToken: async () => {},
@@ -139,6 +141,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {}
   }, [apiFetch]);
+
+  const syncBalances = useCallback((dropsVal: number, leaVal: number, lgVal: boolean) => {
+    setDrops(dropsVal);
+    setLeaBalance(Math.floor(leaVal));
+    setHasLeafyGold(lgVal);
+    saveBalancesLocally(dropsVal, Math.floor(leaVal), lgVal);
+  }, []);
 
   const fetchUser = useCallback(async () => {
     try {
@@ -273,6 +282,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         hasLeafyGold,
         refetch: fetchUser,
         refreshBalances: fetchBalances,
+        syncBalances,
         activateLeafyGold,
         setUser,
         loginWithToken,
