@@ -1394,7 +1394,9 @@ export default function HomeScreen() {
         setTimeout(() => setStreakToast(null), 4500);
       }
       refetchProfile();
-      goldCellBounce.value = withTiming(1.05, { duration: 200 });
+      if (!data.alreadyCheckedIn) {
+        goldCellBounce.value = withTiming(1.05, { duration: 200 });
+      }
     } catch {} finally {
       setGoldCheckingIn(false);
     }
