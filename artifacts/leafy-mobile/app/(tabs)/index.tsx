@@ -1311,6 +1311,7 @@ export default function HomeScreen() {
 
   const prevProfileDropsRef = useRef<number | null>(null);
   const prevProfileLeaRef = useRef<number | null>(null);
+  const prevProfileLgRef = useRef<boolean | null>(null);
   useEffect(() => {
     if (!profile) return;
     const newDrops = profile.drops ?? profile.totalPoints ?? 0;
@@ -1318,11 +1319,13 @@ export default function HomeScreen() {
     const newLg = profile.hasLeafyGold ?? false;
     const prevDrops = prevProfileDropsRef.current;
     const prevLea = prevProfileLeaRef.current;
-    if (prevDrops === null || prevDrops !== newDrops || prevLea !== newLea) {
+    const prevLg = prevProfileLgRef.current;
+    if (prevDrops === null || prevDrops !== newDrops || prevLea !== newLea || prevLg !== newLg) {
       syncBalances(newDrops, newLea, newLg);
     }
     prevProfileDropsRef.current = newDrops;
     prevProfileLeaRef.current = newLea;
+    prevProfileLgRef.current = newLg;
   }, [profile?.drops, profile?.leaBalance, profile?.hasLeafyGold]);
 
   const onRefresh = async () => {
