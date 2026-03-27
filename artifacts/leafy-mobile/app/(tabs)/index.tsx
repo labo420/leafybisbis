@@ -215,7 +215,7 @@ function LevelProgressRing({
   const progTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hapticTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const animateProgress = useCallback((from: number, to: number, durationMs = 700) => {
+  const animateProgress = useCallback((from: number, to: number, durationMs = 800) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     const start = Date.now();
     const step = () => {
@@ -228,6 +228,26 @@ function LevelProgressRing({
       if (t < 1) rafRef.current = requestAnimationFrame(step);
     };
     rafRef.current = requestAnimationFrame(step);
+  }, []);
+
+  // ── Animated points counter ──
+  const [displayPoints, setDisplayPoints] = useState(points);
+  const displayPointsRef = useRef(points);
+  const pointsRafRef = useRef<number | null>(null);
+
+  const animatePoints = useCallback((from: number, to: number, durationMs = 800) => {
+    if (pointsRafRef.current) cancelAnimationFrame(pointsRafRef.current);
+    const start = Date.now();
+    const step = () => {
+      const elapsed = Date.now() - start;
+      const t = Math.min(1, elapsed / durationMs);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = Math.round(from + eased * (to - from));
+      displayPointsRef.current = val;
+      setDisplayPoints(val);
+      if (t < 1) pointsRafRef.current = requestAnimationFrame(step);
+    };
+    pointsRafRef.current = requestAnimationFrame(step);
   }, []);
 
   const canOpacity = useSharedValue(0);
@@ -320,8 +340,11 @@ function LevelProgressRing({
       hapticTimeoutRef.current = setTimeout(() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }, 1970);
-      // Barra va al 100% (non al valore reale — avverrà dopo il modal in phase=exploded)
-      progTimeoutRef.current = setTimeout(() => animateProgress(oldP, 100), 1970);
+      // Barra va al 100% + contatore sale al nuovo valore — al momento dell'atterraggio
+      progTimeoutRef.current = setTimeout(() => {
+        animateProgress(oldP, 100, 800);
+        animatePoints(displayPointsRef.current, points, 800);
+      }, 1970);
 
       // Crescendo badge: 12 cicli con ampiezza crescente (±3%→±35%) e periodo decrescente
       // Totale ~2530ms + fine animation ~170ms ≈ 2700ms
@@ -360,6 +383,7 @@ function LevelProgressRing({
         if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
         if (hapticTimeoutRef.current) clearTimeout(hapticTimeoutRef.current);
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        if (pointsRafRef.current) cancelAnimationFrame(pointsRafRef.current);
       };
     }
 
@@ -407,21 +431,23 @@ function LevelProgressRing({
         withTiming(0, { duration: 0 }),
       );
 
-      badgeOpacity.value = withDelay(1920, withSequence(
-        withTiming(0.5, { duration: 90, easing: Easing.out(Easing.quad) }),
-        withTiming(1, { duration: 200, easing: Easing.out(Easing.quad) }),
-      ));
+      // Quando la goccia atterra (~1970ms): barra, contatore e badge crescono insieme
       iconScale.value = withDelay(
         1970,
-        withSpring(newIconScale, { damping: 6, stiffness: 130, mass: 0.8 }),
+        withTiming(newIconScale, { duration: 800, easing: Easing.out(Easing.cubic) }),
       );
       hapticTimeoutRef.current = setTimeout(() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }, 1970);
-      progTimeoutRef.current = setTimeout(() => animateProgress(oldP, newP), 1970);
+      progTimeoutRef.current = setTimeout(() => {
+        animateProgress(oldP, newP, 800);
+        animatePoints(displayPointsRef.current, points, 800);
+      }, 1970);
     } else {
       displayProgressRef.current = progress;
       setDisplayProgress(progress);
+      displayPointsRef.current = points;
+      setDisplayPoints(points);
       iconScale.value = withSpring(newIconScale, { damping: 12, stiffness: 80 });
     }
 
@@ -429,6 +455,7 @@ function LevelProgressRing({
       if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
       if (hapticTimeoutRef.current) clearTimeout(hapticTimeoutRef.current);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (pointsRafRef.current) cancelAnimationFrame(pointsRafRef.current);
     };
   }, [points, progress, level, isFocused]);
 
@@ -541,7 +568,7 @@ function LevelProgressRing({
           <Text style={[ringStyles.levelName, { color: nameColor }]}>{LEVEL_LABELS[displayedLevel] ?? displayedLevel}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
             <Text style={[ringStyles.xpProgress, { color: onDark ? "#51B888" : "#2E6B50" }]}>
-              {new Intl.NumberFormat("it-IT").format(points)} / {new Intl.NumberFormat("it-IT").format(targetPts)}
+              {new Intl.NumberFormat("it-IT").format(displayPoints)} / {new Intl.NumberFormat("it-IT").format(targetPts)}
             </Text>
             <XpIcon size={22} />
           </View>
