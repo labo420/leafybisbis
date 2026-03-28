@@ -112,22 +112,31 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
 
   return (
     <Animated.View style={[styles.ringWrap, pulseStyle]}>
-      {/* Dark glowing backing circle */}
-      <View style={styles.ringDarkCard} />
-
-      {/* Outer orbit dashes — counter-rotating */}
+      {/* Dual-orbit dashes — both counter-rotating in one Animated layer */}
       <Animated.View
         style={[{ position: "absolute", width: OUTER_SIZE, height: OUTER_SIZE }, counterRotateStyle]}
       >
         <Svg width={OUTER_SIZE} height={OUTER_SIZE}>
+          {/* Inner orbit track (thin, subtle) */}
+          <Circle
+            cx={OUTER_SIZE / 2}
+            cy={OUTER_SIZE / 2}
+            r={OUTER_RADIUS - 13}
+            fill="none"
+            stroke="rgba(0,229,160,0.10)"
+            strokeWidth={1}
+            strokeDasharray="2 20"
+            strokeLinecap="round"
+          />
+          {/* Outer orbit dashes */}
           <Circle
             cx={OUTER_SIZE / 2}
             cy={OUTER_SIZE / 2}
             r={OUTER_RADIUS}
             fill="none"
-            stroke="rgba(0,229,160,0.32)"
+            stroke="rgba(0,229,160,0.35)"
             strokeWidth={1.5}
-            strokeDasharray="5 16"
+            strokeDasharray="6 18"
             strokeLinecap="round"
           />
         </Svg>
@@ -328,7 +337,9 @@ export default function WalletScreen() {
       >
         <View style={styles.mainBlock}>
           <Animated.View entering={FadeInDown.delay(50).springify()} style={styles.ringSection}>
-            <LeafyRing leaBalance={leaBalance} />
+            <View style={styles.ringCard}>
+              <LeafyRing leaBalance={leaBalance} />
+            </View>
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.gridSection}>
@@ -476,18 +487,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  ringDarkCard: {
-    position: "absolute",
-    width: RING_SIZE,
-    height: RING_SIZE,
-    borderRadius: RING_SIZE / 2,
+  ringCard: {
+    alignSelf: "stretch",
+    alignItems: "center",
+    paddingVertical: 20,
     backgroundColor: "#0A1A10",
+    borderRadius: 32,
     borderWidth: 1,
-    borderColor: "rgba(0,229,160,0.18)",
+    borderColor: "rgba(0,229,160,0.25)",
     shadowColor: EMERALD_GLOW,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.55,
-    shadowRadius: 32,
+    shadowRadius: 40,
     elevation: 20,
   },
   ringCenter: {
@@ -518,8 +529,8 @@ const styles = StyleSheet.create({
     textShadowRadius: 14,
   },
   ringLeafIcon: {
-    width: 52,
-    height: 52,
+    width: 58,
+    height: 58,
   },
 
   goldBadge: {
