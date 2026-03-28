@@ -1,5 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
+import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
   Alert,
@@ -11,6 +12,7 @@ import {
   Text,
   View,
 } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -20,27 +22,39 @@ import { useNotifications } from "@/context/notifications";
 import { useTheme } from "@/context/theme";
 import { apiFetch } from "@/lib/api";
 
+type IconColor = { iconColor: string; iconBg: string };
+
 function SettingsRow({
   icon,
   label,
   value,
   onPress,
+  iconColor,
+  iconBg,
   theme,
 }: {
   icon: React.ComponentProps<typeof Feather>["name"];
   label: string;
   value?: string;
   onPress?: () => void;
+  iconColor: string;
+  iconBg: string;
   theme: import("@/constants/theme").ThemeColors;
 }) {
+  const handlePress = () => {
+    if (!onPress) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress();
+  };
+
   return (
     <Pressable
-      style={styles.row}
-      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && onPress ? { opacity: 0.7 } : null]}
+      onPress={handlePress}
       disabled={!onPress}
     >
-      <View style={[styles.rowIconCircle, { backgroundColor: theme.primaryLight }]}>
-        <Feather name={icon} size={16} color={theme.leaf} />
+      <View style={[styles.rowIconCircle, { backgroundColor: iconBg }]}>
+        <Feather name={icon} size={16} color={iconColor} />
       </View>
       <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
       {value ? <Text style={[styles.rowValue, { color: theme.textSecondary }]}>{value}</Text> : null}
@@ -55,6 +69,8 @@ function ToggleRow({
   description,
   value,
   onChange,
+  iconColor,
+  iconBg,
   theme,
 }: {
   icon: React.ComponentProps<typeof Feather>["name"];
@@ -62,12 +78,19 @@ function ToggleRow({
   description: string;
   value: boolean;
   onChange: (v: boolean) => void;
+  iconColor: string;
+  iconBg: string;
   theme: import("@/constants/theme").ThemeColors;
 }) {
+  const handleChange = (v: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onChange(v);
+  };
+
   return (
     <View style={styles.row}>
-      <View style={[styles.rowIconCircle, { backgroundColor: theme.primaryLight }]}>
-        <Feather name={icon} size={16} color={theme.leaf} />
+      <View style={[styles.rowIconCircle, { backgroundColor: iconBg }]}>
+        <Feather name={icon} size={16} color={iconColor} />
       </View>
       <View style={styles.toggleTextCol}>
         <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
@@ -75,7 +98,7 @@ function ToggleRow({
       </View>
       <Switch
         value={value}
-        onValueChange={onChange}
+        onValueChange={handleChange}
         trackColor={{ false: theme.border, true: theme.mint }}
         thumbColor="#fff"
       />
@@ -83,11 +106,15 @@ function ToggleRow({
   );
 }
 
+const ACCOUNT_ICON: IconColor = { iconColor: "#3B82F6", iconBg: "rgba(59,130,246,0.10)" };
+const NOTIF_ICON: IconColor  = { iconColor: "#F97316", iconBg: "rgba(249,115,22,0.10)" };
+const PRIVACY_ICON: IconColor = { iconColor: "#8B5CF6", iconBg: "rgba(139,92,246,0.10)" };
+
 export default function ImpostazioniScreen() {
   const insets = useSafeAreaInsets();
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const { user, logout } = useAuth();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const queryClient = useQueryClient();
 
   const { pushEnabled, setPushEnabled } = useNotifications();
@@ -96,6 +123,7 @@ export default function ImpostazioniScreen() {
   const [challengeAlerts, setChallengeAlerts] = useState(true);
 
   const handleDeleteAccount = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     Alert.alert(
       "Sei sicuro?",
       "Questa azione è irreversibile. Tutti i tuoi dati, punti e badge verranno cancellati permanentemente.",
@@ -123,79 +151,142 @@ export default function ImpostazioniScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.container, { paddingTop: topPadding + 16, backgroundColor: theme.background }]}>
-        <View style={styles.header}>
-          <Pressable style={[styles.backBtn, { backgroundColor: theme.cardAlt }]} onPress={() => router.back()}>
+        <Animated.View entering={FadeInDown.duration(320).springify()} style={styles.header}>
+          <Pressable
+            style={({ pressed }) => [styles.backBtn, { backgroundColor: theme.cardAlt }, pressed && { opacity: 0.7 }]}
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.back(); }}
+          >
             <Feather name="arrow-left" size={22} color={theme.text} />
           </Pressable>
           <Text style={[styles.title, { color: theme.text }]}>Impostazioni</Text>
           <View style={{ width: 40 }} />
-        </View>
+        </Animated.View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Account</Text>
-          <View style={[styles.card, { backgroundColor: theme.card }]}>
-            <SettingsRow icon="user" label="Nome utente" value={user?.firstName ?? ""} theme={theme} />
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <SettingsRow icon="mail" label="Email" value={user?.email ?? ""} theme={theme} />
-          </View>
 
-          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Notifiche</Text>
-          <View style={[styles.card, { backgroundColor: theme.card }]}>
-            <ToggleRow
-              icon="bell"
-              label="Notifiche push"
-              description="Avvisi su punti, sfide e walk-in"
-              value={pushEnabled}
-              onChange={setPushEnabled}
-              theme={theme}
-            />
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <ToggleRow
-              icon="mail"
-              label="Notifiche email"
-              description="Aggiornamenti settimanali via email"
-              value={emailNotifications}
-              onChange={setEmailNotifications}
-              theme={theme}
-            />
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <ToggleRow
-              icon="globe"
-              label="Report settimanale"
-              description="Riepilogo del tuo impatto verde"
-              value={weeklyReport}
-              onChange={setWeeklyReport}
-              theme={theme}
-            />
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <ToggleRow
-              icon="bell"
-              label="Avvisi sfide"
-              description="Promemoria scadenze sfide mensili"
-              value={challengeAlerts}
-              onChange={setChallengeAlerts}
-              theme={theme}
-            />
-          </View>
+          {/* ── Account ── */}
+          <Animated.View entering={FadeInDown.delay(60).duration(350).springify()}>
+            <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Account</Text>
+            <View style={[styles.card, { backgroundColor: theme.card }]}>
+              <SettingsRow
+                icon="user"
+                label="Nome utente"
+                value={user?.firstName ?? ""}
+                iconColor={ACCOUNT_ICON.iconColor}
+                iconBg={ACCOUNT_ICON.iconBg}
+                theme={theme}
+              />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              <SettingsRow
+                icon="mail"
+                label="Email"
+                value={user?.email ?? ""}
+                iconColor={ACCOUNT_ICON.iconColor}
+                iconBg={ACCOUNT_ICON.iconBg}
+                theme={theme}
+              />
+            </View>
+          </Animated.View>
 
-          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Privacy e Sicurezza</Text>
-          <View style={[styles.card, { backgroundColor: theme.card }]}>
-            <SettingsRow icon="shield" label="Informativa Privacy" onPress={() => {}} theme={theme} />
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <SettingsRow icon="lock" label="Termini di Servizio" onPress={() => {}} theme={theme} />
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <SettingsRow icon="globe" label="Lingua" value="Italiano" onPress={() => {}} theme={theme} />
-          </View>
+          {/* ── Notifiche ── */}
+          <Animated.View entering={FadeInDown.delay(120).duration(350).springify()}>
+            <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Notifiche</Text>
+            <View style={[styles.card, { backgroundColor: theme.card }]}>
+              <ToggleRow
+                icon="bell"
+                label="Notifiche push"
+                description="Avvisi su punti, sfide e walk-in"
+                value={pushEnabled}
+                onChange={setPushEnabled}
+                iconColor={NOTIF_ICON.iconColor}
+                iconBg={NOTIF_ICON.iconBg}
+                theme={theme}
+              />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              <ToggleRow
+                icon="mail"
+                label="Notifiche email"
+                description="Aggiornamenti settimanali via email"
+                value={emailNotifications}
+                onChange={setEmailNotifications}
+                iconColor={NOTIF_ICON.iconColor}
+                iconBg={NOTIF_ICON.iconBg}
+                theme={theme}
+              />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              <ToggleRow
+                icon="globe"
+                label="Report settimanale"
+                description="Riepilogo del tuo impatto verde"
+                value={weeklyReport}
+                onChange={setWeeklyReport}
+                iconColor={NOTIF_ICON.iconColor}
+                iconBg={NOTIF_ICON.iconBg}
+                theme={theme}
+              />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              <ToggleRow
+                icon="bell"
+                label="Avvisi sfide"
+                description="Promemoria scadenze sfide mensili"
+                value={challengeAlerts}
+                onChange={setChallengeAlerts}
+                iconColor={NOTIF_ICON.iconColor}
+                iconBg={NOTIF_ICON.iconBg}
+                theme={theme}
+              />
+            </View>
+          </Animated.View>
 
-          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Zona Pericolo</Text>
-          <View style={[styles.card, { backgroundColor: theme.card }]}>
-            <Pressable style={styles.row} onPress={handleDeleteAccount}>
-              <View style={[styles.rowIconCircle, { backgroundColor: "rgba(239,67,67,0.1)" }]}>
-                <Feather name="trash-2" size={16} color={Colors.red} />
-              </View>
-              <Text style={[styles.rowLabel, { color: Colors.red }]}>Cancella account</Text>
-            </Pressable>
-          </View>
+          {/* ── Privacy e Sicurezza ── */}
+          <Animated.View entering={FadeInDown.delay(180).duration(350).springify()}>
+            <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Privacy e Sicurezza</Text>
+            <View style={[styles.card, { backgroundColor: theme.card }]}>
+              <SettingsRow
+                icon="shield"
+                label="Informativa Privacy"
+                onPress={() => {}}
+                iconColor={PRIVACY_ICON.iconColor}
+                iconBg={PRIVACY_ICON.iconBg}
+                theme={theme}
+              />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              <SettingsRow
+                icon="lock"
+                label="Termini di Servizio"
+                onPress={() => {}}
+                iconColor={PRIVACY_ICON.iconColor}
+                iconBg={PRIVACY_ICON.iconBg}
+                theme={theme}
+              />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              <SettingsRow
+                icon="globe"
+                label="Lingua"
+                value="Italiano"
+                onPress={() => {}}
+                iconColor={PRIVACY_ICON.iconColor}
+                iconBg={PRIVACY_ICON.iconBg}
+                theme={theme}
+              />
+            </View>
+          </Animated.View>
+
+          {/* ── Zona Pericolo ── */}
+          <Animated.View entering={FadeInDown.delay(240).duration(350).springify()}>
+            <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>Zona Pericolo</Text>
+            <View style={[styles.card, { backgroundColor: theme.card }]}>
+              <Pressable
+                style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
+                onPress={handleDeleteAccount}
+              >
+                <View style={[styles.rowIconCircle, { backgroundColor: "rgba(239,67,67,0.10)" }]}>
+                  <Feather name="trash-2" size={16} color={Colors.red} />
+                </View>
+                <Text style={[styles.rowLabel, { color: Colors.red }]}>Cancella account</Text>
+              </Pressable>
+            </View>
+          </Animated.View>
 
           <View style={{ height: 40 }} />
         </ScrollView>
