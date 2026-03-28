@@ -31,13 +31,16 @@ import LeafyGoldModal from "@/components/LeafyGoldModal";
 import { apiFetch } from "@/lib/api";
 import { Fonts } from "@/constants/typography";
 
-const PAYPAL_BLUE = "#0070E0";
-const LEAF_GREEN = "#4DB847";
-const LEAF_DARK = "#2E6B50";
+const PAYPAL_BLUE  = "#0070E0";
+const LEAF_GREEN   = "#4DB847";
+const EMERALD      = "#00C98A";
+const EMERALD_GLOW = "#00E5A0";
 
-const RING_SIZE = 240;
+const RING_SIZE    = 240;
+const OUTER_SIZE   = 276;
 const STROKE_WIDTH = 16;
-const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
+const RADIUS       = (RING_SIZE - STROKE_WIDTH) / 2;
+const OUTER_RADIUS = OUTER_SIZE / 2 - 2;
 
 const AMOUNTS = [
   { euros: 5,  lea: 500,  goldOnly: true  },
@@ -70,8 +73,9 @@ function formatLea(n: number): string {
 }
 
 function LeafyRing({ leaBalance }: { leaBalance: number }) {
-  const rotation = useSharedValue(0);
-  const pulse    = useSharedValue(1);
+  const rotation        = useSharedValue(0);
+  const counterRotation = useSharedValue(0);
+  const pulse           = useSharedValue(1);
 
   useEffect(() => {
     rotation.value = withRepeat(
@@ -79,10 +83,15 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
       -1,
       false,
     );
+    counterRotation.value = withRepeat(
+      withTiming(-360, { duration: 14000, easing: Easing.linear }),
+      -1,
+      false,
+    );
     pulse.value = withRepeat(
       withSequence(
-        withTiming(1.03, { duration: 2800, easing: Easing.inOut(Easing.cubic) }),
-        withTiming(1.00, { duration: 2800, easing: Easing.inOut(Easing.cubic) }),
+        withTiming(1.05, { duration: 3200, easing: Easing.inOut(Easing.cubic) }),
+        withTiming(1.00, { duration: 3200, easing: Easing.inOut(Easing.cubic) }),
       ),
       -1,
       false,
@@ -93,35 +102,75 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
     transform: [{ rotate: `${rotation.value}deg` }],
   }));
 
+  const counterRotateStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${counterRotation.value}deg` }],
+  }));
+
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
   }));
 
   return (
-    <Animated.View style={[styles.ringWrap, styles.ringGlow, pulseStyle]}>
-      <Animated.View style={[{ position: "absolute", width: RING_SIZE, height: RING_SIZE }, rotateStyle]}>
+    <Animated.View style={[styles.ringWrap, pulseStyle]}>
+      {/* Dark glowing backing circle */}
+      <View style={styles.ringDarkCard} />
+
+      {/* Outer orbit dashes — counter-rotating */}
+      <Animated.View
+        style={[{ position: "absolute", width: OUTER_SIZE, height: OUTER_SIZE }, counterRotateStyle]}
+      >
+        <Svg width={OUTER_SIZE} height={OUTER_SIZE}>
+          <Circle
+            cx={OUTER_SIZE / 2}
+            cy={OUTER_SIZE / 2}
+            r={OUTER_RADIUS}
+            fill="none"
+            stroke="rgba(0,229,160,0.32)"
+            strokeWidth={1.5}
+            strokeDasharray="5 16"
+            strokeLinecap="round"
+          />
+        </Svg>
+      </Animated.View>
+
+      {/* Main ring — rotating */}
+      <Animated.View
+        style={[{ position: "absolute", width: RING_SIZE, height: RING_SIZE }, rotateStyle]}
+      >
         <Svg width={RING_SIZE} height={RING_SIZE}>
+          {/* Inner dark fill so center stays dark on all platforms */}
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RADIUS - STROKE_WIDTH / 2}
+            fill="#0A1A10"
+          />
+          {/* Track */}
           <Circle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
             r={RADIUS}
             fill="none"
-            stroke="rgba(46,107,80,0.15)"
+            stroke="rgba(0,229,160,0.08)"
             strokeWidth={STROKE_WIDTH}
           />
+          {/* Active arc */}
           <Circle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
             r={RADIUS}
             fill="none"
-            stroke={LEAF_DARK}
+            stroke={EMERALD}
             strokeWidth={STROKE_WIDTH}
             strokeLinecap="round"
           />
         </Svg>
       </Animated.View>
 
+      {/* Center content */}
       <View style={styles.ringCenter}>
+        <Text style={styles.ringLabel}>LEA BALANCE</Text>
+        <View style={styles.ringDivider} />
         <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
         <Image
           source={require("@/assets/images/lea-icon.png")}
@@ -422,36 +471,55 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   ringWrap: {
-    width: RING_SIZE,
-    height: RING_SIZE,
+    width: OUTER_SIZE,
+    height: OUTER_SIZE,
     alignItems: "center",
     justifyContent: "center",
   },
-  ringGlow: {
-    shadowColor: LEAF_DARK,
+  ringDarkCard: {
+    position: "absolute",
+    width: RING_SIZE,
+    height: RING_SIZE,
+    borderRadius: RING_SIZE / 2,
+    backgroundColor: "#0A1A10",
+    borderWidth: 1,
+    borderColor: "rgba(0,229,160,0.18)",
+    shadowColor: EMERALD_GLOW,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.20,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOpacity: 0.55,
+    shadowRadius: 32,
+    elevation: 20,
   },
   ringCenter: {
     position: "absolute",
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 4,
   },
-  ringLeafIcon: {
-    width: 58,
-    height: 58,
+  ringLabel: {
+    fontSize: 10,
+    fontFamily: Fonts.bodySemiBold,
+    color: "rgba(0,229,160,0.70)",
+    letterSpacing: 2.5,
+  },
+  ringDivider: {
+    width: 36,
+    height: 1,
+    backgroundColor: "rgba(0,229,160,0.22)",
+    borderRadius: 1,
   },
   ringAmount: {
-    fontSize: 56,
-    fontFamily: Fonts.bodyBold,
-    color: "#ffffff",
-    lineHeight: 64,
-    textShadowColor: "rgba(0,0,0,0.25)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    fontSize: 52,
+    fontFamily: Fonts.displayBold,
+    color: "#FFFFFF",
+    lineHeight: 60,
+    textShadowColor: "rgba(0,229,160,0.55)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 14,
+  },
+  ringLeafIcon: {
+    width: 52,
+    height: 52,
   },
 
   goldBadge: {
