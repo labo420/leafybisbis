@@ -112,12 +112,10 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
 
   return (
     <Animated.View style={[styles.ringWrap, pulseStyle]}>
-      {/* Dual-orbit dashes — both counter-rotating in one Animated layer */}
       <Animated.View
         style={[{ position: "absolute", width: OUTER_SIZE, height: OUTER_SIZE }, counterRotateStyle]}
       >
         <Svg width={OUTER_SIZE} height={OUTER_SIZE}>
-          {/* Inner orbit track (thin, subtle) */}
           <Circle
             cx={OUTER_SIZE / 2}
             cy={OUTER_SIZE / 2}
@@ -125,10 +123,9 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
             fill="none"
             stroke="rgba(0,229,160,0.10)"
             strokeWidth={1}
-            strokeDasharray="2 20"
+            strokeDasharray={[2, 20]}
             strokeLinecap="round"
           />
-          {/* Outer orbit dashes */}
           <Circle
             cx={OUTER_SIZE / 2}
             cy={OUTER_SIZE / 2}
@@ -136,25 +133,22 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
             fill="none"
             stroke="rgba(0,229,160,0.35)"
             strokeWidth={1.5}
-            strokeDasharray="6 18"
+            strokeDasharray={[6, 18]}
             strokeLinecap="round"
           />
         </Svg>
       </Animated.View>
 
-      {/* Main ring — rotating */}
       <Animated.View
         style={[{ position: "absolute", width: RING_SIZE, height: RING_SIZE }, rotateStyle]}
       >
         <Svg width={RING_SIZE} height={RING_SIZE}>
-          {/* Inner dark fill so center stays dark on all platforms */}
           <Circle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
             r={RADIUS - STROKE_WIDTH / 2}
             fill="#0A1A10"
           />
-          {/* Track */}
           <Circle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
@@ -163,7 +157,6 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
             stroke="rgba(0,229,160,0.08)"
             strokeWidth={STROKE_WIDTH}
           />
-          {/* Active arc */}
           <Circle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
@@ -176,7 +169,6 @@ function LeafyRing({ leaBalance }: { leaBalance: number }) {
         </Svg>
       </Animated.View>
 
-      {/* Center content */}
       <View style={styles.ringCenter}>
         <Text style={styles.ringLabel}>LEA BALANCE</Text>
         <View style={styles.ringDivider} />
@@ -498,8 +490,8 @@ const styles = StyleSheet.create({
     shadowColor: EMERALD_GLOW,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.55,
-    shadowRadius: 40,
-    elevation: 20,
+    shadowRadius: 20,
+    elevation: 12,
   },
   ringCenter: {
     position: "absolute",
@@ -519,6 +511,10 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,229,160,0.22)",
     borderRadius: 1,
   },
+  ringLeafIcon: {
+    width: 58,
+    height: 58,
+  },
   ringAmount: {
     fontSize: 52,
     fontFamily: Fonts.displayBold,
@@ -527,10 +523,6 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0,229,160,0.55)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 14,
-  },
-  ringLeafIcon: {
-    width: 58,
-    height: 58,
   },
 
   goldBadge: {
