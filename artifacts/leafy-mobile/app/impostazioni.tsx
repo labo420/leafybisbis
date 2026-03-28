@@ -114,7 +114,7 @@ export default function ImpostazioniScreen() {
   const insets = useSafeAreaInsets();
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const { user, logout } = useAuth();
-  const { theme, mode } = useTheme();
+  const { theme } = useTheme();
   const queryClient = useQueryClient();
 
   const { pushEnabled, setPushEnabled } = useNotifications();
