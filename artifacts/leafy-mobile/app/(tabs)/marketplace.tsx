@@ -16,12 +16,13 @@ import Animated, {
   FadeInDown,
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedProps,
   withRepeat,
   withTiming,
   withSequence,
   Easing,
 } from "react-native-reanimated";
-import Svg, { Circle } from "react-native-svg";
+import Svg, { Circle, Line } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PayPalLogo from "@/components/PayPalLogo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,11 +37,21 @@ const LEAF_GREEN   = "#4DB847";
 const EMERALD      = "#00C98A";
 const EMERALD_GLOW = "#00E5A0";
 
-const RING_SIZE    = 240;
-const OUTER_SIZE   = 276;
-const STROKE_WIDTH = 16;
-const RADIUS       = (RING_SIZE - STROKE_WIDTH) / 2;
-const OUTER_RADIUS = OUTER_SIZE / 2 - 2;
+const RING_SIZE      = 240;
+const STROKE_WIDTH   = 16;
+const RADIUS         = (RING_SIZE - STROKE_WIDTH) / 2;
+const CX             = RING_SIZE / 2;
+const CY             = RING_SIZE / 2;
+const CIRCUMFERENCE  = 2 * Math.PI * RADIUS;
+const ARC_START_DEG  = -120;
+const ARC_TOTAL_DEG  = 240;
+const MAX_LEA        = 3000;
+const TRACK_DASH     = (ARC_TOTAL_DEG / 360) * CIRCUMFERENCE;
+const SVG_ROTATION   = 150;
+const CONTAINER_SIZE = 340;
+const LABEL_RADIUS   = 150;
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const AMOUNTS = [
   { euros: 5,  lea: 500,  goldOnly: true  },
@@ -72,113 +83,180 @@ function formatLea(n: number): string {
   return Math.floor(n).toLocaleString("it-IT", { maximumFractionDigits: 0 });
 }
 
-function LeafyRing({ leaBalance }: { leaBalance: number }) {
-  const rotation        = useSharedValue(0);
-  const counterRotation = useSharedValue(0);
-  const pulse           = useSharedValue(1);
+function LeafyRing({
+  leaBalance,
+  selected,
+}: {
+  leaBalance: number;
+  selected: typeof AMOUNTS[0] | null;
+}) {
+  const pulse = useSharedValue(1);
 
   useEffect(() => {
-    rotation.value = withRepeat(
-      withTiming(360, { duration: 9000, easing: Easing.linear }),
-      -1,
-      false,
-    );
-    counterRotation.value = withRepeat(
-      withTiming(-360, { duration: 14000, easing: Easing.linear }),
-      -1,
-      false,
-    );
     pulse.value = withRepeat(
       withSequence(
-        withTiming(1.05, { duration: 3200, easing: Easing.inOut(Easing.cubic) }),
-        withTiming(1.00, { duration: 3200, easing: Easing.inOut(Easing.cubic) }),
+        withTiming(1.015, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1.000, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
       ),
       -1,
       false,
     );
   }, []);
 
-  const rotateStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
-  const counterRotateStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${counterRotation.value}deg` }],
-  }));
-
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
   }));
 
-  return (
-    <Animated.View style={[styles.ringWrap, pulseStyle]}>
-      <Animated.View
-        style={[{ position: "absolute", width: OUTER_SIZE, height: OUTER_SIZE }, counterRotateStyle]}
-      >
-        <Svg width={OUTER_SIZE} height={OUTER_SIZE}>
-          <Circle
-            cx={OUTER_SIZE / 2}
-            cy={OUTER_SIZE / 2}
-            r={OUTER_RADIUS - 13}
-            fill="none"
-            stroke="rgba(0,229,160,0.10)"
-            strokeWidth={1}
-            strokeDasharray={[2, 20]}
-            strokeLinecap="round"
-          />
-          <Circle
-            cx={OUTER_SIZE / 2}
-            cy={OUTER_SIZE / 2}
-            r={OUTER_RADIUS}
-            fill="none"
-            stroke="rgba(0,229,160,0.35)"
-            strokeWidth={1.5}
-            strokeDasharray={[6, 18]}
-            strokeLinecap="round"
-          />
-        </Svg>
-      </Animated.View>
+  const targetProgress = React.useMemo(() => {
+    if (selected) return Math.min(leaBalance, selected.lea) / MAX_LEA;
+    return leaBalance / MAX_LEA;
+  }, [leaBalance, selected]);
 
-      <Animated.View
-        style={[{ position: "absolute", width: RING_SIZE, height: RING_SIZE }, rotateStyle]}
-      >
+  const progressAnim = useSharedValue(Math.min(1, Math.max(0, targetProgress)));
+
+  useEffect(() => {
+    progressAnim.value = withTiming(Math.min(1, Math.max(0, targetProgress)), {
+      duration: 700,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [targetProgress]);
+
+  const progressArcProps = useAnimatedProps(() => {
+    const dashLen = Math.min(1, Math.max(0, progressAnim.value)) * TRACK_DASH;
+    return { strokeDashoffset: CIRCUMFERENCE - dashLen };
+  });
+
+  const balanceFraction = Math.min(1, Math.max(0, leaBalance / MAX_LEA));
+  const balanceAngleDeg = ARC_START_DEG + balanceFraction * ARC_TOTAL_DEG;
+  const balanceRad = (balanceAngleDeg * Math.PI) / 180;
+  const dotCx = CX + Math.sin(balanceRad) * RADIUS;
+  const dotCy = CY - Math.cos(balanceRad) * RADIUS;
+
+  const isMissing = !!(selected && leaBalance < selected.lea);
+  const missingAmount = selected ? Math.max(0, selected.lea - Math.floor(leaBalance)) : 0;
+
+  return (
+    <Animated.View
+      style={[
+        { width: CONTAINER_SIZE, height: CONTAINER_SIZE, alignItems: "center", justifyContent: "center" },
+        pulseStyle,
+      ]}
+    >
+      <View style={{ position: "absolute", width: RING_SIZE, height: RING_SIZE }}>
         <Svg width={RING_SIZE} height={RING_SIZE}>
           <Circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={RADIUS - STROKE_WIDTH / 2}
-            fill="#0A1A10"
+            cx={CX} cy={CY}
+            r={RADIUS - STROKE_WIDTH / 2 - 1}
+            fill="rgba(255,255,255,0.28)"
           />
           <Circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
+            cx={CX} cy={CY}
             r={RADIUS}
             fill="none"
-            stroke="rgba(0,229,160,0.08)"
+            stroke="rgba(0,201,138,0.18)"
             strokeWidth={STROKE_WIDTH}
+            strokeDasharray={[TRACK_DASH, CIRCUMFERENCE - TRACK_DASH]}
+            strokeLinecap="round"
+            transform={`rotate(${SVG_ROTATION}, ${CX}, ${CY})`}
           />
-          <Circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
+          {AMOUNTS.map((amount) => {
+            const aRad = ((ARC_START_DEG + (amount.lea / MAX_LEA) * ARC_TOTAL_DEG) * Math.PI) / 180;
+            const rIn  = RADIUS - STROKE_WIDTH / 2 - 3;
+            const rOut = RADIUS + STROKE_WIDTH / 2 + 3;
+            return (
+              <Line
+                key={amount.lea}
+                x1={CX + Math.sin(aRad) * rIn}
+                y1={CY - Math.cos(aRad) * rIn}
+                x2={CX + Math.sin(aRad) * rOut}
+                y2={CY - Math.cos(aRad) * rOut}
+                stroke={leaBalance >= amount.lea ? EMERALD : "rgba(0,201,138,0.38)"}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            );
+          })}
+          <AnimatedCircle
+            cx={CX} cy={CY}
             r={RADIUS}
             fill="none"
             stroke={EMERALD}
             strokeWidth={STROKE_WIDTH}
             strokeLinecap="round"
+            strokeDasharray={[CIRCUMFERENCE, CIRCUMFERENCE]}
+            animatedProps={progressArcProps}
+            transform={`rotate(${SVG_ROTATION}, ${CX}, ${CY})`}
           />
+          {leaBalance > 0 && (
+            <>
+              <Circle cx={dotCx} cy={dotCy} r={10} fill={EMERALD} opacity={0.20} />
+              <Circle cx={dotCx} cy={dotCy} r={6}  fill={EMERALD_GLOW} />
+              <Circle cx={dotCx} cy={dotCy} r={3}  fill="white" />
+            </>
+          )}
         </Svg>
-      </Animated.View>
+      </View>
 
       <View style={styles.ringCenter}>
-        <Text style={styles.ringLabel}>LEA BALANCE</Text>
-        <View style={styles.ringDivider} />
         <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
         <Image
           source={require("@/assets/images/lea-icon.png")}
           style={styles.ringLeafIcon}
           resizeMode="contain"
         />
+        {isMissing && (
+          <View style={styles.ringMissingRow}>
+            <Feather name="alert-circle" size={11} color="#EA580C" />
+            <Text style={styles.ringMissing}>−{formatLea(missingAmount)} LEA</Text>
+          </View>
+        )}
       </View>
+
+      {AMOUNTS.map((amount) => {
+        const angleDeg = ARC_START_DEG + (amount.lea / MAX_LEA) * ARC_TOTAL_DEG;
+        const rad = (angleDeg * Math.PI) / 180;
+        const px  = CONTAINER_SIZE / 2 + Math.sin(rad) * LABEL_RADIUS;
+        const py  = CONTAINER_SIZE / 2 - Math.cos(rad) * LABEL_RADIUS;
+        const isReached = leaBalance >= amount.lea;
+        const isSel     = selected?.lea === amount.lea;
+        return (
+          <View
+            key={amount.lea}
+            style={{
+              position: "absolute",
+              left: px - 24,
+              top: py - 20,
+              width: 48,
+              height: 40,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: isSel ? 15 : isReached ? 13 : 12,
+                fontFamily: isSel || isReached ? Fonts.bodyBold : Fonts.bodyMedium,
+                color: isSel ? LEAF_GREEN : isReached ? EMERALD : "rgba(20,60,35,0.42)",
+                textShadowColor: isSel ? EMERALD_GLOW : "transparent",
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: isSel ? 8 : 0,
+              }}
+            >
+              €{amount.euros}
+            </Text>
+            <Text
+              style={{
+                fontSize: 8,
+                fontFamily: Fonts.bodyRegular,
+                color: isReached ? "rgba(0,201,138,0.70)" : "rgba(20,60,35,0.30)",
+                marginTop: 1,
+              }}
+            >
+              {formatLea(amount.lea)}
+            </Text>
+          </View>
+        );
+      })}
     </Animated.View>
   );
 }
@@ -329,9 +407,7 @@ export default function WalletScreen() {
       >
         <View style={styles.mainBlock}>
           <Animated.View entering={FadeInDown.delay(50).springify()} style={styles.ringSection}>
-            <View style={styles.ringCard}>
-              <LeafyRing leaBalance={leaBalance} />
-            </View>
+            <LeafyRing leaBalance={leaBalance} selected={selected} />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.gridSection}>
@@ -473,56 +549,35 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 8,
   },
-  ringWrap: {
-    width: OUTER_SIZE,
-    height: OUTER_SIZE,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringCard: {
-    alignSelf: "stretch",
-    alignItems: "center",
-    paddingVertical: 20,
-    backgroundColor: "#0A1A10",
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: "rgba(0,229,160,0.25)",
-    shadowColor: EMERALD_GLOW,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 20,
-    elevation: 12,
-  },
   ringCenter: {
     position: "absolute",
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
-  },
-  ringLabel: {
-    fontSize: 10,
-    fontFamily: Fonts.bodySemiBold,
-    color: "rgba(0,229,160,0.70)",
-    letterSpacing: 2.5,
-  },
-  ringDivider: {
-    width: 36,
-    height: 1,
-    backgroundColor: "rgba(0,229,160,0.22)",
-    borderRadius: 1,
+    gap: 2,
   },
   ringLeafIcon: {
-    width: 58,
-    height: 58,
+    width: 48,
+    height: 48,
   },
   ringAmount: {
-    fontSize: 52,
+    fontSize: 48,
     fontFamily: Fonts.displayBold,
-    color: "#FFFFFF",
-    lineHeight: 60,
-    textShadowColor: "rgba(0,229,160,0.55)",
+    color: "#1A3028",
+    lineHeight: 56,
+    textShadowColor: "rgba(0,201,138,0.25)",
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 14,
+    textShadowRadius: 8,
+  },
+  ringMissingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 4,
+  },
+  ringMissing: {
+    fontSize: 12,
+    fontFamily: Fonts.bodyBold,
+    color: "#EA580C",
   },
 
   goldBadge: {
