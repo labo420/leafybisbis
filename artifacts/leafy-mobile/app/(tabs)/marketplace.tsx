@@ -19,6 +19,7 @@ import Animated, {
   useAnimatedProps,
   withRepeat,
   withTiming,
+  withSpring,
   withSequence,
   Easing,
 } from "react-native-reanimated";
@@ -83,6 +84,73 @@ function formatLea(n: number): string {
   return Math.floor(n).toLocaleString("it-IT", { maximumFractionDigits: 0 });
 }
 
+function AmountLabel({
+  amount,
+  isReached,
+  isSel,
+  px,
+  py,
+}: {
+  amount: typeof AMOUNTS[0];
+  isReached: boolean;
+  isSel: boolean;
+  px: number;
+  py: number;
+}) {
+  const scale = useSharedValue(isSel ? 1.15 : isReached ? 1.08 : 1.0);
+
+  useEffect(() => {
+    scale.value = withSpring(isSel ? 1.15 : isReached ? 1.08 : 1.0, {
+      damping: 12,
+      stiffness: 200,
+    });
+  }, [isReached, isSel]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          left: px - 24,
+          top: py - 20,
+          width: 48,
+          height: 40,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        animStyle,
+      ]}
+    >
+      <Text
+        style={{
+          fontSize: isSel ? 15 : isReached ? 13 : 12,
+          fontFamily: isSel || isReached ? Fonts.bodyBold : Fonts.bodyMedium,
+          color: isSel ? LEAF_GREEN : isReached ? EMERALD : "rgba(20,60,35,0.42)",
+          textShadowColor: isSel ? EMERALD_GLOW : "transparent",
+          textShadowOffset: { width: 0, height: 0 },
+          textShadowRadius: isSel ? 8 : 0,
+        }}
+      >
+        €{amount.euros}
+      </Text>
+      <Text
+        style={{
+          fontSize: 8,
+          fontFamily: Fonts.bodyRegular,
+          color: isReached ? "rgba(0,201,138,0.70)" : "rgba(20,60,35,0.30)",
+          marginTop: 1,
+        }}
+      >
+        {formatLea(amount.lea)} LEA
+      </Text>
+    </Animated.View>
+  );
+}
+
 function LeafyRing({
   leaBalance,
   selected,
@@ -127,10 +195,27 @@ function LeafyRing({
   });
 
   const balanceFraction = Math.min(1, Math.max(0, leaBalance / MAX_LEA));
-  const balanceAngleDeg = ARC_START_DEG + balanceFraction * ARC_TOTAL_DEG;
-  const balanceRad = (balanceAngleDeg * Math.PI) / 180;
-  const dotCx = CX + Math.sin(balanceRad) * RADIUS;
-  const dotCy = CY - Math.cos(balanceRad) * RADIUS;
+  const balanceAngleTarget = ARC_START_DEG + balanceFraction * ARC_TOTAL_DEG;
+  const balanceAngleAnim = useSharedValue(balanceAngleTarget);
+
+  useEffect(() => {
+    balanceAngleAnim.value = withSpring(balanceAngleTarget, {
+      damping: 15,
+      stiffness: 100,
+    });
+  }, [balanceAngleTarget]);
+
+  const dotStyle = useAnimatedStyle(() => {
+    const rad = (balanceAngleAnim.value * Math.PI) / 180;
+    const x = CONTAINER_SIZE / 2 + Math.sin(rad) * RADIUS;
+    const y = CONTAINER_SIZE / 2 - Math.cos(rad) * RADIUS;
+    return {
+      transform: [
+        { translateX: x - CONTAINER_SIZE / 2 },
+        { translateY: y - CONTAINER_SIZE / 2 },
+      ],
+    };
+  });
 
   const isMissing = !!(selected && leaBalance < selected.lea);
   const missingAmount = selected ? Math.max(0, selected.lea - Math.floor(leaBalance)) : 0;
@@ -187,28 +272,43 @@ function LeafyRing({
             animatedProps={progressArcProps}
             transform={`rotate(${SVG_ROTATION}, ${CX}, ${CY})`}
           />
-          {leaBalance > 0 && (
-            <>
-              <Circle cx={dotCx} cy={dotCy} r={10} fill={EMERALD} opacity={0.20} />
-              <Circle cx={dotCx} cy={dotCy} r={6}  fill={EMERALD_GLOW} />
-              <Circle cx={dotCx} cy={dotCy} r={3}  fill="white" />
-            </>
-          )}
         </Svg>
       </View>
 
+      {leaBalance > 0 && (
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              alignItems: "center",
+              justifyContent: "center",
+            },
+            dotStyle,
+          ]}
+          pointerEvents="none"
+        >
+          <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: EMERALD, opacity: 0.22, position: "absolute" }} />
+          <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: EMERALD_GLOW, position: "absolute" }} />
+          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "white", position: "absolute" }} />
+        </Animated.View>
+      )}
+
       <View style={styles.ringCenter}>
-        <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
-        <Image
-          source={require("@/assets/images/lea-icon.png")}
-          style={styles.ringLeafIcon}
-          resizeMode="contain"
-        />
-        {isMissing && (
-          <View style={styles.ringMissingRow}>
-            <Feather name="alert-circle" size={11} color="#EA580C" />
-            <Text style={styles.ringMissing}>−{formatLea(missingAmount)} LEA</Text>
-          </View>
+        {isMissing ? (
+          <>
+            <Feather name="alert-circle" size={22} color="#EA580C" />
+            <Text style={styles.ringMissingLabel}>Ti mancano</Text>
+            <Text style={styles.ringMissingAmount}>{formatLea(missingAmount)} LEA</Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
+            <Image
+              source={require("@/assets/images/lea-icon.png")}
+              style={styles.ringLeafIcon}
+              resizeMode="contain"
+            />
+          </>
         )}
       </View>
 
@@ -220,41 +320,14 @@ function LeafyRing({
         const isReached = leaBalance >= amount.lea;
         const isSel     = selected?.lea === amount.lea;
         return (
-          <View
+          <AmountLabel
             key={amount.lea}
-            style={{
-              position: "absolute",
-              left: px - 24,
-              top: py - 20,
-              width: 48,
-              height: 40,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: isSel ? 15 : isReached ? 13 : 12,
-                fontFamily: isSel || isReached ? Fonts.bodyBold : Fonts.bodyMedium,
-                color: isSel ? LEAF_GREEN : isReached ? EMERALD : "rgba(20,60,35,0.42)",
-                textShadowColor: isSel ? EMERALD_GLOW : "transparent",
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: isSel ? 8 : 0,
-              }}
-            >
-              €{amount.euros}
-            </Text>
-            <Text
-              style={{
-                fontSize: 8,
-                fontFamily: Fonts.bodyRegular,
-                color: isReached ? "rgba(0,201,138,0.70)" : "rgba(20,60,35,0.30)",
-                marginTop: 1,
-              }}
-            >
-              {formatLea(amount.lea)}
-            </Text>
-          </View>
+            amount={amount}
+            isReached={isReached}
+            isSel={isSel}
+            px={px}
+            py={py}
+          />
         );
       })}
     </Animated.View>
@@ -568,16 +641,18 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
-  ringMissingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 4,
-  },
-  ringMissing: {
+  ringMissingLabel: {
     fontSize: 12,
+    fontFamily: Fonts.bodyMedium,
+    color: "#EA580C",
+    marginTop: 4,
+    letterSpacing: 0.3,
+  },
+  ringMissingAmount: {
+    fontSize: 26,
     fontFamily: Fonts.bodyBold,
     color: "#EA580C",
+    lineHeight: 30,
   },
 
   goldBadge: {
