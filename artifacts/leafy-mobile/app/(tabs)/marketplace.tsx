@@ -241,23 +241,6 @@ function LeafyRing({
             strokeLinecap="round"
             transform={`rotate(${SVG_ROTATION}, ${CX}, ${CY})`}
           />
-          {AMOUNTS.map((amount) => {
-            const aRad = ((ARC_START_DEG + (amount.lea / MAX_LEA) * ARC_TOTAL_DEG) * Math.PI) / 180;
-            const rIn  = RADIUS - STROKE_WIDTH / 2 - 3;
-            const rOut = RADIUS + STROKE_WIDTH / 2 + 3;
-            return (
-              <Line
-                key={amount.lea}
-                x1={CX + Math.sin(aRad) * rIn}
-                y1={CY - Math.cos(aRad) * rIn}
-                x2={CX + Math.sin(aRad) * rOut}
-                y2={CY - Math.cos(aRad) * rOut}
-                stroke={leaBalance >= amount.lea ? EMERALD : "rgba(0,201,138,0.38)"}
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-            );
-          })}
           <AnimatedCircle
             cx={CX} cy={CY}
             r={RADIUS}
