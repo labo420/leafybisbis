@@ -1478,6 +1478,9 @@ export default function HomeScreen() {
     }
   };
 
+  const { width: screenWidth } = useWindowDimensions();
+  const { unreadCount: notifUnread } = useInAppNotifications(!!user);
+
   const topPadding = Platform.OS === "web" ? 67 : 0;
   const bottomPad = Platform.OS === "web" ? 34 + 84 : 100 + insets.bottom;
 
@@ -1494,7 +1497,6 @@ export default function HomeScreen() {
     );
   }
 
-  const { width: screenWidth } = useWindowDimensions();
   // stampCardShadow: marginHorizontal 16 each side (32) + stampCard: padding 16 each side (32) = 64px total
   const cellSize = Math.floor((screenWidth - 64) / 7) - 4;
 
@@ -1517,7 +1519,6 @@ export default function HomeScreen() {
   const levelProgress = Math.max(0, Math.min(100, profile?.levelProgress ?? 0));
   const nextLevelPoints = profile?.nextLevelPoints ?? 0;
   const safeInitial = (username.trim().charAt(0) || "U").toUpperCase();
-  const { unreadCount: notifUnread } = useInAppNotifications(!!user);
 
   return (
     <View style={{ flex: 1 }}>
