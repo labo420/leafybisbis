@@ -217,9 +217,6 @@ function LeafyRing({
     };
   });
 
-  const isMissing = !!(selected && leaBalance < selected.lea);
-  const missingAmount = selected ? Math.max(0, selected.lea - Math.floor(leaBalance)) : 0;
-
   return (
     <Animated.View
       style={[
@@ -292,22 +289,12 @@ function LeafyRing({
       </Animated.View>
 
       <View style={styles.ringCenter}>
-        {isMissing ? (
-          <>
-            <Feather name="alert-circle" size={22} color="#EA580C" />
-            <Text style={styles.ringMissingLabel}>Ti mancano</Text>
-            <Text style={styles.ringMissingAmount}>{formatLea(missingAmount)} LEA</Text>
-          </>
-        ) : (
-          <>
-            <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
-            <Image
-              source={require("@/assets/images/lea-icon.png")}
-              style={styles.ringLeafIcon}
-              resizeMode="contain"
-            />
-          </>
-        )}
+        <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
+        <Image
+          source={require("@/assets/images/lea-icon.png")}
+          style={styles.ringLeafIcon}
+          resizeMode="contain"
+        />
       </View>
 
       {AMOUNTS.map((amount) => {
@@ -479,6 +466,17 @@ export default function WalletScreen() {
         <View style={styles.mainBlock}>
           <Animated.View entering={FadeInDown.delay(50).springify()} style={styles.ringSection}>
             <LeafyRing leaBalance={leaBalance} selected={selected} />
+            {selected && leaBalance < selected.lea && (
+              <Animated.View entering={FadeIn} style={styles.ringMissingRow}>
+                <Feather name="alert-circle" size={13} color="#EA580C" />
+                <Text style={styles.ringMissingLabel}>
+                  Ti mancano{" "}
+                  <Text style={styles.ringMissingAmount}>
+                    {formatLea(Math.max(0, selected.lea - Math.floor(leaBalance)))} LEA
+                  </Text>
+                </Text>
+              </Animated.View>
+            )}
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.gridSection}>
@@ -639,18 +637,26 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
+  ringMissingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: "rgba(234,88,12,0.08)",
+  },
   ringMissingLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: Fonts.bodyMedium,
     color: "#EA580C",
-    marginTop: 4,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   ringMissingAmount: {
-    fontSize: 26,
+    fontSize: 13,
     fontFamily: Fonts.bodyBold,
     color: "#EA580C",
-    lineHeight: 30,
   },
 
   goldBadge: {
