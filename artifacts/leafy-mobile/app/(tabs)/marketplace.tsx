@@ -275,23 +275,21 @@ function LeafyRing({
         </Svg>
       </View>
 
-      {leaBalance > 0 && (
-        <Animated.View
-          style={[
-            {
-              position: "absolute",
-              alignItems: "center",
-              justifyContent: "center",
-            },
-            dotStyle,
-          ]}
-          pointerEvents="none"
-        >
-          <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: EMERALD, opacity: 0.22, position: "absolute" }} />
-          <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: EMERALD_GLOW, position: "absolute" }} />
-          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "white", position: "absolute" }} />
-        </Animated.View>
-      )}
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            alignItems: "center",
+            justifyContent: "center",
+          },
+          dotStyle,
+        ]}
+        pointerEvents="none"
+      >
+        <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: EMERALD, opacity: 0.22, position: "absolute" }} />
+        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: EMERALD_GLOW, position: "absolute" }} />
+        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "white", position: "absolute" }} />
+      </Animated.View>
 
       <View style={styles.ringCenter}>
         {isMissing ? (
