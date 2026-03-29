@@ -373,6 +373,9 @@ export default function WalletScreen() {
     },
   });
 
+  const isMissing   = !!(selected && leaBalance < selected.lea);
+  const missingLea  = selected ? Math.max(0, selected.lea - Math.floor(leaBalance)) : 0;
+
   const handleTilePress = useCallback((amount: typeof AMOUNTS[0]) => {
     setInlineError(null);
     setSelected((prev) => prev?.euros === amount.euros ? null : amount);
@@ -466,13 +469,13 @@ export default function WalletScreen() {
         <View style={styles.mainBlock}>
           <Animated.View entering={FadeInDown.delay(50).springify()} style={styles.ringSection}>
             <LeafyRing leaBalance={leaBalance} selected={selected} />
-            {selected && leaBalance < selected.lea && (
+            {isMissing && (
               <Animated.View entering={FadeIn} style={styles.ringMissingRow}>
                 <Feather name="alert-circle" size={13} color="#EA580C" />
                 <Text style={styles.ringMissingLabel}>
                   Ti mancano{" "}
                   <Text style={styles.ringMissingAmount}>
-                    {formatLea(Math.max(0, selected.lea - Math.floor(leaBalance)))} LEA
+                    {formatLea(missingLea)} LEA
                   </Text>
                 </Text>
               </Animated.View>
