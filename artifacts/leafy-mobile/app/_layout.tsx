@@ -53,9 +53,15 @@ const queryClient = new QueryClient({
 });
 
 function TutorialGate() {
-  const { user } = useAuth();
-  const { shouldShow, dismiss } = useOnboardingTutorial(!!user);
-  return <WelcomeTutorial visible={shouldShow} onDismiss={dismiss} />;
+  const { justLoggedIn, clearJustLoggedIn } = useAuth();
+  const { shouldShow, dismiss } = useOnboardingTutorial(justLoggedIn);
+
+  const handleDismiss = () => {
+    dismiss();
+    clearJustLoggedIn();
+  };
+
+  return <WelcomeTutorial visible={shouldShow} onDismiss={handleDismiss} />;
 }
 
 function RootLayoutNav() {

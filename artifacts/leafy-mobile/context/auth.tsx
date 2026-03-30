@@ -8,6 +8,8 @@ type AuthContextType = {
   drops: number;
   leaBalance: number;
   hasLeafyGold: boolean;
+  justLoggedIn: boolean;
+  clearJustLoggedIn: () => void;
   refetch: () => void;
   refreshBalances: () => Promise<void>;
   syncBalances: (drops: number, leaBalance: number, hasLeafyGold: boolean) => void;
@@ -23,6 +25,8 @@ const AuthContext = createContext<AuthContextType>({
   drops: 0,
   leaBalance: 0,
   hasLeafyGold: false,
+  justLoggedIn: false,
+  clearJustLoggedIn: () => {},
   refetch: () => {},
   refreshBalances: async () => {},
   syncBalances: () => {},
@@ -51,6 +55,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [drops, setDrops] = useState(0);
   const [leaBalance, setLeaBalance] = useState(0);
   const [hasLeafyGold, setHasLeafyGold] = useState(false);
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
+
+  const clearJustLoggedIn = useCallback(() => setJustLoggedIn(false), []);
 
   const sessionTokenRef = useRef<string | null>(null);
 
@@ -177,6 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     sessionTokenRef.current = token;
     await AsyncStorage.setItem(STORAGE_KEYS.token, token);
     setUser(userData);
+    setJustLoggedIn(true);
     await saveUserLocally(userData);
     fetchBalances();
   };
@@ -280,6 +288,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         drops,
         leaBalance,
         hasLeafyGold,
+        justLoggedIn,
+        clearJustLoggedIn,
         refetch: fetchUser,
         refreshBalances: fetchBalances,
         syncBalances,
