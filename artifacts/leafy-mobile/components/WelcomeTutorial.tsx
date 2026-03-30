@@ -102,7 +102,14 @@ const STEPS: StepDef[] = [
         <LeaIcon size={26} />
       </View>
     ),
-    body: "$LEA è il tuo cashback reale. Accumulalo con acquisti e prelevalo direttamente su PayPal.",
+    body: (color: string) => (
+      <View style={inlineRow}>
+        <LeaIcon size={16} />
+        <Text style={{ ...BODY_BASE, color }}>
+          {" "}è il tuo cashback reale. Accumulalo con acquisti e prelevalo direttamente su PayPal.
+        </Text>
+      </View>
+    ),
   },
 ];
 
