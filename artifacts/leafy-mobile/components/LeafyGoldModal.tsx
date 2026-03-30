@@ -50,13 +50,13 @@ export default function LeafyGoldModal({ visible, onClose }: LeafyGoldModalProps
   const [loading, setLoading] = useState(false);
   const [activated, setActivated] = useState(false);
 
-  const translateY = useSharedValue(500);
+  const translateY = useSharedValue(400);
 
   useEffect(() => {
     if (visible) {
       translateY.value = withSpring(0, { damping: 22, stiffness: 200 });
     } else {
-      translateY.value = 500;
+      translateY.value = 400;
     }
   }, [visible, translateY]);
 
@@ -76,7 +76,7 @@ export default function LeafyGoldModal({ visible, onClose }: LeafyGoldModalProps
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Pressable style={styles.overlay} onPress={onClose}>
           <Animated.View
