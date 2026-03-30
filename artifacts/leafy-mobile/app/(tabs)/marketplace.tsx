@@ -44,11 +44,11 @@ const RADIUS         = (RING_SIZE - STROKE_WIDTH) / 2;
 const CX             = RING_SIZE / 2;
 const CY             = RING_SIZE / 2;
 const CIRCUMFERENCE  = 2 * Math.PI * RADIUS;
-const ARC_START_DEG  = 0;
-const ARC_TOTAL_DEG  = 240;
+const ARC_START_DEG  = -180;
+const ARC_TOTAL_DEG  = 360;
 const MAX_LEA        = 3000;
 const TRACK_DASH     = (ARC_TOTAL_DEG / 360) * CIRCUMFERENCE;
-const SVG_ROTATION   = 30;
+const SVG_ROTATION   = 90;
 const CONTAINER_SIZE = 340;
 const LABEL_RADIUS   = 150;
 
