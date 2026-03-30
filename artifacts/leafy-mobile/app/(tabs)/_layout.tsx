@@ -102,12 +102,12 @@ function BalanceBar() {
     <View style={styles.balanceBar}>
       <View style={styles.balanceInner}>
         <View style={styles.balanceChip}>
-          <XpIcon size={16} />
+          <XpIcon size={18} />
           <Text style={styles.balanceChipValue}>{drops.toLocaleString("it-IT")}</Text>
         </View>
         <View style={styles.balanceSeparator} />
         <View style={styles.balanceChip}>
-          <LeaIcon size={16} />
+          <LeaIcon size={18} />
           <Text style={styles.balanceChipLeaLabel}>LEA</Text>
           <Text style={styles.balanceChipValue}>{Math.floor(leaBalance)}</Text>
         </View>
@@ -287,35 +287,35 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   balanceBar: {
     backgroundColor: "#2E6B50",
-    paddingTop: 4,
-    paddingBottom: 6,
-    paddingHorizontal: 16,
+    paddingTop: 5,
+    paddingBottom: 7,
+    paddingHorizontal: 18,
   },
   balanceInner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 16,
+    gap: 18,
   },
   balanceChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 7,
   },
   balanceChipValue: {
-    fontSize: 18,
+    fontSize: 21,
     fontFamily: Fonts.bodyBold,
     color: "#ffffff",
   },
   balanceChipLeaLabel: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: Fonts.bodyBold,
     color: "#AADF2A",
     letterSpacing: 0.5,
   },
   balanceSeparator: {
     width: 1,
-    height: 28,
+    height: 32,
     backgroundColor: "rgba(255,255,255,0.25)",
     borderRadius: 1,
   },
