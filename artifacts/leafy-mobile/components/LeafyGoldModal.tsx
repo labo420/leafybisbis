@@ -1,24 +1,17 @@
 import { Feather } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Image,
   Modal,
   Pressable,
+  SafeAreaView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/context/auth";
 
 interface LeafyGoldModalProps {
@@ -28,41 +21,35 @@ interface LeafyGoldModalProps {
 
 const features = [
   {
-    icon: "zap" as const,
+    emoji: "⚡",
     title: "Doppio cashback LEA",
-    desc: "Guadagni il doppio su ogni scontrino",
+    description: "Guadagni il doppio su ogni scontrino sostenibile",
+    bg: "#FFFBEB",
+    border: "rgba(217,119,6,0.18)",
+    accent: "#B45309",
   },
   {
-    icon: "dollar-sign" as const,
+    emoji: "💸",
     title: "Preleva su PayPal",
-    desc: "Converti i tuoi LEA in denaro reale",
+    description: "Converti i tuoi LEA in euro reali, quando vuoi",
+    bg: "#EFF6FF",
+    border: "rgba(3,105,161,0.18)",
+    accent: "#0369A1",
   },
   {
-    icon: "trending-up" as const,
+    emoji: "📈",
     title: "Moltiplicatore mensile",
-    desc: "I tuoi guadagni crescono ogni mese",
+    description: "I tuoi guadagni crescono più a lungo sei abbonato",
+    bg: "#F0FDF4",
+    border: "rgba(21,128,61,0.18)",
+    accent: "#15803D",
   },
 ];
 
 export default function LeafyGoldModal({ visible, onClose }: LeafyGoldModalProps) {
   const { activateLeafyGold, hasLeafyGold } = useAuth();
-  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [activated, setActivated] = useState(false);
-
-  const translateY = useSharedValue(400);
-
-  useEffect(() => {
-    if (visible) {
-      translateY.value = withSpring(0, { damping: 22, stiffness: 200 });
-    } else {
-      translateY.value = 400;
-    }
-  }, [visible, translateY]);
-
-  const sheetStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
 
   const handleActivate = async () => {
     setLoading(true);
@@ -76,216 +63,212 @@ export default function LeafyGoldModal({ visible, onClose }: LeafyGoldModalProps
   };
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent={false}
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Pressable style={styles.overlay} onPress={onClose}>
-          <Animated.View
-            style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 24) }, sheetStyle]}
-          >
-            <Pressable onPress={() => {}}>
-              <LinearGradient
-                colors={["#0E2419", "#173325", "#1E3D2E"]}
-                style={StyleSheet.absoluteFill}
+        <SafeAreaView style={styles.screen}>
+          {/* Close button */}
+          <Pressable style={styles.closeBtn} onPress={onClose} hitSlop={12}>
+            <View style={styles.closeCircle}>
+              <Feather name="x" size={18} color="#6B7280" />
+            </View>
+          </Pressable>
+
+          {/* Hero */}
+          <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.hero}>
+            <View style={styles.glowWrap}>
+              <Image
+                source={require("@/assets/images/leafy-gold-icon.png")}
+                style={styles.heroIcon}
+                resizeMode="contain"
               />
+            </View>
 
-              {/* Handle bar */}
-              <View style={styles.handle} />
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>✦  LEAFY GOLD</Text>
+            </View>
 
-              {/* Close X */}
-              <Pressable style={styles.closeX} onPress={onClose} hitSlop={12}>
-                <Feather name="x" size={22} color="rgba(255,255,255,0.45)" />
-              </Pressable>
+            <Text style={styles.title}>Passa a Premium</Text>
+            <Text style={styles.subtitle}>Sblocca il massimo potenziale di Leafy</Text>
+          </Animated.View>
 
-              {/* Hero */}
-              <Animated.View entering={FadeInDown.delay(80).springify()} style={styles.hero}>
-                <View style={styles.iconGlow}>
-                  <Image
-                    source={require("@/assets/images/leafy-gold-icon.png")}
-                    style={styles.heroIcon}
-                    resizeMode="contain"
-                  />
+          {/* Feature cards */}
+          <Animated.View entering={FadeInDown.delay(140).springify()} style={styles.featureList}>
+            {features.map((f, i) => (
+              <View
+                key={i}
+                style={[styles.featureCard, { backgroundColor: f.bg, borderColor: f.border }]}
+              >
+                <View style={styles.featureIconWrap}>
+                  <Text style={styles.featureEmoji}>{f.emoji}</Text>
                 </View>
-
-                <View style={styles.badgePill}>
-                  <Text style={styles.badgeText}>LEAFY GOLD</Text>
+                <View style={styles.featureTexts}>
+                  <Text style={styles.featureTitle}>{f.title}</Text>
+                  <Text style={styles.featureDesc}>{f.description}</Text>
                 </View>
+              </View>
+            ))}
+          </Animated.View>
 
-                <Text style={styles.title}>Passa a Premium</Text>
-                <Text style={styles.subtitle}>Sblocca il massimo potenziale di Leafy</Text>
-              </Animated.View>
+          {/* Price */}
+          <Animated.View entering={FadeInDown.delay(220).springify()} style={styles.priceSection}>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Solo</Text>
+              <Text style={styles.priceAmount}>0,89</Text>
+              <Text style={styles.priceCurrency}>€</Text>
+              <Text style={styles.pricePer}>/mese</Text>
+            </View>
 
-              {/* Features */}
-              <Animated.View entering={FadeInDown.delay(180).springify()} style={styles.featureList}>
-                {features.map((f, i) => (
-                  <View key={i}>
-                    <View style={styles.featureRow}>
-                      <View style={styles.featureIconWrap}>
-                        <Feather name={f.icon} size={20} color="#FFD700" />
-                      </View>
-                      <View style={styles.featureTexts}>
-                        <Text style={styles.featureTitle}>{f.title}</Text>
-                        <Text style={styles.featureDesc}>{f.desc}</Text>
-                      </View>
-                    </View>
-                    {i < features.length - 1 && <View style={styles.featureDivider} />}
-                  </View>
-                ))}
-              </Animated.View>
-
-              {/* Price box */}
-              <Animated.View entering={FadeInDown.delay(260).springify()} style={styles.priceBox}>
-                <View style={styles.priceRow}>
-                  <Text style={styles.priceLabel}>Solo</Text>
-                  <Text style={styles.price}>0,89€</Text>
-                  <Text style={styles.priceLabel}>/mese</Text>
+            <View style={styles.bullets}>
+              {["Nessun vincolo", "Annulla quando vuoi"].map((t) => (
+                <View key={t} style={styles.bullet}>
+                  <Feather name="check" size={11} color="#2E6B50" strokeWidth={3} />
+                  <Text style={styles.bulletText}>{t}</Text>
                 </View>
-                <Text style={styles.priceSub}>Annullabile in qualsiasi momento</Text>
-              </Animated.View>
+              ))}
+            </View>
+          </Animated.View>
 
-              {/* CTA */}
-              <Animated.View entering={FadeInDown.delay(320).springify()} style={styles.ctaWrap}>
-                {hasLeafyGold || activated ? (
-                  <Animated.View entering={FadeIn} style={styles.activatedRow}>
-                    <Feather name="check-circle" size={20} color="#4ade80" />
-                    <Text style={styles.activatedText}>Leafy Gold attivo!</Text>
-                  </Animated.View>
+          {/* CTA */}
+          <Animated.View entering={FadeInDown.delay(280).springify()} style={styles.ctaSection}>
+            {hasLeafyGold || activated ? (
+              <View style={styles.activatedRow}>
+                <Feather name="check-circle" size={22} color="#2E6B50" />
+                <Text style={styles.activatedText}>Leafy Gold attivo!</Text>
+              </View>
+            ) : (
+              <Pressable
+                style={({ pressed }) => [styles.ctaBtn, pressed && { opacity: 0.88 }]}
+                onPress={handleActivate}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
                 ) : (
-                  <Pressable
-                    style={({ pressed }) => [styles.ctaBtn, pressed && { opacity: 0.88 }]}
-                    onPress={handleActivate}
-                    disabled={loading}
-                  >
-                    <LinearGradient
-                      colors={["#FFD700", "#FFC200", "#FFA500"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.ctaGradient}
-                    >
-                      {loading ? (
-                        <ActivityIndicator color="#1a4a2e" />
-                      ) : (
-                        <Text style={styles.ctaText}>✦  Attiva Leafy Gold</Text>
-                      )}
-                    </LinearGradient>
-                  </Pressable>
+                  <Text style={styles.ctaText}>Attiva Leafy Gold</Text>
                 )}
-              </Animated.View>
+              </Pressable>
+            )}
+
+            <Pressable onPress={onClose} style={styles.dismissBtn}>
+              <Text style={styles.dismissText}>Non ora</Text>
             </Pressable>
           </Animated.View>
-        </Pressable>
+        </SafeAreaView>
       </GestureHandlerRootView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  screen: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.72)",
-    justifyContent: "flex-end",
+    backgroundColor: "#FAFAF8",
+    paddingHorizontal: 20,
   },
-  sheet: {
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: "rgba(255,215,0,0.35)",
-    overflow: "hidden",
-    paddingHorizontal: 24,
-    paddingTop: 12,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignSelf: "center",
-    marginBottom: 20,
-  },
-  closeX: {
+  closeBtn: {
     position: "absolute",
-    top: 16,
+    top: 56,
     right: 20,
     zIndex: 10,
-    padding: 4,
   },
-  hero: {
-    alignItems: "center",
-    marginBottom: 28,
-  },
-  iconGlow: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    backgroundColor: "rgba(255,215,0,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255,215,0,0.25)",
+  closeCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "rgba(0,0,0,0.06)",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#FFD700",
+  },
+
+  /* Hero */
+  hero: {
+    alignItems: "center",
+    marginTop: 48,
+    marginBottom: 24,
+  },
+  glowWrap: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: "rgba(255,215,0,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#D97706",
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.35,
-    shadowRadius: 24,
-    elevation: 10,
+    shadowOpacity: 0.3,
+    shadowRadius: 28,
+    elevation: 8,
   },
   heroIcon: {
-    width: 100,
-    height: 100,
+    width: 110,
+    height: 110,
   },
-  badgePill: {
+  badge: {
     marginTop: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
     borderRadius: 100,
-    backgroundColor: "rgba(255,215,0,0.15)",
+    backgroundColor: "rgba(217,119,6,0.10)",
     borderWidth: 1,
-    borderColor: "rgba(255,215,0,0.4)",
+    borderColor: "rgba(217,119,6,0.28)",
   },
   badgeText: {
     fontSize: 10,
     fontFamily: "Inter_700Bold",
-    color: "#FFD700",
-    letterSpacing: 2.5,
+    color: "#B45309",
+    letterSpacing: 2,
   },
   title: {
     fontSize: 26,
     fontFamily: "DMSans_700Bold",
-    color: "#fff",
-    marginTop: 10,
+    color: "#111827",
+    marginTop: 12,
     textAlign: "center",
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
-    color: "rgba(255,255,255,0.55)",
+    color: "#6B7280",
     textAlign: "center",
     marginTop: 4,
     lineHeight: 19,
   },
+
+  /* Features */
   featureList: {
-    marginBottom: 20,
-    gap: 0,
+    gap: 10,
   },
-  featureRow: {
+  featureCard: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    paddingVertical: 12,
-  },
-  featureDivider: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   featureIconWrap: {
-    width: 44,
-    height: 44,
+    width: 46,
+    height: 46,
     borderRadius: 14,
-    backgroundColor: "rgba(255,215,0,0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(255,215,0,0.2)",
+    backgroundColor: "rgba(255,255,255,0.75)",
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  featureEmoji: {
+    fontSize: 22,
   },
   featureTexts: {
     flex: 1,
@@ -294,79 +277,109 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: "rgba(255,255,255,0.95)",
+    color: "#111827",
+    letterSpacing: -0.2,
   },
   featureDesc: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontFamily: "Inter_400Regular",
-    color: "rgba(255,255,255,0.5)",
+    color: "#6B7280",
+    lineHeight: 17,
   },
-  priceBox: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,215,0,0.3)",
-    backgroundColor: "rgba(255,215,0,0.06)",
-    padding: 16,
+
+  /* Price */
+  priceSection: {
     alignItems: "center",
-    marginBottom: 20,
-    gap: 4,
+    marginTop: 22,
+    gap: 8,
   },
   priceRow: {
     flexDirection: "row",
     alignItems: "baseline",
-    gap: 6,
+    gap: 4,
   },
   priceLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
-    color: "rgba(255,255,255,0.5)",
+    color: "#9CA3AF",
   },
-  price: {
-    fontSize: 32,
+  priceAmount: {
+    fontSize: 46,
     fontFamily: "DMSans_700Bold",
-    color: "#FFD700",
+    color: "#111827",
+    letterSpacing: -2,
+    lineHeight: 50,
   },
-  priceSub: {
-    fontSize: 11,
+  priceCurrency: {
+    fontSize: 24,
+    fontFamily: "DMSans_700Bold",
+    color: "#374151",
+    lineHeight: 50,
+  },
+  pricePer: {
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
-    color: "rgba(255,255,255,0.35)",
-    textAlign: "center",
+    color: "#9CA3AF",
+    alignSelf: "flex-end",
+    paddingBottom: 6,
   },
-  ctaWrap: {
-    gap: 0,
+  bullets: {
+    flexDirection: "row",
+    gap: 20,
   },
-  ctaBtn: {
-    borderRadius: 100,
-    overflow: "hidden",
-    shadowColor: "#FFD700",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.45,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  ctaGradient: {
+  bullet: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 5,
+  },
+  bulletText: {
+    fontSize: 11.5,
+    fontFamily: "Inter_400Regular",
+    color: "#6B7280",
+  },
+
+  /* CTA */
+  ctaSection: {
+    marginTop: 20,
+    gap: 14,
+    alignItems: "center",
+  },
+  ctaBtn: {
+    width: "100%",
+    height: 58,
+    borderRadius: 18,
+    backgroundColor: "#2E6B50",
+    alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    shadowColor: "#2E6B50",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.32,
+    shadowRadius: 20,
+    elevation: 10,
   },
   ctaText: {
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: "Inter_700Bold",
-    color: "#1a4a2e",
-    letterSpacing: 0.3,
+    color: "#fff",
+    letterSpacing: -0.2,
+  },
+  dismissBtn: {
+    paddingVertical: 4,
+  },
+  dismissText: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: "#9CA3AF",
   },
   activatedRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
+    gap: 10,
     paddingVertical: 18,
   },
   activatedText: {
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: "Inter_700Bold",
-    color: "#4ade80",
+    color: "#2E6B50",
   },
 });
