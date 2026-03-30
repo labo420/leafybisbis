@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { Fonts } from "@/constants/typography";
 import { apiFetch } from "@/lib/api";
@@ -157,8 +157,7 @@ const challengeStyles = StyleSheet.create({
 export default function SfideScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { theme, mode } = useTheme();
-  const queryClient = useQueryClient();
+  const { theme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
 
   const topPadding = Platform.OS === "web" ? 67 : 0;
