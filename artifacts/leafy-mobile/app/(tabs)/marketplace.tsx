@@ -44,11 +44,12 @@ const RADIUS         = (RING_SIZE - STROKE_WIDTH) / 2;
 const CX             = RING_SIZE / 2;
 const CY             = RING_SIZE / 2;
 const CIRCUMFERENCE  = 2 * Math.PI * RADIUS;
-const ARC_START_DEG  = -20;
+const ARC_START_DEG  = -10;
 const ARC_TOTAL_DEG  = 360;
 const MAX_LEA        = 3000;
+const ANGLE_MAX      = 3600;
 const TRACK_DASH     = (ARC_TOTAL_DEG / 360) * CIRCUMFERENCE;
-const SVG_ROTATION   = -110;
+const SVG_ROTATION   = -100;
 const CONTAINER_SIZE = 340;
 const LABEL_RADIUS   = 150;
 
@@ -176,8 +177,8 @@ function LeafyRing({
   }));
 
   const targetProgress = React.useMemo(() => {
-    if (selected) return Math.min(leaBalance, selected.lea) / MAX_LEA;
-    return leaBalance / MAX_LEA;
+    if (selected) return Math.min(leaBalance, selected.lea) / ANGLE_MAX;
+    return leaBalance / ANGLE_MAX;
   }, [leaBalance, selected]);
 
   const progressAnim = useSharedValue(Math.min(1, Math.max(0, targetProgress)));
@@ -194,7 +195,7 @@ function LeafyRing({
     return { strokeDashoffset: CIRCUMFERENCE - dashLen };
   });
 
-  const balanceFraction = Math.min(1, Math.max(0, leaBalance / MAX_LEA));
+  const balanceFraction = Math.min(1, Math.max(0, leaBalance / ANGLE_MAX));
   const balanceAngleTarget = ARC_START_DEG + balanceFraction * ARC_TOTAL_DEG;
   const balanceAngleAnim = useSharedValue(balanceAngleTarget);
 
@@ -281,7 +282,7 @@ function LeafyRing({
       </View>
 
       {AMOUNTS.map((amount) => {
-        const angleDeg = ARC_START_DEG + (amount.lea / MAX_LEA) * ARC_TOTAL_DEG;
+        const angleDeg = ARC_START_DEG + (amount.lea / ANGLE_MAX) * ARC_TOTAL_DEG;
         const rad = (angleDeg * Math.PI) / 180;
         const px  = CONTAINER_SIZE / 2 + Math.sin(rad) * LABEL_RADIUS;
         const py  = CONTAINER_SIZE / 2 - Math.cos(rad) * LABEL_RADIUS;
