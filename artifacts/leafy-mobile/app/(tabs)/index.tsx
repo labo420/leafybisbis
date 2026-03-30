@@ -133,6 +133,17 @@ const BP_PRIZES_DISPLAY = [
   { type: "both" as const, label: "150+15" },
 ];
 
+const CHECKIN_STICKERS = [
+  { emoji: "🌱", reward: "+20" },
+  { emoji: "💧", reward: "+30" },
+  { emoji: "⚡", reward: "+40" },
+  { emoji: "🍃", reward: "+60" },
+  { emoji: "💰", reward: "+80" },
+  { emoji: "🌟", reward: "+100" },
+  { emoji: "🏆", reward: "+250" },
+];
+const GOLD_STICKER_EMOJIS = ["⭐", "🎯", "🔮", "💎", "👑", "🌈", "🎁"];
+
 const ICON_BASE_SIZE = 72;
 
 const LEVEL_SHADOW_CONFIG: Record<string, { w: number; o: number }> = {
@@ -1514,7 +1525,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={streakStyles.stampRow}>
-          {Array.from({ length: 7 }, (_, i) => {
+          {CHECKIN_STICKERS.map((sticker, i) => {
             const done = i < loginStreak;
             const isNext = i === loginStreak && loginStreak < 7;
             const isFinal = i === 6;
@@ -1522,41 +1533,34 @@ export default function HomeScreen() {
               <Animated.View
                 key={i}
                 entering={FadeInDown.delay(280 + i * 60).springify()}
-                style={streakStyles.stampSlot}
+                style={streakStyles.stickerSlot}
               >
-                <View style={[
-                  streakStyles.stampCell,
-                  done ? streakStyles.stampCellDone : isNext ? streakStyles.stampCellNext : streakStyles.stampCellFuture,
-                  isFinal && !done && streakStyles.stampCellFinal,
-                  { width: cellSize, height: cellSize },
+                <Animated.View style={[
+                  streakStyles.stickerCircle,
+                  done ? streakStyles.stickerDone : isNext ? streakStyles.stickerNext : streakStyles.stickerFuture,
+                  isNext ? cellBounceStyle : undefined,
                 ]}>
+                  <Text style={[streakStyles.stickerEmoji, !done && !isNext && { opacity: 0.28 }]}>
+                    {sticker.emoji}
+                  </Text>
                   {done && (
-                    <View style={streakStyles.stampCellDoneInner}>
-                      <MaterialCommunityIcons name="check-bold" size={18} color="#fff" />
+                    <View style={streakStyles.stickerBadge}>
+                      <Text style={streakStyles.stickerBadgeTick}>✓</Text>
                     </View>
                   )}
-                  {isNext && (
-                    <Animated.View style={[streakStyles.stampCellGlow, cellBounceStyle]}>
-                      <MaterialCommunityIcons name="plus" size={18} color="#2E6B50" />
-                    </Animated.View>
-                  )}
-                  {!done && !isNext && isFinal && (
-                    <MaterialCommunityIcons name="trophy" size={18} color="rgba(0,0,0,0.25)" />
-                  )}
-                  {!done && !isNext && !isFinal && (
-                    <Text style={streakStyles.stampCellFutureNum}>{i + 1}</Text>
-                  )}
-                </View>
-                <Text style={[
-                  streakStyles.stampLabel,
-                  done ? streakStyles.stampLabelDone : isNext ? streakStyles.stampLabelNext : streakStyles.stampLabelFuture,
-                ]}>{done ? "fatto" : isFinal ? "bonus" : `G${i + 1}`}</Text>
+                </Animated.View>
+                <Text style={[streakStyles.stickerReward, { color: done ? "#2E6B50" : "rgba(0,0,0,0.20)" }]}>
+                  {sticker.reward}
+                </Text>
+                <Text style={[streakStyles.stickerLabel, { color: done ? "#2E6B50" : "rgba(0,0,0,0.18)" }]}>
+                  {done ? "fatto" : isFinal ? "bonus" : `G${i + 1}`}
+                </Text>
               </Animated.View>
             );
           })}
         </View>
 
-        <View style={streakStyles.stampFooter}>
+        <View style={[streakStyles.stampFooter, { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(46,107,80,0.09)" }]}>
           <View style={streakStyles.stampFooterLeft}>
             <MaterialCommunityIcons name="fire" size={16} color="#F97316" />
             <Text style={streakStyles.stampFooterDay}>{loginStreak > 0 ? `${loginStreak} giorni di fila` : "Inizia oggi"}</Text>
@@ -1620,44 +1624,34 @@ export default function HomeScreen() {
                 <Animated.View
                   key={i}
                   entering={FadeInDown.delay(320 + i * 60).springify()}
-                  style={streakStyles.stampSlot}
+                  style={streakStyles.stickerSlot}
                 >
-                  <View style={[
-                    streakStyles.stampCell,
-                    done ? streakStyles.stampGoldCellDone
-                      : isNext ? streakStyles.stampGoldCellNext
-                      : streakStyles.stampGoldCellFuture,
-                    isFinal && !done && streakStyles.stampGoldCellFinal,
-                    { width: cellSize, height: cellSize },
+                  <Animated.View style={[
+                    streakStyles.stickerCircle,
+                    done ? streakStyles.stickerGoldDone : isNext ? streakStyles.stickerGoldNext : streakStyles.stickerGoldFuture,
+                    isNext ? goldCellBounceStyle : undefined,
                   ]}>
+                    <Text style={[streakStyles.stickerEmoji, !done && !isNext && { opacity: 0.28 }]}>
+                      {GOLD_STICKER_EMOJIS[i]}
+                    </Text>
                     {done && (
-                      <View style={streakStyles.stampGoldCellDoneInner}>
-                        {prize.type === "both" ? <Text style={{ fontSize: 14 }}>⭐</Text>
-                          : prize.type === "lea" ? <LeaIcon size={16} />
-                          : <MaterialCommunityIcons name="check-bold" size={16} color="#fff" />
-                        }
+                      <View style={streakStyles.stickerGoldBadge}>
+                        <Text style={streakStyles.stickerBadgeTick}>✓</Text>
                       </View>
                     )}
-                    {isNext && (
-                      <Animated.View style={[streakStyles.stampCellGlow, goldCellBounceStyle]}>
-                        <MaterialCommunityIcons name="star-four-points" size={18} color="#B8860B" />
-                      </Animated.View>
-                    )}
-                    {!done && !isNext && isFinal && (
-                      <MaterialCommunityIcons name="crown" size={18} color="rgba(184,134,11,0.35)" />
-                    )}
-                    {!done && !isNext && !isFinal && <Text style={streakStyles.stampGoldFutureNum}>{i + 1}</Text>}
-                  </View>
-                  <Text style={[
-                    streakStyles.goldPrizeLabel,
-                    { color: done ? "#B8860B" : isNext ? "rgba(184,134,11,0.85)" : "rgba(245,158,11,0.40)" },
-                  ]}>{prize.label}</Text>
+                  </Animated.View>
+                  <Text style={[streakStyles.stickerReward, { color: done ? "#B8860B" : "rgba(184,134,11,0.25)" }]}>
+                    +{prize.label}
+                  </Text>
+                  <Text style={[streakStyles.stickerLabel, { color: done ? "#B8860B" : "rgba(184,134,11,0.22)" }]}>
+                    {done ? "fatto" : isFinal ? "bonus" : `G${i + 1}`}
+                  </Text>
                 </Animated.View>
               );
             })}
           </View>
 
-          <View style={streakStyles.stampFooter}>
+          <View style={[streakStyles.stampFooter, { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(184,134,11,0.10)" }]}>
             <View style={streakStyles.stampFooterLeft}>
               <MaterialCommunityIcons name="shield-star" size={16} color="#B8860B" />
               <Text style={[streakStyles.stampFooterDay, { color: "rgba(146,64,14,0.60)" }]}>
@@ -2364,9 +2358,9 @@ const streakStyles = StyleSheet.create({
   stampCard: {
     borderRadius: 20,
     padding: 16,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FAFFFE",
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.06)",
+    borderColor: "rgba(46,107,80,0.08)",
     overflow: "hidden" as const,
   },
   decorCircle1: {
@@ -2595,7 +2589,7 @@ const streakStyles = StyleSheet.create({
   stampGoldCard: {
     borderRadius: 20,
     padding: 16,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFDF5",
     borderWidth: 1,
     borderColor: "rgba(212,160,23,0.18)",
     overflow: "hidden" as const,
@@ -2740,6 +2734,103 @@ const streakStyles = StyleSheet.create({
   progressBarFillGold: {
     height: 6,
     borderRadius: 3,
+  },
+  // ── STICKER GAMING (Design D) ──
+  stickerSlot: {
+    alignItems: "center" as const,
+    flex: 1,
+    gap: 3,
+  },
+  stickerCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    position: "relative" as const,
+  },
+  stickerEmoji: {
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  stickerDone: {
+    backgroundColor: "#2E6B50",
+    shadowColor: "#2E6B50",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  stickerNext: {
+    backgroundColor: "rgba(46,107,80,0.07)",
+    borderWidth: 2,
+    borderColor: "#51B888",
+    ...(Platform.OS === "ios" ? { borderStyle: "dashed" as const } : {}),
+  },
+  stickerFuture: {
+    backgroundColor: "rgba(0,0,0,0.03)",
+    borderWidth: 1.5,
+    borderColor: "rgba(0,0,0,0.08)",
+  },
+  stickerBadge: {
+    position: "absolute" as const,
+    bottom: -2,
+    right: -2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#22c55e",
+    borderWidth: 1.5,
+    borderColor: "#fff",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+  stickerBadgeTick: {
+    color: "#fff",
+    fontSize: 8,
+    fontFamily: "DMSans_700Bold",
+    lineHeight: 10,
+  },
+  stickerReward: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 9,
+  },
+  stickerLabel: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 8,
+  },
+  // Gold variants
+  stickerGoldDone: {
+    backgroundColor: "#B8860B",
+    shadowColor: "#B8860B",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  stickerGoldNext: {
+    backgroundColor: "rgba(184,134,11,0.07)",
+    borderWidth: 2,
+    borderColor: "#F5C842",
+    ...(Platform.OS === "ios" ? { borderStyle: "dashed" as const } : {}),
+  },
+  stickerGoldFuture: {
+    backgroundColor: "rgba(254,243,199,0.50)",
+    borderWidth: 1.5,
+    borderColor: "rgba(184,134,11,0.12)",
+  },
+  stickerGoldBadge: {
+    position: "absolute" as const,
+    bottom: -2,
+    right: -2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#F5C842",
+    borderWidth: 1.5,
+    borderColor: "#fff",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
 });
 
