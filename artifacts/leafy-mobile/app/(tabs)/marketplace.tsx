@@ -433,8 +433,8 @@ const styles = StyleSheet.create({
 
   mainBlock: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    gap: 16,
+    paddingTop: 0,
+    gap: 10,
   },
 
   ringSection: {
