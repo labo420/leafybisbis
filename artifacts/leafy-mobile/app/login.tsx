@@ -146,7 +146,7 @@ function HeroIllustration() {
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const { loginWithToken } = useAuth();
+  const { loginWithToken, refetch, markJustLoggedIn } = useAuth();
   const scrollRef = useRef<ScrollView>(null);
 
   const [mode, setMode] = useState<Mode>("login");
@@ -230,6 +230,7 @@ export default function LoginScreen() {
       const result = await WebBrowser.openAuthSessionAsync(url, "leafy-mobile://");
       if (result.type === "success") {
         await refetch();
+        markJustLoggedIn();
         router.replace("/(tabs)");
       }
     } finally {
