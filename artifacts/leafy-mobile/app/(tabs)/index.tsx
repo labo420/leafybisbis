@@ -562,7 +562,15 @@ function LevelProgressRing({
             style={badgeAnimStyle}
           >
             <Animated.View style={iconAnimStyle}>
-              <BadgeIcon3D name={displayedLevel} category="Livello" emoji="" isUnlocked={true} size={ICON_BASE_SIZE} />
+              <View style={{ alignItems: "center" }}>
+                <BadgeIcon3D name={displayedLevel} category="Livello" emoji="" isUnlocked={true} size={ICON_BASE_SIZE} />
+                {/* Contact shadow — ellissi concentriche sfumate sotto il badge */}
+                <View style={{ position: "absolute", bottom: -10, alignItems: "center" }}>
+                  <View style={{ width: 56, height: 14, borderRadius: 9, backgroundColor: "rgba(0,0,0,0.05)" }} />
+                  <View style={{ position: "absolute", width: 40, height: 9, borderRadius: 6, backgroundColor: "rgba(0,0,0,0.08)" }} />
+                  <View style={{ position: "absolute", width: 22, height: 5, borderRadius: 4, backgroundColor: "rgba(0,0,0,0.13)" }} />
+                </View>
+              </View>
             </Animated.View>
           </Animated.View>
           <Text style={[ringStyles.levelName, { color: nameColor }]}>{LEVEL_LABELS[displayedLevel] ?? displayedLevel}</Text>
