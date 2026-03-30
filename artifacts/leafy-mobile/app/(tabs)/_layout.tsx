@@ -208,16 +208,22 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="storico"
+          name="sfide"
           options={{
-            title: "Storico",
+            title: "Sfide",
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
                 focused={focused}
                 color={color}
-                iconName={focused ? "receipt-text" : "receipt-text-outline"}
+                iconName={focused ? "flag-checkered" : "flag-outline"}
               />
             ),
+          }}
+        />
+        <Tabs.Screen
+          name="storico"
+          options={{
+            href: null,
           }}
         />
         <Tabs.Screen

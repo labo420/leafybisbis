@@ -776,6 +776,30 @@ export default function ProfiloScreen() {
 
 
 
+      <Animated.View entering={FadeInDown.delay(260).springify()} style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Feather name="clock" size={18} color={theme.leaf} />
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Storico scontrini</Text>
+        </View>
+        <Pressable
+          style={({ pressed }) => [
+            styles.menuRow,
+            { backgroundColor: theme.card, borderColor: theme.border },
+            pressed && { opacity: 0.75 },
+          ]}
+          onPress={() => router.push("/(tabs)/storico")}
+        >
+          <View style={[styles.menuRowIcon, { backgroundColor: theme.primaryLight }]}>
+            <Feather name="shopping-bag" size={18} color={theme.leaf} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.menuRowText, { color: theme.text }]}>I tuoi scontrini</Text>
+            <Text style={[styles.menuRowSub, { color: theme.textSecondary }]}>Consulta lo storico delle tue scansioni</Text>
+          </View>
+          <Feather name="chevron-right" size={16} color={theme.textSecondary} />
+        </Pressable>
+      </Animated.View>
+
       <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.section}>
         <View style={styles.sectionHeader}>
           <Feather name="award" size={18} color={theme.leaf} />
