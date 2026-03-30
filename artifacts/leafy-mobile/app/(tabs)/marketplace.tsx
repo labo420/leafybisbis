@@ -285,6 +285,7 @@ export default function WalletScreen() {
         style={[styles.container, { backgroundColor: "#E8F5E9" }]}
         contentContainerStyle={{ paddingTop: topPadding, paddingBottom: bottomPad }}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={false}
       >
         <View style={styles.mainBlock}>
           <Animated.View entering={FadeInDown.delay(50).springify()} style={styles.ringSection}>
