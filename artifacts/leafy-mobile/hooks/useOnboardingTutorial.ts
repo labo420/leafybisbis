@@ -1,21 +1,15 @@
 import { useState, useEffect } from "react";
 
-export function useOnboardingTutorial(isLoggedIn: boolean) {
+export function useOnboardingTutorial(justLoggedIn: boolean) {
   const [shouldShow, setShouldShow] = useState(false);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      setShouldShow(false);
-      setReady(true);
-      return;
+    if (justLoggedIn) {
+      setShouldShow(true);
     }
-    // Show tutorial every time user is logged in
-    setShouldShow(true);
-    setReady(true);
-  }, [isLoggedIn]);
+  }, [justLoggedIn]);
 
   const dismiss = () => setShouldShow(false);
 
-  return { shouldShow: ready && shouldShow, dismiss };
+  return { shouldShow, dismiss };
 }
