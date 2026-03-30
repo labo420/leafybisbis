@@ -17,7 +17,11 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
 import { XpIcon } from "./XpIcon";
 import { LeaIcon } from "./LeaIcon";
 import { useTheme } from "@/context/theme";
@@ -47,7 +51,8 @@ type StepDef = {
 
 const STEPS: StepDef[] = [
   {
-    image: require("../assets/leafy-icon-dark.png") as number,
+    // FIX: usa lea-icon.png (foglia verde glossy) al posto di leafy-icon-dark.png
+    image: require("../assets/images/lea-icon.png") as number,
     tag: "01 / 05",
     title: "Benvenuto in Leafy!",
     body: (color: string) => (
@@ -102,11 +107,15 @@ const STEPS: StepDef[] = [
         <LeaIcon size={26} />
       </View>
     ),
+    // FIX: 2 righe — prima riga: icona + "è il tuo cashback reale.", seconda riga: resto del testo
     body: (color: string) => (
-      <View style={inlineRow}>
-        <LeaIcon size={16} />
+      <View style={{ alignItems: "center", gap: 6 }}>
+        <View style={inlineRow}>
+          <LeaIcon size={16} />
+          <Text style={{ ...BODY_BASE, color }}> è il tuo cashback reale.</Text>
+        </View>
         <Text style={{ ...BODY_BASE, color }}>
-          {" "}è il tuo cashback reale. Accumulalo con acquisti e prelevalo direttamente su PayPal.
+          Accumulalo con acquisti e prelevalo direttamente su PayPal.
         </Text>
       </View>
     ),
@@ -198,86 +207,92 @@ export function WelcomeTutorial({ visible, onDismiss }: Props) {
       statusBarTranslucent
       onRequestClose={onDismiss}
     >
-      <View style={[styles.overlay, { backgroundColor: bgColor }]}>
-        {/* Skip */}
-        {!isLast && (
-          <Pressable
-            style={[styles.skipBtn, { top: Platform.OS === "ios" ? 54 : 36 }]}
-            onPress={onDismiss}
-            hitSlop={12}
-          >
-            <Text style={[styles.skipText, { color: theme.textMuted }]}>Salta</Text>
-          </Pressable>
-        )}
-
-        {/* Slide area — swipeable */}
-        <GestureDetector gesture={swipeGesture}>
-          <View style={styles.slideArea}>
-            {rendering && (
-              <Animated.View
-                key={step}
-                entering={FadeInDown.duration(280).springify()}
-                exiting={FadeOut.duration(150)}
-                style={[styles.slide, slideStyle]}
-              >
-                {/* Illustration */}
-                <Image
-                  source={current.image}
-                  style={styles.illustrationImg}
-                  resizeMode="contain"
-                />
-
-                {/* Tag */}
-                <Text style={[styles.tag, { color: theme.textMuted }]}>{current.tag}</Text>
-
-                {/* Title */}
-                {typeof current.title === "string" ? (
-                  <Text style={[styles.title, { color: theme.text }]}>{current.title}</Text>
-                ) : (
-                  current.title(theme.text)
-                )}
-
-                {/* Body */}
-                {typeof current.body === "string" ? (
-                  <Text style={[styles.body, { color: theme.textSecondary }]}>{current.body}</Text>
-                ) : (
-                  current.body(theme.textSecondary)
-                )}
-              </Animated.View>
-            )}
-          </View>
-        </GestureDetector>
-
-        {/* Dots */}
-        <View style={styles.dotsRow}>
-          {STEPS.map((_, i) => (
-            <Pressable key={i} onPress={() => goTo(i)} hitSlop={8}>
-              <Animated.View
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor: i === step ? theme.leaf : theme.border,
-                    width: i === step ? 28 : 8,
-                  },
-                ]}
-              />
+      {/*
+       * FIX SWIPE: Modal renderizza fuori dalla GestureHandlerRootView del root layout.
+       * Aggiungere un secondo GestureHandlerRootView dentro il Modal risolve il problema.
+       */}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={[styles.overlay, { backgroundColor: bgColor }]}>
+          {/* Skip */}
+          {!isLast && (
+            <Pressable
+              style={[styles.skipBtn, { top: Platform.OS === "ios" ? 54 : 36 }]}
+              onPress={onDismiss}
+              hitSlop={12}
+            >
+              <Text style={[styles.skipText, { color: theme.textMuted }]}>Salta</Text>
             </Pressable>
-          ))}
-        </View>
+          )}
 
-        {/* CTA */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.cta,
-            { backgroundColor: theme.leaf, opacity: pressed ? 0.88 : 1 },
-          ]}
-          onPress={next}
-        >
-          <Text style={styles.ctaText}>
-            {isLast ? "Inizia a guadagnare! 🌱" : "Avanti"}
-          </Text>
-        </Pressable>
-      </View>
+          {/* Slide area — swipeable */}
+          <GestureDetector gesture={swipeGesture}>
+            <View style={styles.slideArea}>
+              {rendering && (
+                <Animated.View
+                  key={step}
+                  entering={FadeInDown.duration(280).springify()}
+                  exiting={FadeOut.duration(150)}
+                  style={[styles.slide, slideStyle]}
+                >
+                  {/* Illustration */}
+                  <Image
+                    source={current.image}
+                    style={styles.illustrationImg}
+                    resizeMode="contain"
+                  />
+
+                  {/* Tag */}
+                  <Text style={[styles.tag, { color: theme.textMuted }]}>{current.tag}</Text>
+
+                  {/* Title */}
+                  {typeof current.title === "string" ? (
+                    <Text style={[styles.title, { color: theme.text }]}>{current.title}</Text>
+                  ) : (
+                    current.title(theme.text)
+                  )}
+
+                  {/* Body */}
+                  {typeof current.body === "string" ? (
+                    <Text style={[styles.body, { color: theme.textSecondary }]}>{current.body}</Text>
+                  ) : (
+                    current.body(theme.textSecondary)
+                  )}
+                </Animated.View>
+              )}
+            </View>
+          </GestureDetector>
+
+          {/* Dots */}
+          <View style={styles.dotsRow}>
+            {STEPS.map((_, i) => (
+              <Pressable key={i} onPress={() => goTo(i)} hitSlop={8}>
+                <Animated.View
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor: i === step ? theme.leaf : theme.border,
+                      width: i === step ? 28 : 8,
+                    },
+                  ]}
+                />
+              </Pressable>
+            ))}
+          </View>
+
+          {/* CTA */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.cta,
+              { backgroundColor: theme.leaf, opacity: pressed ? 0.88 : 1 },
+            ]}
+            onPress={next}
+          >
+            <Text style={styles.ctaText}>
+              {isLast ? "Inizia a guadagnare! 🌱" : "Avanti"}
+            </Text>
+          </Pressable>
+        </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
