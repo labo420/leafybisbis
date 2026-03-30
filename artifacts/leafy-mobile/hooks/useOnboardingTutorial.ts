@@ -1,7 +1,4 @@
 import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const KEY = "leafy_tutorial_count";
 
 export function useOnboardingTutorial(isLoggedIn: boolean) {
   const [shouldShow, setShouldShow] = useState(false);
@@ -9,17 +6,13 @@ export function useOnboardingTutorial(isLoggedIn: boolean) {
 
   useEffect(() => {
     if (!isLoggedIn) {
+      setShouldShow(false);
       setReady(true);
       return;
     }
-    AsyncStorage.getItem(KEY).then((val) => {
-      const count = val ? parseInt(val, 10) : 0;
-      if (count < 3) {
-        AsyncStorage.setItem(KEY, String(count + 1));
-        setShouldShow(true);
-      }
-      setReady(true);
-    });
+    // Show tutorial every time user is logged in
+    setShouldShow(true);
+    setReady(true);
   }, [isLoggedIn]);
 
   const dismiss = () => setShouldShow(false);
