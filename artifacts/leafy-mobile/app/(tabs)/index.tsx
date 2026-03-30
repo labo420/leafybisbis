@@ -1746,18 +1746,6 @@ export default function HomeScreen() {
         </Animated.View>
       )}
 
-      {/* ── SFIDE — Skeleton loading ── */}
-      {!challenges && (
-        <Animated.View entering={FadeInDown.delay(350).springify()} style={{ marginTop: 24, paddingHorizontal: 16, gap: 10 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <SkeletonBox width={18} height={18} borderRadius={9} />
-            <SkeletonBox width={80} height={16} />
-          </View>
-          <SkeletonCard />
-          <SkeletonCard />
-        </Animated.View>
-      )}
-
     </ScrollView>
     </View>
   );
