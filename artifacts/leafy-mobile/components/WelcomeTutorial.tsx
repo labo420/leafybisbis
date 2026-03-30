@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   Dimensions,
+  Image,
   Modal,
   Platform,
   Pressable,
@@ -9,52 +10,40 @@ import {
   View,
 } from "react-native";
 import Animated, {
-  FadeIn,
   FadeInDown,
   FadeOut,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  runOnJS,
 } from "react-native-reanimated";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/context/theme";
 
-const { width: SW, height: SH } = Dimensions.get("window");
+const { width: SW } = Dimensions.get("window");
 
 const STEPS = [
   {
-    icon: "leaf" as const,
-    iconBg: ["#D6EFE2", "#A8D9C0"] as [string, string],
-    iconColor: "#2E6B50",
+    image: require("../assets/tutorial/slide1-leaf.png") as number,
     tag: "01 / 04",
     title: "Benvenuto in Leafy!",
-    body: "La prima app italiana che ti premia per ogni scelta sostenibile. Acquisti eco = drops e cashback reale in €.",
+    body: "La prima app italiana che trasforma ogni tua spesa in drops e cashback reale in €.",
   },
   {
-    icon: "barcode-scan" as const,
-    iconBg: ["#DBEAFE", "#BFDBFE"] as [string, string],
-    iconColor: "#2563EB",
+    image: require("../assets/tutorial/slide2-scan.png") as number,
     tag: "02 / 04",
     title: "Scansiona & Guadagna",
-    body: "Carica i tuoi scontrini o scansiona i barcode al supermercato. Ogni prodotto eco ti porta drops e $LEA cashback.",
+    body: "Carica i tuoi scontrini al supermercato: ogni prodotto con buon Eco-Score ti porta drops e $LEA.",
   },
   {
-    icon: "forest" as const,
-    iconBg: ["#CCFBF1", "#99F6E4"] as [string, string],
-    iconColor: "#0D9488",
+    image: require("../assets/badges/level-giungla.png") as number,
     tag: "03 / 04",
     title: "Sali di Livello",
-    body: "Da Germoglio fino a Giungla: più sali, più vantaggi sblocchi. Ogni livello apre nuovi premi esclusivi.",
+    body: "Da Germoglio a Giungla: ogni acquisto eco ti avvicina al prossimo livello, con premi esclusivi da sbloccare.",
   },
   {
-    icon: "wallet" as const,
-    iconBg: ["#FEE2E2", "#FECACA"] as [string, string],
-    iconColor: "#DC2626",
+    image: require("../assets/tutorial/slide4-wallet.png") as number,
     tag: "04 / 04",
-    title: "Il tuo Wallet $LEA",
-    body: "$LEA è il tuo cashback reale. Accumulalo con ogni acquisto eco e prelevalo direttamente sul tuo conto.",
+    title: "Ritira il tuo $LEA",
+    body: "$LEA è il tuo cashback reale. Accumulalo con acquisti green e prelevalo direttamente su PayPal.",
   },
 ];
 
@@ -129,18 +118,11 @@ export function WelcomeTutorial({ visible, onDismiss }: Props) {
               style={[styles.slide, slideStyle]}
             >
               {/* Illustration */}
-              <LinearGradient
-                colors={current.iconBg}
-                style={styles.iconCircle}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <MaterialCommunityIcons
-                  name={current.icon}
-                  size={80}
-                  color={current.iconColor}
-                />
-              </LinearGradient>
+              <Image
+                source={current.image}
+                style={styles.illustrationImg}
+                resizeMode="contain"
+              />
 
               {/* Tag */}
               <Text style={[styles.tag, { color: theme.textMuted }]}>{current.tag}</Text>
@@ -210,17 +192,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 44,
-    gap: 18,
-    paddingTop: 24,
+    paddingHorizontal: 40,
+    gap: 16,
+    paddingTop: 16,
   },
-  iconCircle: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
+  illustrationImg: {
+    width: 200,
+    height: 200,
+    marginBottom: 8,
   },
   tag: {
     fontSize: 12,
