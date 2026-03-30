@@ -214,6 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
     } finally {
       setUser(null);
+      setJustLoggedIn(false);
       setDrops(0);
       setLeaBalance(0);
       setHasLeafyGold(false);
