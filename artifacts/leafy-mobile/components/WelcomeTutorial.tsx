@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   Dimensions,
   Image,
@@ -12,40 +12,113 @@ import {
 import Animated, {
   FadeInDown,
   FadeOut,
+  runOnJS,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { XpIcon } from "./XpIcon";
+import { LeaIcon } from "./LeaIcon";
 import { useTheme } from "@/context/theme";
 
 const { width: SW } = Dimensions.get("window");
 
-const STEPS = [
+const BODY_BASE = {
+  fontSize: 16 as const,
+  fontFamily: "Inter_400Regular",
+  lineHeight: 25 as const,
+  textAlign: "center" as const,
+};
+
+const TITLE_BASE = {
+  fontSize: 28 as const,
+  fontFamily: "DMSans_700Bold",
+  lineHeight: 36 as const,
+  textAlign: "center" as const,
+};
+
+type StepDef = {
+  image: number;
+  tag: string;
+  title: string | ((color: string) => React.ReactElement);
+  body: string | ((color: string) => React.ReactElement);
+};
+
+const STEPS: StepDef[] = [
   {
-    image: require("../assets/tutorial/slide1-leaf.png") as number,
-    tag: "01 / 04",
+    image: require("../assets/leafy-icon-dark.png") as number,
+    tag: "01 / 05",
     title: "Benvenuto in Leafy!",
-    body: "La prima app italiana che trasforma ogni tua spesa in drops e cashback reale in €.",
+    body: (color: string) => (
+      <View style={inlineRow}>
+        <Text style={{ ...BODY_BASE, color }}>L'app che trasforma ogni tua spesa in </Text>
+        <XpIcon size={16} />
+        <Text style={{ ...BODY_BASE, color }}> e cashback reale.</Text>
+      </View>
+    ),
   },
   {
     image: require("../assets/tutorial/slide2-scan.png") as number,
-    tag: "02 / 04",
+    tag: "02 / 05",
     title: "Scansiona & Guadagna",
-    body: "Carica i tuoi scontrini al supermercato: ogni prodotto con buon Eco-Score ti porta drops e $LEA.",
+    body: (color: string) => (
+      <View style={inlineRow}>
+        <Text style={{ ...BODY_BASE, color }}>
+          Carica i tuoi scontrini: ogni prodotto con un buon Eco-Score ti porta{" "}
+        </Text>
+        <XpIcon size={16} />
+        <Text style={{ ...BODY_BASE, color }}> e </Text>
+        <LeaIcon size={16} />
+      </View>
+    ),
   },
   {
     image: require("../assets/badges/level-giungla.png") as number,
-    tag: "03 / 04",
+    tag: "03 / 05",
     title: "Sali di Livello",
-    body: "Da Germoglio a Giungla: ogni acquisto eco ti avvicina al prossimo livello, con premi esclusivi da sbloccare.",
+    body: "Da Germoglio a Giungla: ogni acquisto ti avvicina al prossimo livello, con premi esclusivi da sbloccare.",
+  },
+  {
+    image: require("../assets/tutorial/slide-sfide.png") as number,
+    tag: "04 / 05",
+    title: "Sfide Giornaliere",
+    body: (color: string) => (
+      <View style={inlineRow}>
+        <Text style={{ ...BODY_BASE, color }}>
+          Ogni giorno nuove sfide da completare: guadagna{" "}
+        </Text>
+        <XpIcon size={16} />
+        <Text style={{ ...BODY_BASE, color }}> extra e sali più velocemente di livello.</Text>
+      </View>
+    ),
   },
   {
     image: require("../assets/tutorial/slide4-wallet.png") as number,
-    tag: "04 / 04",
-    title: "Ritira il tuo $LEA",
-    body: "$LEA è il tuo cashback reale. Accumulalo con acquisti green e prelevalo direttamente su PayPal.",
+    tag: "05 / 05",
+    title: (color: string) => (
+      <View style={inlineTitleRow}>
+        <Text style={{ ...TITLE_BASE, color }}>Ritira i tuoi </Text>
+        <LeaIcon size={26} />
+      </View>
+    ),
+    body: "$LEA è il tuo cashback reale. Accumulalo con acquisti e prelevalo direttamente su PayPal.",
   },
 ];
+
+const inlineRow: import("react-native").ViewStyle = {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const inlineTitleRow: import("react-native").ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  flexWrap: "wrap",
+};
 
 type Props = {
   visible: boolean;
@@ -86,6 +159,28 @@ export function WelcomeTutorial({ visible, onDismiss }: Props) {
     transform: [{ translateX: slideOffset.value }],
   }));
 
+  // Ref pattern: always-current state for use in stable gesture callbacks
+  const stateRef = useRef({ step, goTo });
+  stateRef.current = { step, goTo };
+
+  const handleSwipeLeft = useCallback(() => {
+    const { step: s, goTo: g } = stateRef.current;
+    if (s < STEPS.length - 1) g(s + 1);
+  }, []);
+
+  const handleSwipeRight = useCallback(() => {
+    const { step: s, goTo: g } = stateRef.current;
+    if (s > 0) g(s - 1);
+  }, []);
+
+  const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-15, 15])
+    .onEnd((e) => {
+      "worklet";
+      if (e.translationX < -60) runOnJS(handleSwipeLeft)();
+      else if (e.translationX > 60) runOnJS(handleSwipeRight)();
+    });
+
   const bgColor = mode === "dark" ? theme.card : "#FAFEFB";
 
   return (
@@ -108,31 +203,43 @@ export function WelcomeTutorial({ visible, onDismiss }: Props) {
           </Pressable>
         )}
 
-        {/* Slide area */}
-        <View style={styles.slideArea}>
-          {rendering && (
-            <Animated.View
-              key={step}
-              entering={FadeInDown.duration(280).springify()}
-              exiting={FadeOut.duration(150)}
-              style={[styles.slide, slideStyle]}
-            >
-              {/* Illustration */}
-              <Image
-                source={current.image}
-                style={styles.illustrationImg}
-                resizeMode="contain"
-              />
+        {/* Slide area — swipeable */}
+        <GestureDetector gesture={swipeGesture}>
+          <View style={styles.slideArea}>
+            {rendering && (
+              <Animated.View
+                key={step}
+                entering={FadeInDown.duration(280).springify()}
+                exiting={FadeOut.duration(150)}
+                style={[styles.slide, slideStyle]}
+              >
+                {/* Illustration */}
+                <Image
+                  source={current.image}
+                  style={styles.illustrationImg}
+                  resizeMode="contain"
+                />
 
-              {/* Tag */}
-              <Text style={[styles.tag, { color: theme.textMuted }]}>{current.tag}</Text>
+                {/* Tag */}
+                <Text style={[styles.tag, { color: theme.textMuted }]}>{current.tag}</Text>
 
-              {/* Text */}
-              <Text style={[styles.title, { color: theme.text }]}>{current.title}</Text>
-              <Text style={[styles.body, { color: theme.textSecondary }]}>{current.body}</Text>
-            </Animated.View>
-          )}
-        </View>
+                {/* Title */}
+                {typeof current.title === "string" ? (
+                  <Text style={[styles.title, { color: theme.text }]}>{current.title}</Text>
+                ) : (
+                  current.title(theme.text)
+                )}
+
+                {/* Body */}
+                {typeof current.body === "string" ? (
+                  <Text style={[styles.body, { color: theme.textSecondary }]}>{current.body}</Text>
+                ) : (
+                  current.body(theme.textSecondary)
+                )}
+              </Animated.View>
+            )}
+          </View>
+        </GestureDetector>
 
         {/* Dots */}
         <View style={styles.dotsRow}>
