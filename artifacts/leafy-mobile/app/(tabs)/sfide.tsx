@@ -1,7 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
   Platform,
   RefreshControl,
   ScrollView,
@@ -17,6 +16,7 @@ import { Fonts } from "@/constants/typography";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/context/auth";
 import { useTheme } from "@/context/theme";
+import { SkeletonBox, SkeletonCard } from "@/components/Skeleton";
 import type { Challenge } from "@workspace/api-client-react";
 
 function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: ReturnType<typeof useTheme>["theme"] }) {
@@ -209,9 +209,19 @@ export default function SfideScreen() {
       </Animated.View>
 
       {isLoading ? (
-        <View style={styles.loadingBox}>
-          <ActivityIndicator size="large" color={theme.leaf} />
-        </View>
+        <Animated.View entering={FadeInDown.delay(100).springify()} style={{ paddingHorizontal: 20, gap: 10, marginTop: 8 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <SkeletonBox width={18} height={18} borderRadius={9} />
+            <SkeletonBox width={100} height={14} />
+          </View>
+          <SkeletonCard />
+          <SkeletonCard />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8, marginBottom: 4 }}>
+            <SkeletonBox width={18} height={18} borderRadius={9} />
+            <SkeletonBox width={80} height={14} />
+          </View>
+          <SkeletonCard />
+        </Animated.View>
       ) : (
         <>
           {daily.length > 0 && (
@@ -300,10 +310,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     paddingHorizontal: 20,
     marginBottom: 8,
-  },
-  loadingBox: {
-    paddingTop: 60,
-    alignItems: "center",
   },
   emptyBox: {
     marginTop: 60,
