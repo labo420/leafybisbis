@@ -51,7 +51,6 @@ type StepDef = {
 
 const STEPS: StepDef[] = [
   {
-    // FIX: usa lea-icon.png (foglia verde glossy) al posto di leafy-icon-dark.png
     image: require("../assets/images/lea-icon.png") as number,
     tag: "01 / 05",
     title: "Benvenuto in Leafy!",
@@ -107,7 +106,6 @@ const STEPS: StepDef[] = [
         <LeaIcon size={26} />
       </View>
     ),
-    // FIX: 2 righe — prima riga: icona + "è il tuo cashback reale.", seconda riga: resto del testo
     body: (color: string) => (
       <View style={{ alignItems: "center", gap: 6 }}>
         <View style={inlineRow}>
@@ -207,10 +205,6 @@ export function WelcomeTutorial({ visible, onDismiss }: Props) {
       statusBarTranslucent
       onRequestClose={onDismiss}
     >
-      {/*
-       * FIX SWIPE: Modal renderizza fuori dalla GestureHandlerRootView del root layout.
-       * Aggiungere un secondo GestureHandlerRootView dentro il Modal risolve il problema.
-       */}
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={[styles.overlay, { backgroundColor: bgColor }]}>
           {/* Skip */}
