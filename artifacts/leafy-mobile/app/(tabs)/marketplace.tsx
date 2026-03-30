@@ -16,14 +16,12 @@ import Animated, {
   FadeInDown,
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedProps,
   withRepeat,
   withTiming,
-  withSpring,
   withSequence,
   Easing,
 } from "react-native-reanimated";
-import Svg, { Circle, Line } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PayPalLogo from "@/components/PayPalLogo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,8 +33,8 @@ import { Fonts } from "@/constants/typography";
 
 const PAYPAL_BLUE  = "#0070E0";
 const LEAF_GREEN   = "#4DB847";
-const EMERALD      = "#00C98A";
-const EMERALD_GLOW = "#00E5A0";
+const RING_MINT    = "#51B888";
+const RING_TRACK   = "#D6EFE2";
 
 const RING_SIZE      = 240;
 const STROKE_WIDTH   = 16;
@@ -44,16 +42,7 @@ const RADIUS         = (RING_SIZE - STROKE_WIDTH) / 2;
 const CX             = RING_SIZE / 2;
 const CY             = RING_SIZE / 2;
 const CIRCUMFERENCE  = 2 * Math.PI * RADIUS;
-const ARC_START_DEG  = -10;
-const ARC_TOTAL_DEG  = 360;
-const MAX_LEA        = 3000;
-const ANGLE_MAX      = 3600;
-const TRACK_DASH     = (ARC_TOTAL_DEG / 360) * CIRCUMFERENCE;
-const SVG_ROTATION   = -100;
 const CONTAINER_SIZE = 340;
-const LABEL_RADIUS   = 150;
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const AMOUNTS = [
   { euros: 5,  lea: 500,  goldOnly: true  },
@@ -85,80 +74,8 @@ function formatLea(n: number): string {
   return Math.floor(n).toLocaleString("it-IT", { maximumFractionDigits: 0 });
 }
 
-function AmountLabel({
-  amount,
-  isReached,
-  isSel,
-  px,
-  py,
-}: {
-  amount: typeof AMOUNTS[0];
-  isReached: boolean;
-  isSel: boolean;
-  px: number;
-  py: number;
-}) {
-  const scale = useSharedValue(isSel ? 1.15 : isReached ? 1.08 : 1.0);
 
-  useEffect(() => {
-    scale.value = withSpring(isSel ? 1.15 : isReached ? 1.08 : 1.0, {
-      damping: 12,
-      stiffness: 200,
-    });
-  }, [isReached, isSel]);
-
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  return (
-    <Animated.View
-      style={[
-        {
-          position: "absolute",
-          left: px - 24,
-          top: py - 20,
-          width: 48,
-          height: 40,
-          alignItems: "center",
-          justifyContent: "center",
-        },
-        animStyle,
-      ]}
-    >
-      <Text
-        style={{
-          fontSize: isSel ? 15 : isReached ? 13 : 12,
-          fontFamily: isSel || isReached ? Fonts.bodyBold : Fonts.bodyMedium,
-          color: isSel ? LEAF_GREEN : isReached ? EMERALD : "rgba(20,60,35,0.42)",
-          textShadowColor: isSel ? EMERALD_GLOW : "transparent",
-          textShadowOffset: { width: 0, height: 0 },
-          textShadowRadius: isSel ? 8 : 0,
-        }}
-      >
-        €{amount.euros}
-      </Text>
-      <Text
-        style={{
-          fontSize: 8,
-          fontFamily: Fonts.bodyRegular,
-          color: isReached ? "rgba(0,201,138,0.70)" : "rgba(20,60,35,0.30)",
-          marginTop: 1,
-        }}
-      >
-        {formatLea(amount.lea)} LEA
-      </Text>
-    </Animated.View>
-  );
-}
-
-function LeafyRing({
-  leaBalance,
-  selected,
-}: {
-  leaBalance: number;
-  selected: typeof AMOUNTS[0] | null;
-}) {
+function LeafyRing({ leaBalance }: { leaBalance: number }) {
   const pulse = useSharedValue(1);
 
   useEffect(() => {
@@ -175,48 +92,6 @@ function LeafyRing({
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
   }));
-
-  const targetProgress = React.useMemo(() => {
-    if (selected) return Math.min(leaBalance, selected.lea) / ANGLE_MAX;
-    return leaBalance / ANGLE_MAX;
-  }, [leaBalance, selected]);
-
-  const progressAnim = useSharedValue(Math.min(1, Math.max(0, targetProgress)));
-
-  useEffect(() => {
-    progressAnim.value = withTiming(Math.min(1, Math.max(0, targetProgress)), {
-      duration: 700,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [targetProgress]);
-
-  const progressArcProps = useAnimatedProps(() => {
-    const dashLen = Math.min(1, Math.max(0, progressAnim.value)) * TRACK_DASH;
-    return { strokeDashoffset: CIRCUMFERENCE - dashLen };
-  });
-
-  const balanceFraction = Math.min(1, Math.max(0, leaBalance / ANGLE_MAX));
-  const balanceAngleTarget = ARC_START_DEG + balanceFraction * ARC_TOTAL_DEG;
-  const balanceAngleAnim = useSharedValue(balanceAngleTarget);
-
-  useEffect(() => {
-    balanceAngleAnim.value = withSpring(balanceAngleTarget, {
-      damping: 15,
-      stiffness: 100,
-    });
-  }, [balanceAngleTarget]);
-
-  const dotStyle = useAnimatedStyle(() => {
-    const rad = (balanceAngleAnim.value * Math.PI) / 180;
-    const x = CONTAINER_SIZE / 2 + Math.sin(rad) * RADIUS;
-    const y = CONTAINER_SIZE / 2 - Math.cos(rad) * RADIUS;
-    return {
-      transform: [
-        { translateX: x - CONTAINER_SIZE / 2 },
-        { translateY: y - CONTAINER_SIZE / 2 },
-      ],
-    };
-  });
 
   return (
     <Animated.View
@@ -236,41 +111,21 @@ function LeafyRing({
             cx={CX} cy={CY}
             r={RADIUS}
             fill="none"
-            stroke="rgba(0,201,138,0.18)"
+            stroke={RING_TRACK}
             strokeWidth={STROKE_WIDTH}
-            strokeDasharray={[TRACK_DASH, CIRCUMFERENCE - TRACK_DASH]}
             strokeLinecap="round"
-            transform={`rotate(${SVG_ROTATION}, ${CX}, ${CY})`}
           />
-          <AnimatedCircle
+          <Circle
             cx={CX} cy={CY}
             r={RADIUS}
             fill="none"
-            stroke={EMERALD}
+            stroke={RING_MINT}
             strokeWidth={STROKE_WIDTH}
             strokeLinecap="round"
-            strokeDasharray={[CIRCUMFERENCE, CIRCUMFERENCE]}
-            animatedProps={progressArcProps}
-            transform={`rotate(${SVG_ROTATION}, ${CX}, ${CY})`}
+            strokeDasharray={[CIRCUMFERENCE, 0]}
           />
         </Svg>
       </View>
-
-      <Animated.View
-        style={[
-          {
-            position: "absolute",
-            alignItems: "center",
-            justifyContent: "center",
-          },
-          dotStyle,
-        ]}
-        pointerEvents="none"
-      >
-        <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: EMERALD, opacity: 0.22, position: "absolute" }} />
-        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: EMERALD_GLOW, position: "absolute" }} />
-        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "white", position: "absolute" }} />
-      </Animated.View>
 
       <View style={styles.ringCenter}>
         <Text style={styles.ringAmount}>{formatLea(leaBalance)}</Text>
@@ -280,25 +135,6 @@ function LeafyRing({
           resizeMode="contain"
         />
       </View>
-
-      {AMOUNTS.map((amount) => {
-        const angleDeg = ARC_START_DEG + (amount.lea / ANGLE_MAX) * ARC_TOTAL_DEG;
-        const rad = (angleDeg * Math.PI) / 180;
-        const px  = CONTAINER_SIZE / 2 + Math.sin(rad) * LABEL_RADIUS;
-        const py  = CONTAINER_SIZE / 2 - Math.cos(rad) * LABEL_RADIUS;
-        const isReached = leaBalance >= amount.lea;
-        const isSel     = selected?.lea === amount.lea;
-        return (
-          <AmountLabel
-            key={amount.lea}
-            amount={amount}
-            isReached={isReached}
-            isSel={isSel}
-            px={px}
-            py={py}
-          />
-        );
-      })}
     </Animated.View>
   );
 }
@@ -452,7 +288,7 @@ export default function WalletScreen() {
       >
         <View style={styles.mainBlock}>
           <Animated.View entering={FadeInDown.delay(50).springify()} style={styles.ringSection}>
-            <LeafyRing leaBalance={leaBalance} selected={selected} />
+            <LeafyRing leaBalance={leaBalance} />
             {isMissing && (
               <Animated.View entering={FadeIn} style={styles.ringMissingRow}>
                 <Feather name="alert-circle" size={13} color="#EA580C" />
