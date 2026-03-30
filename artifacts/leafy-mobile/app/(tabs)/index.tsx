@@ -134,6 +134,15 @@ const BP_PRIZES_DISPLAY = [
 ];
 
 const ICON_BASE_SIZE = 72;
+
+const LEVEL_SHADOW_CONFIG: Record<string, { w: number; o: number }> = {
+  Germoglio:  { w: 38, o: 0.10 },
+  Ramoscello: { w: 44, o: 0.13 },
+  Arbusto:    { w: 50, o: 0.16 },
+  Albero:     { w: 56, o: 0.20 },
+  Foresta:    { w: 62, o: 0.24 },
+  Giungla:    { w: 68, o: 0.28 },
+};
 const ICON_MIN_SCALE = 0.75;
 const ICON_MAX_SCALE = 1.0;
 const CAN_TOP = 25;
@@ -564,12 +573,22 @@ function LevelProgressRing({
             <Animated.View style={iconAnimStyle}>
               <View style={{ alignItems: "center" }}>
                 <BadgeIcon3D name={displayedLevel} category="Livello" emoji="" isUnlocked={true} size={ICON_BASE_SIZE} />
-                {/* Contact shadow — ellissi concentriche sfumate sotto il badge */}
-                <View style={{ position: "absolute", bottom: -10, alignItems: "center" }}>
-                  <View style={{ width: 56, height: 14, borderRadius: 9, backgroundColor: "rgba(0,0,0,0.05)" }} />
-                  <View style={{ position: "absolute", width: 40, height: 9, borderRadius: 6, backgroundColor: "rgba(0,0,0,0.08)" }} />
-                  <View style={{ position: "absolute", width: 22, height: 5, borderRadius: 4, backgroundColor: "rgba(0,0,0,0.13)" }} />
-                </View>
+                {/* Shadow ovale sfumata — scala per livello, non invade il testo */}
+                {(() => {
+                  const s = LEVEL_SHADOW_CONFIG[displayedLevel] ?? { w: 38, o: 0.10 };
+                  return (
+                    <View style={{ position: "absolute", bottom: -3, alignItems: "center" }}>
+                      {/* Strato 1 — bordo esterno, quasi trasparente */}
+                      <View style={{ width: s.w, height: 6, borderRadius: 4, backgroundColor: `rgba(0,0,0,${(s.o * 0.18).toFixed(3)})` }} />
+                      {/* Strato 2 */}
+                      <View style={{ position: "absolute", width: s.w * 0.72, height: 4.5, borderRadius: 3, backgroundColor: `rgba(0,0,0,${(s.o * 0.40).toFixed(3)})` }} />
+                      {/* Strato 3 */}
+                      <View style={{ position: "absolute", width: s.w * 0.48, height: 3, borderRadius: 2.5, backgroundColor: `rgba(0,0,0,${(s.o * 0.65).toFixed(3)})` }} />
+                      {/* Strato 4 — nucleo più scuro */}
+                      <View style={{ position: "absolute", width: s.w * 0.28, height: 2, borderRadius: 2, backgroundColor: `rgba(0,0,0,${s.o.toFixed(3)})` }} />
+                    </View>
+                  );
+                })()}
               </View>
             </Animated.View>
           </Animated.View>
