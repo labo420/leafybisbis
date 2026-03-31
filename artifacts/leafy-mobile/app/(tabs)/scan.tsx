@@ -127,12 +127,7 @@ function AcceptedStoresSection() {
       {open && (
         <View style={[styles.storesList, { borderTopWidth: 1, borderTopColor: theme.border }]}>
           <View style={styles.storesCategory}>
-            <Text style={[styles.storesCatTitle, { color: theme.text }]}>Supermercati</Text>
-            <Text style={[styles.storesCatList, { color: theme.textSecondary }]}>{data.standard.join(", ")}</Text>
-          </View>
-          <View style={styles.storesCategory}>
-            <Text style={[styles.storesCatTitle, { color: theme.text }]}>Discount</Text>
-            <Text style={[styles.storesCatList, { color: theme.textSecondary }]}>{data.discount.join(", ")}</Text>
+            <Text style={[styles.storesCatList, { color: theme.textSecondary }]}>{[...data.standard, ...data.discount].join(", ")}</Text>
           </View>
         </View>
       )}
