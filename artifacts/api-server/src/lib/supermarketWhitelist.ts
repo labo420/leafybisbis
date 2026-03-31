@@ -12,6 +12,7 @@ export const ACCEPTED_STORES = {
     "Esselunga",
     "Eurospar",
     "Interspar",
+    "Iper",
     "Ipercoop",
     "NovaCoop",
     "Sigma",
