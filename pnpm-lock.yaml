@@ -444,9 +444,6 @@ importers:
 
   artifacts/leafy-mobile:
     dependencies:
-      '@expo-google-fonts/nunito':
-        specifier: ^0.4.2
-        version: 0.4.2
       '@ngrok/ngrok':
         specifier: ^1.7.0
         version: 1.7.0
@@ -468,6 +465,9 @@ importers:
         version: 0.4.0
       '@expo-google-fonts/inter':
         specifier: ^0.4.0
+        version: 0.4.2
+      '@expo-google-fonts/nunito':
+        specifier: ^0.4.2
         version: 0.4.2
       '@expo/cli':
         specifier: 54.0.23
