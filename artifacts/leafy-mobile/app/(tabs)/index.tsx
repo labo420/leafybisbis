@@ -605,7 +605,7 @@ function LevelProgressRing({
           </Animated.View>
           <Text style={[ringStyles.levelName, { color: nameColor }]}>{LEVEL_LABELS[displayedLevel] ?? displayedLevel}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-            <Text style={[ringStyles.xpProgress, { color: onDark ? "#51B888" : "#2E6B50" }]}>
+            <Text style={[ringStyles.xpProgress, { color: onDark ? "#51B888" : "#2E6B50", fontSize: displayPoints > 9999 ? 10 : 13 }]}>
               {new Intl.NumberFormat("it-IT").format(displayPoints)} / {new Intl.NumberFormat("it-IT").format(targetPts)}
             </Text>
             <XpIcon size={22} />
@@ -655,10 +655,10 @@ const ringStyles = StyleSheet.create({
     gap: 4,
   },
   levelName: {
-    fontSize: 14,
-    fontFamily: "DMSans_600SemiBold",
+    fontSize: 15,
+    fontFamily: "Nunito_700Bold",
     color: "rgba(255,255,255,0.85)",
-    letterSpacing: 0.4,
+    letterSpacing: 0.5,
     marginTop: 2,
   },
   xpProgress: {
