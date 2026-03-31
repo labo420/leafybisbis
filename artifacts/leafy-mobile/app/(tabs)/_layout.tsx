@@ -132,7 +132,7 @@ export default function TabLayout() {
   const isIOS = Platform.OS === "ios";
   const insets = useSafeAreaInsets();
   const { user, hasLeafyGold } = useAuth();
-  const { triggerReset, triggerCamera } = useScanReset();
+  const { triggerReset } = useScanReset();
   const { theme, mode } = useTheme();
 
   const triggerHaptic = () => {
@@ -258,7 +258,6 @@ export default function TabLayout() {
             tabPress: () => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               triggerReset();
-              triggerCamera();
             },
           }}
         />
