@@ -666,7 +666,7 @@ const styles = StyleSheet.create({
     padding: 32,
   },
   header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 },
-  title: { fontSize: 32, fontFamily: "DMSans_700Bold", marginBottom: 4 },
+  title: { fontSize: 32, fontFamily: "Nunito_700Bold", marginBottom: 4 },
   subtitle: { fontSize: 14, fontFamily: "Inter_400Regular" },
   sectionHeaderRow: {
     flexDirection: "row",
@@ -697,7 +697,7 @@ const styles = StyleSheet.create({
     borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7,
   },
   receiptPointsBadgeText: {
-    fontSize: 15, fontFamily: "DMSans_700Bold",
+    fontSize: 15, fontFamily: "Nunito_700Bold",
   },
   catRow: {
     flexDirection: "row", gap: 6, flexWrap: "wrap", alignItems: "center",
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
   },
   catText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
   emptyState: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 12 },
-  emptyTitle: { fontSize: 20, fontFamily: "DMSans_700Bold", textAlign: "center" },
+  emptyTitle: { fontSize: 20, fontFamily: "Nunito_700Bold", textAlign: "center" },
   emptySub: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 22 },
   scanBtn: {
     flexDirection: "row", alignItems: "center", gap: 8,
@@ -726,7 +726,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1,
   },
-  sheetTitle: { fontSize: 18, fontFamily: "DMSans_600SemiBold" },
+  sheetTitle: { fontSize: 18, fontFamily: "Nunito_600SemiBold" },
   detailHeader: {
     borderRadius: 24, padding: 20,
     alignItems: "center", marginBottom: 20, gap: 6,
@@ -735,13 +735,13 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8,
     backgroundColor: "rgba(76, 175, 80, 0.12)", borderRadius: 20, paddingHorizontal: 18, paddingVertical: 10,
   },
-  detailPointsText: { fontSize: 32, fontFamily: "DMSans_700Bold" },
-  detailStore: { fontSize: 16, fontFamily: "DMSans_600SemiBold" },
+  detailPointsText: { fontSize: 32, fontFamily: "Nunito_700Bold" },
+  detailStore: { fontSize: 16, fontFamily: "Nunito_600SemiBold" },
   detailMetaRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   detailDate: { fontSize: 13, fontFamily: "Inter_400Regular" },
   detailProvince: { flexDirection: "row", alignItems: "center", gap: 4 },
   detailProvinceText: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  itemsTitle: { fontSize: 16, fontFamily: "DMSans_700Bold", marginBottom: 12 },
+  itemsTitle: { fontSize: 16, fontFamily: "Nunito_700Bold", marginBottom: 12 },
   barcodeRow: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     borderRadius: 14, padding: 14, marginBottom: 8,
@@ -757,7 +757,7 @@ const styles = StyleSheet.create({
   barcodeCat: { fontSize: 11, fontFamily: "Inter_500Medium" },
   barcodeReason: { fontSize: 10, fontFamily: "Inter_400Regular", flex: 1 },
   barcodeRight: { flexDirection: "row", alignItems: "center", gap: 8 },
-  barcodePts: { fontSize: 17, fontFamily: "DMSans_700Bold" },
+  barcodePts: { fontSize: 17, fontFamily: "Nunito_700Bold" },
   ecoBadge: { width: 26, height: 26, borderRadius: 6, alignItems: "center", justifyContent: "center" },
   ecoBadgeText: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#fff" },
   noProductsMsg: {
@@ -790,7 +790,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
     padding: 24, gap: 12,
   },
-  correctionTitle: { fontSize: 18, fontFamily: "DMSans_700Bold" },
+  correctionTitle: { fontSize: 18, fontFamily: "Nunito_700Bold" },
   correctionSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: -4 },
   correctionInput: {
     borderWidth: 1.5,

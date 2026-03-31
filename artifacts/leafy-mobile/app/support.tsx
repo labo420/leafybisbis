@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
   },
   content: {
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 18,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     textAlign: "center",
   },
   heroSub: {

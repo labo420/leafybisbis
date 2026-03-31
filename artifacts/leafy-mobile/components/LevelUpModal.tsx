@@ -454,7 +454,7 @@ const s = StyleSheet.create({
   },
   title: {
     fontSize: 30,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
     marginBottom: 6,
     textAlign: "center",

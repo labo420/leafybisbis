@@ -150,7 +150,7 @@ const impactStyles = StyleSheet.create({
   },
   value: {
     fontSize: 20,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: Colors.text,
   },
   unit: {
@@ -1018,7 +1018,7 @@ const styles = StyleSheet.create({
   },
   guestTitle: {
     fontSize: 24,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: Colors.text,
     marginTop: 16,
     textAlign: "center",
@@ -1075,7 +1075,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
   },
   settingsBtn: {
@@ -1149,7 +1149,7 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: 22,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: Colors.text,
     marginBottom: 8,
   },
@@ -1179,7 +1179,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 17,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: Colors.text,
     flex: 1,
   },
@@ -1217,7 +1217,7 @@ const styles = StyleSheet.create({
   },
   referralTitle: {
     fontSize: 15,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: Colors.text,
   },
   referralSub: {
@@ -1253,7 +1253,7 @@ const styles = StyleSheet.create({
   },
   challengeName: {
     fontSize: 15,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: Colors.text,
     flex: 1,
   },
@@ -1458,7 +1458,7 @@ const inStoreStyles = StyleSheet.create({
   toggleLabel: {
     flex: 1,
     fontSize: 15,
-    fontFamily: "DMSans_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   togglePill: {
     width: 42,

@@ -1,8 +1,8 @@
 export const Fonts = {
-  displayBold: "DMSans_700Bold",
-  displaySemiBold: "DMSans_600SemiBold",
-  displayMedium: "DMSans_500Medium",
-  displayRegular: "DMSans_400Regular",
+  displayBold: "Nunito_700Bold",
+  displaySemiBold: "Nunito_600SemiBold",
+  displayMedium: "Nunito_500Medium",
+  displayRegular: "Nunito_400Regular",
 
   bodyBold: "Inter_700Bold",
   bodySemiBold: "Inter_600SemiBold",

@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
   },
   scrollContent: {
     paddingHorizontal: 20,
