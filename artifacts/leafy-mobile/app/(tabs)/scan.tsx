@@ -863,14 +863,14 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   howToggleLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
-  howToggleText: { fontSize: 14, fontFamily: "Inter_500Medium", color: Colors.textSecondary },
+  howToggleText: { fontSize: 16, fontFamily: "Inter_500Medium", color: Colors.textSecondary },
   howSteps: { gap: 10, paddingBottom: 8 },
   stepRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   stepIcon: {
     width: 32, height: 32, borderRadius: 24, backgroundColor: Colors.primaryLight,
     alignItems: "center", justifyContent: "center",
   },
-  stepText: { fontSize: 13, fontFamily: "Inter_400Regular", color: Colors.textSecondary, flex: 1, lineHeight: 18 },
+  stepText: { fontSize: 15, fontFamily: "Inter_400Regular", color: Colors.textSecondary, flex: 1, lineHeight: 20 },
 
   previewHeader: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
@@ -1015,13 +1015,13 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   storesToggleLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
-  storesToggleText: { fontSize: 14, fontFamily: "Inter_500Medium", color: Colors.textSecondary },
+  storesToggleText: { fontSize: 16, fontFamily: "Inter_500Medium", color: Colors.textSecondary },
   storesList: {
     paddingTop: 12, paddingBottom: 12, gap: 12,
   },
   storesCategory: { gap: 4 },
-  storesCatTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: Colors.text },
-  storesCatList: { fontSize: 12, fontFamily: "Inter_400Regular", color: Colors.textSecondary, lineHeight: 18 },
+  storesCatTitle: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: Colors.text },
+  storesCatList: { fontSize: 14, fontFamily: "Inter_400Regular", color: Colors.textSecondary, lineHeight: 20 },
 
   dropsHeroCard: {
     marginHorizontal: 20,
