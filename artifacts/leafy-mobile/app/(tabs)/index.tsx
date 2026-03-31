@@ -1323,7 +1323,7 @@ export default function HomeScreen() {
           loginStreak: data.loginStreak,
           bonusAwarded: data.bonusAwarded,
           dropsBonus: data.dropsBonus,
-          dailyDrops: data.dailyDrops ?? data.dropsBonus,
+          dailyDrops: data.dailyDrops,
           bpPrize: null,
         });
         setTimeout(() => setStreakToast(null), 4500);

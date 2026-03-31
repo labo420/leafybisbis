@@ -349,6 +349,7 @@ router.post("/profile/daily-checkin", async (req, res): Promise<void> => {
       loginStreak: user.loginStreak ?? 0,
       bonusAwarded: false,
       dropsBonus: 0,
+      dailyDrops: 0,
     });
     return;
   }

@@ -73,7 +73,7 @@ export interface DailyCheckinResponse {
   loginStreak: number;
   bonusAwarded: boolean;
   dropsBonus: number;
-  dailyDrops?: number;
+  dailyDrops: number;
 }
 
 export interface GoldCheckinResponse {
