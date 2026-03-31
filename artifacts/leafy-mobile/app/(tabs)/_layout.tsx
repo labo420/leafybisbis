@@ -58,8 +58,8 @@ function TabIcon({
 
   return (
     <View style={styles.iconContainer}>
-      <Animated.View style={[StyleSheet.absoluteFill, styles.iconPill, pillStyle]} />
-      <Animated.View style={iconStyle}>
+      <Animated.View style={[styles.iconPill, pillStyle]} />
+      <Animated.View style={[StyleSheet.absoluteFill, styles.iconCenter, iconStyle]}>
         <MaterialCommunityIcons name={iconName} size={26} color={color} />
       </Animated.View>
     </View>
@@ -347,13 +347,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "visible",
   },
+  iconCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   iconPill: {
+    position: "absolute",
+    width: 44,
+    height: 32,
     borderRadius: 14,
   },
   scanBtnOuter: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
@@ -363,17 +370,17 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   scanBtnGradient: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 66,
+    height: 66,
+    borderRadius: 33,
     alignItems: "center",
     justifyContent: "center",
   },
   scanBtnRing: {
     position: "absolute",
-    width: 76,
-    height: 76,
-    borderRadius: 38,
+    width: 86,
+    height: 86,
+    borderRadius: 43,
     borderWidth: 2,
     borderColor: "rgba(46,107,80,0.18)",
   },
