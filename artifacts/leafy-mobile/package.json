@@ -13,6 +13,7 @@
     "@babel/core": "^7.25.2",
     "@expo-google-fonts/dm-sans": "0.4.0",
     "@expo-google-fonts/inter": "^0.4.0",
+    "@expo-google-fonts/nunito": "^0.4.2",
     "@expo/cli": "54.0.23",
     "@expo/ngrok": "^4.1.0",
     "@expo/vector-icons": "^15.0.3",
@@ -58,7 +59,6 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
-    "@expo-google-fonts/nunito": "^0.4.2",
     "@ngrok/ngrok": "^1.7.0",
     "expo-camera": "^17.0.10",
     "expo-notifications": "^0.32.16",
