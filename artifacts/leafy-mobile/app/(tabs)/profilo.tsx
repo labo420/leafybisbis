@@ -774,7 +774,77 @@ export default function ProfiloScreen() {
         </Animated.View>
       )}
 
-
+      <Animated.View entering={FadeInDown.delay(210).springify()} style={[styles.section, { marginTop: 4 }]}>
+        {!hasLeafyGold ? (
+          <Pressable
+            style={({ pressed }) => [
+              {
+                backgroundColor: mode === "dark" ? "#2A1A00" : "#FFFBEB",
+                borderRadius: 20,
+                borderWidth: 1.5,
+                borderColor: "#F59E0B",
+                padding: 18,
+                flexDirection: "row" as const,
+                alignItems: "center" as const,
+                gap: 14,
+                opacity: pressed ? 0.85 : 1,
+              },
+            ]}
+            onPress={() => setShowLeafyGoldModal(true)}
+          >
+            <Image
+              source={require("@/assets/images/leafy-gold-icon.png")}
+              style={{ width: 48, height: 48 }}
+              resizeMode="contain"
+            />
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                <Text style={{ fontSize: 17, fontFamily: Fonts.bold, color: "#B45309" }}>Leafy Gold</Text>
+                <View style={{ backgroundColor: "#F59E0B", borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 }}>
+                  <Text style={{ fontSize: 10, fontFamily: Fonts.bold, color: "#fff" }}>PREMIUM</Text>
+                </View>
+              </View>
+              <Text style={{ fontSize: 13, color: mode === "dark" ? "#D97706" : "#92400E", fontFamily: Fonts.regular, lineHeight: 18 }}>
+                x2 $LEA · Preleva su PayPal
+              </Text>
+            </View>
+            <View style={{ backgroundColor: "#2E6B50", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 }}>
+              <Text style={{ fontSize: 13, fontFamily: Fonts.bold, color: "#fff" }}>0,89€/mese</Text>
+            </View>
+          </Pressable>
+        ) : (
+          <View
+            style={{
+              backgroundColor: mode === "dark" ? "#1A2A1A" : "#F0FDF4",
+              borderRadius: 20,
+              borderWidth: 1.5,
+              borderColor: "#4ade80",
+              padding: 18,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 14,
+            }}
+          >
+            <Image
+              source={require("@/assets/images/leafy-gold-icon.png")}
+              style={{ width: 48, height: 48 }}
+              resizeMode="contain"
+            />
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                <Text style={{ fontSize: 17, fontFamily: Fonts.bold, color: theme.leaf }}>Leafy Gold</Text>
+                <View style={{ backgroundColor: "#4ade80", borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 }}>
+                  <Text style={{ fontSize: 10, fontFamily: Fonts.bold, color: "#fff" }}>ATTIVO</Text>
+                </View>
+              </View>
+              <Text style={{ fontSize: 13, color: mode === "dark" ? "#86EFAC" : "#166534", fontFamily: Fonts.regular }}>
+                $LEA x2 · Prelievo PayPal sbloccato
+              </Text>
+            </View>
+            <MaterialCommunityIcons name="check-circle" size={28} color="#4ade80" />
+          </View>
+        )}
+      </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(260).springify()} style={styles.section}>
         <View style={styles.sectionHeader}>
@@ -857,33 +927,6 @@ export default function ProfiloScreen() {
           <Feather name="chevron-right" size={16} color={theme.textSecondary} />
         </Pressable>
 
-        {!hasLeafyGold ? (
-          <Pressable style={[styles.menuRow, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => setShowLeafyGoldModal(true)}>
-            <View style={[styles.menuRowIcon, { backgroundColor: "rgba(255,215,0,0.15)" }]}>
-              <Image source={require("@/assets/images/leafy-gold-icon.png")} style={{ width: 22, height: 22 }} resizeMode="contain" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.menuRowText, { color: theme.text }]}>Leafy Gold</Text>
-              <Text style={[styles.menuRowSub, { color: theme.textSecondary }]}>x2 $LEA · Preleva su PayPal</Text>
-            </View>
-            <View style={styles.menuRowBadge}>
-              <Text style={styles.menuRowBadgeText}>0,89€/mese</Text>
-            </View>
-          </Pressable>
-        ) : (
-          <View style={[styles.menuRow, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <View style={[styles.menuRowIcon, { backgroundColor: "rgba(255,215,0,0.15)" }]}>
-              <Image source={require("@/assets/images/leafy-gold-icon.png")} style={{ width: 22, height: 22 }} resizeMode="contain" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.menuRowText, { color: theme.text }]}>Leafy Gold</Text>
-              <Text style={[styles.menuRowSub, { color: theme.textSecondary }]}>Attivo · $LEA x2</Text>
-            </View>
-            <View style={[styles.menuRowBadge, { backgroundColor: "#4ade80" }]}>
-              <Text style={[styles.menuRowBadgeText, { color: "#fff" }]}>Attivo</Text>
-            </View>
-          </View>
-        )}
       </Animated.View>
 
       {/* ── RILEVAMENTO NEGOZI ── */}
