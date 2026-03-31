@@ -849,20 +849,6 @@ export default function ProfiloScreen() {
       <Animated.View entering={FadeInDown.delay(320).springify()} style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Impostazioni</Text>
 
-        <Pressable
-          style={[styles.menuRow, { backgroundColor: theme.card, borderColor: theme.border }]}
-          onPress={toggleTheme}
-        >
-          <View style={[styles.menuRowIcon, { backgroundColor: theme.primaryLight }]}>
-            <Feather name={mode === "dark" ? "sun" : "moon"} size={18} color={theme.leaf} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.menuRowText, { color: theme.text }]}>Tema</Text>
-            <Text style={[styles.menuRowSub, { color: theme.textSecondary }]}>{mode === "dark" ? "Scuro" : "Chiaro"}</Text>
-          </View>
-          <Feather name="chevron-right" size={16} color={theme.textSecondary} />
-        </Pressable>
-
         <Pressable style={[styles.menuRow, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => router.push("/support")}>
           <View style={[styles.menuRowIcon, { backgroundColor: theme.primaryLight }]}>
             <Feather name="help-circle" size={18} color={theme.leaf} />
