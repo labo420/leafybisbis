@@ -9,10 +9,7 @@ import Animated, {
   cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
-  withSequence,
   withSpring,
-  withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -29,12 +26,10 @@ type MCIconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 function TabIcon({
   focused,
   iconName,
-  label,
   color,
 }: {
   focused: boolean;
   iconName: MCIconName;
-  label: string;
   color: string;
 }) {
   const pillStyle = useAnimatedStyle(() => ({
@@ -43,9 +38,7 @@ function TabIcon({
       { damping: 15, stiffness: 120 }
     ),
     transform: [
-      {
-        scale: withSpring(focused ? 1 : 0.92, { damping: 15, stiffness: 120 }),
-      },
+      { scale: withSpring(focused ? 1 : 0.92, { damping: 15, stiffness: 120 }) },
     ],
   }));
 
@@ -63,40 +56,12 @@ function TabIcon({
     ],
   }));
 
-  const labelStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(focused ? 1 : 0, { duration: 180 }),
-    transform: [
-      { translateY: withTiming(focused ? 0 : 4, { duration: 180 }) },
-    ],
-  }));
-
-  const dotStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(focused ? 1 : 0, { duration: 200 }),
-    transform: [
-      { scaleX: withSpring(focused ? 1 : 0, { damping: 14, stiffness: 140 }) },
-    ],
-  }));
-
   return (
-    <View style={styles.iconWrapper}>
-      <View style={styles.iconContainer}>
-        <Animated.View
-          style={[StyleSheet.absoluteFill, styles.iconPill, pillStyle]}
-        />
-        <Animated.View style={iconStyle}>
-          <MaterialCommunityIcons name={iconName} size={26} color={color} />
-        </Animated.View>
-      </View>
-      <Animated.Text
-        style={[
-          styles.tabLabel,
-          { color },
-          labelStyle,
-        ]}
-      >
-        {label}
-      </Animated.Text>
-      <Animated.View style={[styles.activeDot, dotStyle]} />
+    <View style={styles.iconContainer}>
+      <Animated.View style={[StyleSheet.absoluteFill, styles.iconPill, pillStyle]} />
+      <Animated.View style={iconStyle}>
+        <MaterialCommunityIcons name={iconName} size={26} color={color} />
+      </Animated.View>
     </View>
   );
 }
@@ -197,7 +162,11 @@ export default function TabLayout() {
           tabBarIconStyle: {
             overflow: "visible",
           },
-          tabBarShowLabel: false,
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontFamily: Fonts.bodyMedium,
+            marginBottom: 0,
+          },
           tabBarStyle: {
             backgroundColor: isIOS ? "transparent" : theme.card,
             borderTopWidth: 0,
@@ -250,14 +219,11 @@ export default function TabLayout() {
               <TabIcon
                 focused={focused}
                 color={color}
-                label="Home"
                 iconName={focused ? "home-variant" : "home-variant-outline"}
               />
             ),
           }}
-          listeners={{
-            tabPress: triggerHaptic,
-          }}
+          listeners={{ tabPress: triggerHaptic }}
         />
         <Tabs.Screen
           name="sfide"
@@ -267,14 +233,11 @@ export default function TabLayout() {
               <TabIcon
                 focused={focused}
                 color={color}
-                label="Sfide"
                 iconName={focused ? "trophy" : "trophy-outline"}
               />
             ),
           }}
-          listeners={{
-            tabPress: triggerHaptic,
-          }}
+          listeners={{ tabPress: triggerHaptic }}
         />
         <Tabs.Screen
           name="storico"
@@ -308,14 +271,11 @@ export default function TabLayout() {
               <TabIcon
                 focused={focused}
                 color={color}
-                label="Raccolto"
                 iconName={focused ? "sprout" : "sprout-outline"}
               />
             ),
           }}
-          listeners={{
-            tabPress: triggerHaptic,
-          }}
+          listeners={{ tabPress: triggerHaptic }}
         />
         <Tabs.Screen
           name="profilo"
@@ -326,7 +286,6 @@ export default function TabLayout() {
                 <TabIcon
                   focused={focused}
                   color={color}
-                  label="Profilo"
                   iconName={focused ? "account-circle" : "account-circle-outline"}
                 />
                 {hasLeafyGold && (
@@ -339,9 +298,7 @@ export default function TabLayout() {
               </View>
             ),
           }}
-          listeners={{
-            tabPress: triggerHaptic,
-          }}
+          listeners={{ tabPress: triggerHaptic }}
         />
       </Tabs>
     </View>
@@ -383,12 +340,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.25)",
     borderRadius: 1,
   },
-  iconWrapper: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 1,
-    overflow: "visible",
-  },
   iconContainer: {
     width: 44,
     height: 36,
@@ -398,17 +349,6 @@ const styles = StyleSheet.create({
   },
   iconPill: {
     borderRadius: 14,
-  },
-  tabLabel: {
-    fontSize: 10,
-    fontFamily: Fonts.bodyMedium,
-  },
-  activeDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#2E6B50",
-    marginTop: 1,
   },
   scanBtnOuter: {
     width: 64,
