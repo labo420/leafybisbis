@@ -252,7 +252,7 @@ export default function TabLayout() {
             tabBarIcon: ({ focused }) => <FloatingScanButton focused={focused} />,
             tabBarLabel: () => null,
             tabBarItemStyle: {
-              top: -20,
+              top: -10,
             },
           }}
           listeners={{
