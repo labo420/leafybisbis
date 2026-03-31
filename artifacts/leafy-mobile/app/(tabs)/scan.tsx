@@ -116,16 +116,16 @@ function AcceptedStoresSection() {
   if (!data) return null;
 
   return (
-    <View style={styles.storesSection}>
+    <View style={[styles.accordionCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
       <Pressable style={styles.storesToggle} onPress={() => setOpen(!open)} accessibilityRole="button" accessibilityLabel="Negozi accettati" accessibilityState={{ expanded: open }}>
         <View style={styles.storesToggleLeft}>
-          <Feather name="shopping-bag" size={16} color={theme.textSecondary} />
-          <Text style={[styles.storesToggleText, { color: theme.textSecondary }]}>Negozi accettati</Text>
+          <Feather name="shopping-bag" size={16} color={theme.leaf} />
+          <Text style={[styles.storesToggleText, { color: theme.text }]}>Negozi accettati</Text>
         </View>
         <Feather name={open ? "chevron-up" : "chevron-down"} size={16} color={theme.textSecondary} />
       </Pressable>
       {open && (
-        <View style={[styles.storesList, { backgroundColor: theme.card }]}>
+        <View style={[styles.storesList, { borderTopWidth: 1, borderTopColor: theme.border }]}>
           <View style={styles.storesCategory}>
             <Text style={[styles.storesCatTitle, { color: theme.text }]}>Supermercati</Text>
             <Text style={[styles.storesCatList, { color: theme.textSecondary }]}>{data.standard.join(", ")}</Text>
@@ -144,16 +144,16 @@ function HowItWorksSection() {
   const [open, setOpen] = useState(false);
   const { theme } = useTheme();
   return (
-    <View style={styles.howSection}>
+    <View style={[styles.accordionCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
       <Pressable style={styles.howToggle} onPress={() => setOpen(!open)} accessibilityRole="button" accessibilityLabel="Come funziona" accessibilityState={{ expanded: open }}>
         <View style={styles.howToggleLeft}>
-          <Feather name="help-circle" size={16} color={theme.textSecondary} />
-          <Text style={[styles.howToggleText, { color: theme.textSecondary }]}>Come funziona</Text>
+          <Feather name="help-circle" size={16} color={theme.leaf} />
+          <Text style={[styles.howToggleText, { color: theme.text }]}>Come funziona</Text>
         </View>
         <Feather name={open ? "chevron-up" : "chevron-down"} size={16} color={theme.textSecondary} />
       </Pressable>
       {open && (
-        <View style={styles.howSteps}>
+        <View style={[styles.howSteps, { borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 10 }]}>
           {[
             { icon: "file-text" as const, text: "Fotografa lo scontrino" },
             { icon: "maximize" as const, text: "Scansiona i codici a barre dei prodotti" },
@@ -663,18 +663,19 @@ export default function ScanScreen() {
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { paddingTop: topPadding, backgroundColor: theme.background }]}
-      contentContainerStyle={[styles.idleContent, { paddingBottom: bottomPad }]}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.idleHeader}>
-        <Text style={[styles.idleTitle, { color: theme.text }]}>Scansiona</Text>
+    <View style={[styles.container, { paddingTop: topPadding, backgroundColor: theme.background }]}>
+      <LinearGradient
+        colors={["#3a8f65", "#2E6B50"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.idleGradientHeader}
+      >
+        <Text style={styles.idleGradientTitle}>Scansiona</Text>
         <View style={styles.idleSubRow}>
-          <Feather name="feather" size={14} color={theme.leaf} />
-          <Text style={[styles.idleSub, { color: theme.textSecondary }]}>Guadagna punti per ogni acquisto sostenibile</Text>
+          <Feather name="feather" size={13} color="rgba(255,255,255,0.8)" />
+          <Text style={styles.idleGradientSub}>Guadagna punti per ogni acquisto sostenibile</Text>
         </View>
-      </View>
+      </LinearGradient>
 
       {sessionLoading ? (
         <ActivityIndicator size="large" color={theme.leaf} style={{ marginTop: 40 }} />
@@ -697,13 +698,13 @@ export default function ScanScreen() {
                   style={styles.receiptCard}
                 >
                   <View style={styles.receiptCardIcon}>
-                    <Feather name="camera" size={32} color="#fff" />
+                    <Feather name="camera" size={26} color="#fff" />
                   </View>
                   <View style={styles.receiptCardText}>
                     <Text style={styles.receiptCardTitle}>Fotografa Scontrino</Text>
                     <Text style={styles.receiptCardSub}>Scatta una foto per verificare la spesa</Text>
                   </View>
-                  <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.6)" />
+                  <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.6)" />
                 </LinearGradient>
               </Animated.View>
             </Pressable>
@@ -716,29 +717,28 @@ export default function ScanScreen() {
               }}
             >
               <View style={[styles.actionCardSmallIcon, { backgroundColor: theme.primaryLight }]}>
-                <MaterialCommunityIcons name="cart-outline" size={22} color={theme.leaf} />
+                <MaterialCommunityIcons name="cart-outline" size={20} color={theme.leaf} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.actionCardSmallTitle, { color: theme.text }]}>Modalità Spesa</Text>
                 <Text style={[styles.actionCardSmallSub, { color: theme.textSecondary }]}>Scansiona i barcode dei prodotti</Text>
               </View>
-              <Feather name="chevron-right" size={18} color={theme.textSecondary} />
+              <Feather name="chevron-right" size={16} color={theme.textSecondary} />
             </Pressable>
 
             <View style={styles.scanHint}>
-              <Feather name="info" size={13} color={theme.textSecondary} />
+              <Feather name="info" size={12} color={theme.textSecondary} />
               <Text style={[styles.scanHintText, { color: theme.textSecondary }]}>Assicurati che totale e data siano leggibili</Text>
             </View>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(200).springify()}>
+          <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.accordionsSection}>
             <HowItWorksSection />
             <AcceptedStoresSection />
           </Animated.View>
         </>
       )}
-
-    </ScrollView>
+    </View>
   );
 }
 
@@ -750,33 +750,50 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
 
-  idleHeader: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 4 },
-  idleTitle: { fontSize: 26, fontFamily: "DMSans_700Bold", color: Colors.text, marginBottom: 4 },
+  idleGradientHeader: {
+    paddingHorizontal: 24,
+    paddingTop: 14,
+    paddingBottom: 18,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  idleGradientTitle: { fontSize: 24, fontFamily: "DMSans_700Bold", color: "#fff", marginBottom: 4 },
   idleSubRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  idleGradientSub: { fontSize: 13, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.85)" },
   idleSub: { fontSize: 14, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
 
   actionCardsSection: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 12,
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 8,
+    gap: 10,
+  },
+  accordionsSection: {
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  accordionCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    overflow: "hidden",
   },
   receiptCard: {
     flexDirection: "row",
     alignItems: "center",
     borderRadius: 20,
-    padding: 20,
+    padding: 16,
     gap: 14,
     shadowColor: Colors.forest,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
   },
   receiptCardIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 18,
+    width: 50,
+    height: 50,
+    borderRadius: 16,
     backgroundColor: "rgba(255,255,255,0.2)",
     alignItems: "center",
     justifyContent: "center",
@@ -845,10 +862,10 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary, textAlign: "center", flexShrink: 1,
   },
 
-  howSection: { paddingHorizontal: 20, marginTop: 8 },
+  howSection: { paddingHorizontal: 16, marginTop: 0 },
   howToggle: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingVertical: 14,
+    paddingVertical: 13,
   },
   howToggleLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   howToggleText: { fontSize: 14, fontFamily: "Inter_500Medium", color: Colors.textSecondary },
@@ -997,15 +1014,15 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.leaf,
   },
   newReceiptBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: Colors.leaf },
-  storesSection: { paddingHorizontal: 20, marginTop: 0, marginBottom: 8 },
+  storesSection: { paddingHorizontal: 16, marginTop: 0, marginBottom: 8 },
   storesToggle: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingVertical: 14,
+    paddingVertical: 13,
   },
   storesToggleLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   storesToggleText: { fontSize: 14, fontFamily: "Inter_500Medium", color: Colors.textSecondary },
   storesList: {
-    backgroundColor: Colors.card, borderRadius: 24, padding: 16, gap: 16,
+    paddingTop: 12, paddingBottom: 12, gap: 12,
   },
   storesCategory: { gap: 4 },
   storesCatTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: Colors.text },

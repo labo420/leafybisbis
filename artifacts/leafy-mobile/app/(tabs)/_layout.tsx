@@ -101,7 +101,6 @@ function FloatingScanButton({ focused }: { focused: boolean }) {
           <MaterialCommunityIcons name="camera-outline" size={24} color="#fff" />
         </LinearGradient>
       </Animated.View>
-      {focused && <View style={styles.scanBtnRing} />}
     </Animated.View>
   );
 }
