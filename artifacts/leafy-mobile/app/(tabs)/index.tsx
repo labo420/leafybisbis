@@ -2012,7 +2012,7 @@ const inStoreStyles = StyleSheet.create({
   },
   walkinToastTitle: {
     fontSize: 14,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
   },
   walkinToastSub: {
@@ -2036,7 +2036,7 @@ const inStoreStyles = StyleSheet.create({
   toggleLabel: {
     flex: 1,
     fontSize: 15,
-    fontFamily: "DMSans_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   togglePill: {
     width: 42,
@@ -2137,13 +2137,13 @@ const inStoreStyles = StyleSheet.create({
   },
   oasiBadgeText: {
     fontSize: 9,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
     letterSpacing: 0.5,
   },
   locationName: {
     fontSize: 15,
-    fontFamily: "DMSans_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   locationDist: {
     fontSize: 12,
@@ -2163,7 +2163,7 @@ const inStoreStyles = StyleSheet.create({
   },
   dropsBubbleText: {
     fontSize: 13,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
   },
   dwellRow: {
     flexDirection: "row",
@@ -2182,7 +2182,7 @@ const inStoreStyles = StyleSheet.create({
   },
   dwellTimer: {
     fontSize: 13,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     minWidth: 32,
     textAlign: "right",
   },
@@ -2201,7 +2201,7 @@ const inStoreStyles = StyleSheet.create({
   },
   dwellRingSeconds: {
     fontSize: 22,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
   },
   dwellRingLabel: {
     fontSize: 11,
@@ -2253,7 +2253,7 @@ const inStoreStyles = StyleSheet.create({
   },
   challengeDrops: {
     fontSize: 12,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
   },
   enterBtn: {
     flexDirection: "row",
@@ -2265,7 +2265,7 @@ const inStoreStyles = StyleSheet.create({
   },
   enterBtnText: {
     fontSize: 14,
-    fontFamily: "DMSans_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: "#fff",
   },
   cancelBtn: {
@@ -2310,7 +2310,7 @@ const streakStyles = StyleSheet.create({
   },
   toastTitle: {
     fontSize: 14,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
   },
   toastSub: {
@@ -2337,7 +2337,7 @@ const streakStyles = StyleSheet.create({
     marginBottom: 8,
   },
   cardTitle: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 14,
     flex: 1,
   },
@@ -2393,7 +2393,7 @@ const streakStyles = StyleSheet.create({
     justifyContent: "center" as const,
   },
   stampTitle: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 15,
     color: "#2E6B50",
     letterSpacing: 0.5,
@@ -2408,7 +2408,7 @@ const streakStyles = StyleSheet.create({
     borderRadius: 12,
   },
   stampWeekLabel: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 12,
     color: "#2E6B50",
   },
@@ -2427,7 +2427,7 @@ const streakStyles = StyleSheet.create({
     justifyContent: "center" as const,
   },
   stampCellFutureNum: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 12,
     color: "rgba(0,0,0,0.18)",
   },
@@ -2460,7 +2460,7 @@ const streakStyles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.03)",
   },
   stampLabel: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 9,
   },
   stampLabelDone: {
@@ -2501,7 +2501,7 @@ const streakStyles = StyleSheet.create({
     borderRadius: 12,
   },
   stampFooterRewardText: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 14,
     color: "#2E6B50",
   },
@@ -2548,13 +2548,13 @@ const streakStyles = StyleSheet.create({
     elevation: 6,
   },
   checkinGoldBtnText: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 15,
     color: "#fff",
     letterSpacing: 0.5,
   },
   checkinBtnText: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 15,
     color: "#ffffff",
     letterSpacing: 0.5,
@@ -2670,7 +2670,7 @@ const streakStyles = StyleSheet.create({
     borderRadius: 12,
   },
   stampGoldTitle: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 15,
     color: "#B8860B",
     letterSpacing: 1.5,
@@ -2700,7 +2700,7 @@ const streakStyles = StyleSheet.create({
     backgroundColor: "rgba(254,243,199,0.80)",
   },
   stampGoldFooterRewardText: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 13,
     color: "#92400E",
   },
@@ -2714,12 +2714,12 @@ const streakStyles = StyleSheet.create({
     borderRadius: 12,
   },
   stampGoldFutureNum: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 12,
     color: "rgba(184,134,11,0.22)",
   },
   goldPrizeLabel: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 8,
     textAlign: "center" as const,
   },
@@ -2788,11 +2788,11 @@ const streakStyles = StyleSheet.create({
   stickerBadgeTick: {
     color: "#fff",
     fontSize: 8,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     lineHeight: 10,
   },
   stickerReward: {
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     fontSize: 9,
   },
   stickerLabel: {
@@ -2870,13 +2870,13 @@ const styles = StyleSheet.create({
   },
   logoTextHero: {
     fontSize: 18,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#ffffff",
     marginBottom: 2,
   },
   greetingHero: {
     fontSize: 16,
-    fontFamily: "DMSans_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: "rgba(255,255,255,0.85)",
   },
   headerRight: {
@@ -2916,12 +2916,12 @@ const styles = StyleSheet.create({
   },
   dropsBadgeValue: {
     fontSize: 13,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#ffffff",
   },
   dropsBadgeSymbol: {
     fontSize: 10,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "rgba(255,255,255,0.6)",
     letterSpacing: 0.5,
   },
@@ -2938,13 +2938,13 @@ const styles = StyleSheet.create({
   },
   leaBadgeSymbol: {
     fontSize: 10,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#AADF2A",
     letterSpacing: 0.5,
   },
   leaBadgeValue: {
     fontSize: 14,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#ffffff",
   },
   avatarCircleHero: {
@@ -2974,7 +2974,7 @@ const styles = StyleSheet.create({
   },
   impactTitle: {
     fontSize: 16,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: Colors.text,
     marginBottom: 12,
   },
@@ -2998,7 +2998,7 @@ const styles = StyleSheet.create({
   },
   impactCardValue: {
     fontSize: 22,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: Colors.text,
   },
   impactCardLabel: {
@@ -3038,21 +3038,21 @@ const styles = StyleSheet.create({
   },
   bpCtaTitle: {
     fontSize: 12,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
     marginBottom: 0,
     letterSpacing: 0.2,
   },
   bpCtaPrice: {
     fontSize: 16,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#FFD700",
     marginBottom: 1,
     letterSpacing: -0.3,
   },
   bpCtaPriceSub: {
     fontSize: 9,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: "rgba(255,215,0,0.7)",
   },
   bpCtaSub: {
@@ -3072,7 +3072,7 @@ const styles = StyleSheet.create({
   },
   bpCtaBtnText: {
     fontSize: 14,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#1a1a00",
   },
   ctaSection: {
@@ -3095,7 +3095,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 18,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
   },
   challengeButton: {
@@ -3185,7 +3185,7 @@ const authStyles = StyleSheet.create({
   },
   primaryBtnText: {
     fontSize: 17,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#2E6B50",
     letterSpacing: 0.3,
   },
@@ -3205,7 +3205,7 @@ const authStyles = StyleSheet.create({
   },
   outlineBtnText: {
     fontSize: 16,
-    fontFamily: "DMSans_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: "#FFFFFF",
   },
   accordionBody: {
@@ -3327,7 +3327,7 @@ const authStyles = StyleSheet.create({
   },
   submitBtnText: {
     fontSize: 16,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#2E6B50",
     letterSpacing: 0.2,
   },

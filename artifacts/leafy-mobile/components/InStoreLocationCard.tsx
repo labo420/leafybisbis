@@ -259,13 +259,13 @@ const styles = StyleSheet.create({
   },
   oasiBadgeText: {
     fontSize: 9,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
     letterSpacing: 0.5,
   },
   locationName: {
     fontSize: 15,
-    fontFamily: "DMSans_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   locationDist: {
     fontSize: 12,
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   },
   dropsBubbleText: {
     fontSize: 13,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
   },
   dwellRingContainer: {
     alignItems: "center",
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   },
   dwellRingSeconds: {
     fontSize: 22,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
   },
   dwellRingLabel: {
     fontSize: 11,
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   },
   challengeDrops: {
     fontSize: 12,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
   },
   challengeHint: {
     fontSize: 11,

@@ -37,7 +37,7 @@ const BODY_BASE = {
 
 const TITLE_BASE = {
   fontSize: 28 as const,
-  fontFamily: "DMSans_700Bold",
+  fontFamily: "Nunito_700Bold",
   lineHeight: 36 as const,
   textAlign: "center" as const,
 };
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     textAlign: "center",
     lineHeight: 36,
   },
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 17,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
     letterSpacing: 0.3,
   },

@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#111827",
     marginTop: 12,
     textAlign: "center",
@@ -305,14 +305,14 @@ const styles = StyleSheet.create({
   },
   priceAmount: {
     fontSize: 46,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#111827",
     letterSpacing: -2,
     lineHeight: 50,
   },
   priceCurrency: {
     fontSize: 24,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#374151",
     lineHeight: 50,
   },

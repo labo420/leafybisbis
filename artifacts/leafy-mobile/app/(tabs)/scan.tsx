@@ -757,7 +757,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
-  idleGradientTitle: { fontSize: 24, fontFamily: "DMSans_700Bold", color: "#fff", marginBottom: 4 },
+  idleGradientTitle: { fontSize: 24, fontFamily: "Nunito_700Bold", color: "#fff", marginBottom: 4 },
   idleSubRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   idleGradientSub: { fontSize: 13, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.85)" },
   idleSub: { fontSize: 14, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
   },
   receiptCardTitle: {
     fontSize: 18,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#fff",
     marginBottom: 2,
   },
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingHorizontal: 20, paddingVertical: 16,
   },
-  previewTitle: { fontSize: 18, fontFamily: "DMSans_600SemiBold", color: Colors.text },
+  previewTitle: { fontSize: 18, fontFamily: "Nunito_600SemiBold", color: Colors.text },
   previewImage: { flex: 1, width: "100%" },
   previewActions: { flexDirection: "row", paddingHorizontal: 20, paddingTop: 16, gap: 12 },
   primaryBtn: {
@@ -897,14 +897,14 @@ const styles = StyleSheet.create({
   secondaryBtnText: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: Colors.leaf },
   scanningImage: { width: "90%", height: "60%", borderRadius: 24, opacity: 0.4 },
   scanningOverlay: { position: "absolute", alignItems: "center", gap: 12 },
-  scanningText: { fontSize: 22, fontFamily: "DMSans_700Bold", color: Colors.text, marginTop: 12 },
+  scanningText: { fontSize: 22, fontFamily: "Nunito_700Bold", color: Colors.text, marginTop: 12 },
   scanningSubText: { fontSize: 15, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
   resultHeader: {
     paddingHorizontal: 24, paddingBottom: 32,
     borderBottomLeftRadius: 28, borderBottomRightRadius: 28, alignItems: "center",
   },
   resultIconWrap: { alignItems: "center", marginBottom: 12 },
-  resultTitle: { fontSize: 28, fontFamily: "DMSans_700Bold", color: "#fff", textAlign: "center", marginBottom: 4 },
+  resultTitle: { fontSize: 28, fontFamily: "Nunito_700Bold", color: "#fff", textAlign: "center", marginBottom: 4 },
   resultSub: {
     fontSize: 15, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.8)",
     textAlign: "center", lineHeight: 22, marginBottom: 12,
@@ -938,7 +938,7 @@ const styles = StyleSheet.create({
   welcomeOverlayCard: {
     backgroundColor: "#fff", borderRadius: 28, padding: 32, alignItems: "center", width: "80%",
   },
-  welcomeOverlayTitle: { fontSize: 28, fontFamily: "DMSans_700Bold", color: Colors.forest, marginBottom: 12, textAlign: "center" },
+  welcomeOverlayTitle: { fontSize: 28, fontFamily: "Nunito_700Bold", color: Colors.forest, marginBottom: 12, textAlign: "center" },
   welcomeOverlayText: { fontSize: 15, fontFamily: "Inter_400Regular", color: Colors.text, textAlign: "center", lineHeight: 22 },
   productEmoji: { fontSize: 18, marginRight: 4, width: 24 },
   nonGreenSection: { backgroundColor: Colors.background, borderRadius: 12, paddingVertical: 12 },
@@ -950,7 +950,7 @@ const styles = StyleSheet.create({
   section: { paddingHorizontal: 20, paddingTop: 20 },
   scanProductsBtn: { borderRadius: 24, overflow: "hidden" },
   scanProductsBtnGrad: { padding: 24, alignItems: "center", gap: 8 },
-  scanProductsBtnTitle: { fontSize: 20, fontFamily: "DMSans_700Bold", color: "#fff" },
+  scanProductsBtnTitle: { fontSize: 20, fontFamily: "Nunito_700Bold", color: "#fff" },
   scanProductsBtnSub: { fontSize: 13, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.8)" },
   verifiedInlineBadge: {
     flexDirection: "row", alignItems: "center", gap: 4,
@@ -989,7 +989,7 @@ const styles = StyleSheet.create({
   },
   activeSessionCard: { marginHorizontal: 20, backgroundColor: Colors.card, borderRadius: 24, padding: 16, gap: 16 },
   activeSessionTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  activeStoreName: { fontSize: 18, fontFamily: "DMSans_700Bold", color: Colors.text },
+  activeStoreName: { fontSize: 18, fontFamily: "Nunito_700Bold", color: Colors.text },
   activeTimerRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },
   activeTimerText: { fontSize: 13, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
   activePointsBadge: {
@@ -1041,7 +1041,7 @@ const styles = StyleSheet.create({
   },
   dropsBigValue: {
     fontSize: 56,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: Colors.leaf,
     lineHeight: 64,
     textAlign: "center",
