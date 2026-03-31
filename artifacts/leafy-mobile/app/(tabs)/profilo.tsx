@@ -800,6 +800,30 @@ export default function ProfiloScreen() {
         </Pressable>
       </Animated.View>
 
+      <Animated.View entering={FadeInDown.delay(290).springify()} style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <MaterialCommunityIcons name="account-group" size={18} color={theme.leaf} />
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Comunità</Text>
+        </View>
+        <Pressable
+          style={({ pressed }) => [
+            styles.menuRow,
+            { backgroundColor: theme.card, borderColor: theme.border },
+            pressed && { opacity: 0.75 },
+          ]}
+          onPress={() => router.push("/friends")}
+        >
+          <View style={[styles.menuRowIcon, { backgroundColor: theme.primaryLight }]}>
+            <MaterialCommunityIcons name="account-group-outline" size={18} color={theme.leaf} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.menuRowText, { color: theme.text }]}>Amici</Text>
+            <Text style={[styles.menuRowSub, { color: theme.textSecondary }]}>Gestisci i tuoi amici e le richieste</Text>
+          </View>
+          <Feather name="chevron-right" size={16} color={theme.textSecondary} />
+        </Pressable>
+      </Animated.View>
+
       <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.section}>
         <View style={styles.sectionHeader}>
           <Feather name="award" size={18} color={theme.leaf} />
