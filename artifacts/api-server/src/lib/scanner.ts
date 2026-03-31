@@ -121,6 +121,19 @@ export function getCheckinRewards(level: LevelName): { daily: number; finalBonus
   return CHECKIN_REWARDS[level] ?? CHECKIN_REWARDS.Germoglio;
 }
 
+export const GOLD_CHECKIN_REWARDS: Record<LevelName, { daily: { drops: number; lea: number }; finalBonus: { drops: number; lea: number } }> = {
+  Germoglio:  { daily: { drops: 10,  lea: 1  }, finalBonus: { drops: 200,  lea: 5   } },
+  Ramoscello: { daily: { drops: 15,  lea: 2  }, finalBonus: { drops: 300,  lea: 10  } },
+  Arbusto:    { daily: { drops: 20,  lea: 3  }, finalBonus: { drops: 500,  lea: 15  } },
+  Albero:     { daily: { drops: 30,  lea: 5  }, finalBonus: { drops: 800,  lea: 25  } },
+  Foresta:    { daily: { drops: 50,  lea: 10 }, finalBonus: { drops: 1500, lea: 50  } },
+  Giungla:    { daily: { drops: 100, lea: 20 }, finalBonus: { drops: 2500, lea: 100 } },
+};
+
+export function getGoldCheckinRewards(level: LevelName): { daily: { drops: number; lea: number }; finalBonus: { drops: number; lea: number } } {
+  return GOLD_CHECKIN_REWARDS[level] ?? GOLD_CHECKIN_REWARDS.Germoglio;
+}
+
 export const LEVEL_THRESHOLDS: { name: LevelName; minPoints: number }[] = [
   { name: "Germoglio", minPoints: 0 },
   { name: "Ramoscello", minPoints: 500 },
