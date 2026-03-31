@@ -8,4 +8,6 @@ export const Fonts = {
   bodySemiBold: "Inter_600SemiBold",
   bodyMedium: "Inter_500Medium",
   bodyRegular: "Inter_400Regular",
+
+  levelBold: "Nunito_700Bold",
 } as const;
