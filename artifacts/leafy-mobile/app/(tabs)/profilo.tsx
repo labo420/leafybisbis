@@ -830,23 +830,6 @@ export default function ProfiloScreen() {
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Collezione Badge</Text>
         </View>
 
-        <View style={[styles.tabSwitcher, { backgroundColor: theme.cardAlt }]}>
-          <Pressable
-            style={[styles.tab, badgeTab === "traguardi" && [styles.tabActive, { backgroundColor: theme.card }]]}
-            onPress={() => setBadgeTab("traguardi")}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                { color: theme.textSecondary },
-                badgeTab === "traguardi" && [styles.tabTextActive, { color: theme.leaf }],
-              ]}
-            >
-              Traguardi
-            </Text>
-          </Pressable>
-        </View>
-
         <View style={styles.badgeGrid}>
           {lifetimeBadges.length > 0 ? (
             lifetimeBadges.map((badge) => (
