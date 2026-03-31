@@ -8,7 +8,7 @@ import {
   ApplyReferralBody,
   ApplyReferralResponse,
 } from "@workspace/api-zod";
-import { calculateLevel, getCheckinRewards } from "../lib/scanner";
+import { calculateLevel, getCheckinRewards, getGoldCheckinRewards } from "../lib/scanner";
 import { leaToEur } from "../lib/economy";
 
 const router: IRouter = Router();
@@ -320,15 +320,6 @@ router.post("/profile/referral/apply", async (req, res): Promise<void> => {
   }));
 });
 
-const BP_PRIZES: { drops: number; lea: number }[] = [
-  { drops: 50,  lea: 0  },
-  { drops: 0,   lea: 5  },
-  { drops: 75,  lea: 0  },
-  { drops: 0,   lea: 8  },
-  { drops: 100, lea: 0  },
-  { drops: 0,   lea: 10 },
-  { drops: 150, lea: 15 },
-];
 
 router.post("/profile/daily-checkin", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);
@@ -427,12 +418,16 @@ router.post("/profile/daily-checkin-gold", async (req, res): Promise<void> => {
     newBpMonth = null;
   }
 
+  const { level: userLevel } = calculateLevel(user.totalPoints ?? 0);
+  const goldRewards = getGoldCheckinRewards(userLevel);
+
   if (!newBpCompleted) {
     newBpDay = bpLastStr === yesterdayStr ? newBpDay + 1 : 1;
 
     const nextPrizeDay = newBpClaimed + 1;
     if (newBpDay >= nextPrizeDay && newBpClaimed < 7) {
-      bpPrize = BP_PRIZES[newBpClaimed];
+      const isFinalDay = newBpClaimed === 6;
+      bpPrize = isFinalDay ? goldRewards.finalBonus : goldRewards.daily;
       newBpClaimed += 1;
       if (newBpClaimed >= 7) {
         newBpCompleted = true;
@@ -442,6 +437,7 @@ router.post("/profile/daily-checkin-gold", async (req, res): Promise<void> => {
   }
 
   const totalDropsGain = bpPrize?.drops ?? 0;
+  const totalLeaGain = bpPrize?.lea ?? 0;
 
   await db.update(usersTable).set({
     bpStreakDay: newBpDay,
@@ -453,8 +449,8 @@ router.post("/profile/daily-checkin-gold", async (req, res): Promise<void> => {
       drops: sql`xp + ${totalDropsGain}`,
       totalPoints: sql`total_points + ${totalDropsGain}`,
     } : {}),
-    ...(bpPrize && bpPrize.lea > 0 ? {
-      leaBalance: sql`lea_balance + ${bpPrize.lea}`,
+    ...(totalLeaGain > 0 ? {
+      leaBalance: sql`lea_balance + ${totalLeaGain}`,
     } : {}),
   }).where(eq(usersTable.id, user.id));
 

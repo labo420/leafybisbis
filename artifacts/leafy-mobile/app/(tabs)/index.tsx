@@ -123,18 +123,6 @@ const LEVEL_MCI_ICONS: Record<string, React.ComponentProps<typeof MaterialCommun
   Giungla: "palm-tree",
 };
 
-const BP_PRIZES_DISPLAY = [
-  { type: "drops" as const, label: "50" },
-  { type: "lea" as const, label: "5 LEA" },
-  { type: "drops" as const, label: "75" },
-  { type: "lea" as const, label: "8 LEA" },
-  { type: "drops" as const, label: "100" },
-  { type: "lea" as const, label: "10 LEA" },
-  { type: "both" as const, label: "150+15" },
-];
-
-const CHECKIN_STICKER_EMOJIS = ["🌱", "💧", "⚡", "🍃", "💰", "🌟", "🏆"];
-
 const CHECKIN_REWARDS_BY_LEVEL: Record<string, { daily: number; finalBonus: number }> = {
   Germoglio:  { daily: 5,   finalBonus: 100  },
   Ramoscello: { daily: 7,   finalBonus: 150  },
@@ -144,14 +132,28 @@ const CHECKIN_REWARDS_BY_LEVEL: Record<string, { daily: number; finalBonus: numb
   Giungla:    { daily: 50,  finalBonus: 1000 },
 };
 
-function getCheckinStickers(level: string) {
+function getCheckinRewardsForSlots(level: string): { reward: string }[] {
   const r = CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio;
-  return CHECKIN_STICKER_EMOJIS.map((emoji, i) => ({
-    emoji,
+  return Array.from({ length: 7 }, (_, i) => ({
     reward: i === 6 ? `+${r.finalBonus}` : `+${r.daily}`,
   }));
 }
-const GOLD_STICKER_EMOJIS = ["⭐", "🎯", "🔮", "💎", "👑", "🌈", "🎁"];
+
+const GOLD_CHECKIN_REWARDS_BY_LEVEL: Record<string, { daily: { drops: number; lea: number }; finalBonus: { drops: number; lea: number } }> = {
+  Germoglio:  { daily: { drops: 10,  lea: 1  }, finalBonus: { drops: 200,  lea: 5   } },
+  Ramoscello: { daily: { drops: 15,  lea: 2  }, finalBonus: { drops: 300,  lea: 10  } },
+  Arbusto:    { daily: { drops: 20,  lea: 3  }, finalBonus: { drops: 500,  lea: 15  } },
+  Albero:     { daily: { drops: 30,  lea: 5  }, finalBonus: { drops: 800,  lea: 25  } },
+  Foresta:    { daily: { drops: 50,  lea: 10 }, finalBonus: { drops: 1500, lea: 50  } },
+  Giungla:    { daily: { drops: 100, lea: 20 }, finalBonus: { drops: 2500, lea: 100 } },
+};
+
+function getGoldCheckinRewardsForSlots(level: string): { drops: number; lea: number }[] {
+  const r = GOLD_CHECKIN_REWARDS_BY_LEVEL[level] ?? GOLD_CHECKIN_REWARDS_BY_LEVEL.Germoglio;
+  return Array.from({ length: 7 }, (_, i) =>
+    i === 6 ? r.finalBonus : r.daily
+  );
+}
 
 const ICON_BASE_SIZE = 72;
 
@@ -1539,7 +1541,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={streakStyles.stampRow}>
-          {getCheckinStickers(level).map((sticker, i) => {
+          {getCheckinRewardsForSlots(level).map((slot, i) => {
             const done = i < loginStreak;
             const isNext = i === loginStreak && loginStreak < 7;
             const isFinal = i === 6;
@@ -1554,9 +1556,7 @@ export default function HomeScreen() {
                   done ? streakStyles.stickerDone : isNext ? streakStyles.stickerNext : streakStyles.stickerFuture,
                   isNext ? cellBounceStyle : undefined,
                 ]}>
-                  <Text style={[streakStyles.stickerEmoji, !done && !isNext && { opacity: 0.28 }]}>
-                    {sticker.emoji}
-                  </Text>
+                  <XpIcon size={22} />
                   {done && (
                     <View style={streakStyles.stickerBadge}>
                       <Text style={streakStyles.stickerBadgeTick}>✓</Text>
@@ -1564,10 +1564,10 @@ export default function HomeScreen() {
                   )}
                 </Animated.View>
                 <Text style={[streakStyles.stickerReward, { color: done ? "#2E6B50" : "rgba(0,0,0,0.20)" }]}>
-                  {sticker.reward}
+                  {slot.reward}
                 </Text>
                 <Text style={[streakStyles.stickerLabel, { color: done ? "#2E6B50" : "rgba(0,0,0,0.18)" }]}>
-                  {done ? "fatto" : isFinal ? "bonus" : `G${i + 1}`}
+                  {done ? "fatto" : isFinal ? "bonus" : `${i + 1}°`}
                 </Text>
               </Animated.View>
             );
@@ -1577,7 +1577,7 @@ export default function HomeScreen() {
         <View style={[streakStyles.stampFooter, { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(46,107,80,0.09)" }]}>
           <View style={streakStyles.stampFooterLeft}>
             <MaterialCommunityIcons name="fire" size={16} color="#F97316" />
-            <Text style={streakStyles.stampFooterDay}>{loginStreak > 0 ? `${loginStreak} giorni di fila` : "Inizia oggi"}</Text>
+            <Text style={streakStyles.stampFooterDay}>{loginStreak > 0 ? `${loginStreak} ${loginStreak === 1 ? "giorno" : "giorni"} di fila` : "Inizia oggi"}</Text>
           </View>
           <View style={streakStyles.stampFooterReward}>
             <View style={streakStyles.rewardPill}>
@@ -1630,7 +1630,7 @@ export default function HomeScreen() {
           </View>
 
           <View style={streakStyles.stampRow}>
-            {BP_PRIZES_DISPLAY.map((prize, i) => {
+            {getGoldCheckinRewardsForSlots(level).map((prize, i) => {
               const done = i < bpStreakClaimed;
               const isNext = i === bpStreakClaimed && !bpStreakCompleted;
               const isFinal = i === 6;
@@ -1645,9 +1645,10 @@ export default function HomeScreen() {
                     done ? streakStyles.stickerGoldDone : isNext ? streakStyles.stickerGoldNext : streakStyles.stickerGoldFuture,
                     isNext ? goldCellBounceStyle : undefined,
                   ]}>
-                    <Text style={[streakStyles.stickerEmoji, !done && !isNext && { opacity: 0.28 }]}>
-                      {GOLD_STICKER_EMOJIS[i]}
-                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+                      <XpIcon size={14} />
+                      <LeaIcon size={14} />
+                    </View>
                     {done && (
                       <View style={streakStyles.stickerGoldBadge}>
                         <Text style={streakStyles.stickerBadgeTick}>✓</Text>
@@ -1655,10 +1656,10 @@ export default function HomeScreen() {
                     )}
                   </Animated.View>
                   <Text style={[streakStyles.stickerReward, { color: done ? "#B8860B" : "rgba(184,134,11,0.25)" }]}>
-                    +{prize.label}
+                    +{prize.drops}
                   </Text>
                   <Text style={[streakStyles.stickerLabel, { color: done ? "#B8860B" : "rgba(184,134,11,0.22)" }]}>
-                    {done ? "fatto" : isFinal ? "bonus" : `G${i + 1}`}
+                    {done ? "fatto" : isFinal ? "bonus" : `${i + 1}°`}
                   </Text>
                 </Animated.View>
               );
@@ -1672,17 +1673,23 @@ export default function HomeScreen() {
                 {bpStreakCompleted ? "Completata" : `Premio ${bpStreakClaimed}/7`}
               </Text>
             </View>
-            {!bpStreakCompleted && (
-              <View style={streakStyles.stampFooterReward}>
-                <View style={streakStyles.rewardPillGold}>
-                  <Text style={streakStyles.stampGoldFooterRewardText}>
-                    +{BP_PRIZES_DISPLAY[bpStreakClaimed]?.label ?? ""}
-                  </Text>
-                  {(BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "drops" || BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "both") && <XpIcon size={13} />}
-                  {(BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "lea" || BP_PRIZES_DISPLAY[bpStreakClaimed]?.type === "both") && <LeaIcon size={13} />}
+            {!bpStreakCompleted && (() => {
+              const nextPrize = getGoldCheckinRewardsForSlots(level)[bpStreakClaimed];
+              return nextPrize ? (
+                <View style={streakStyles.stampFooterReward}>
+                  <View style={streakStyles.rewardPillGold}>
+                    <Text style={streakStyles.stampGoldFooterRewardText}>
+                      +{nextPrize.drops}
+                    </Text>
+                    <XpIcon size={13} />
+                    <Text style={streakStyles.stampGoldFooterRewardText}>
+                      {" "}+{nextPrize.lea}
+                    </Text>
+                    <LeaIcon size={13} />
+                  </View>
                 </View>
-              </View>
-            )}
+              ) : null;
+            })()}
           </View>
 
           {/* ── OVERLAY CHECK IN GOLD — visibile solo se Gold e non ancora fatto oggi ── */}

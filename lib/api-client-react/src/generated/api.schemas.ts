@@ -84,6 +84,16 @@ export interface GoldCheckinResponse {
   bpPrize?: { drops: number; lea: number } | null;
 }
 
+export interface GoldCheckinRewardEntry {
+  drops: number;
+  lea: number;
+}
+
+export interface GoldCheckinRewards {
+  daily: GoldCheckinRewardEntry;
+  finalBonus: GoldCheckinRewardEntry;
+}
+
 export interface ReferralInfo {
   code: string;
   referralUrl: string;
