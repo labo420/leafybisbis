@@ -108,6 +108,19 @@ export function calculateImpact(greenItemsCount: number, categories: string[]): 
 
 export type LevelName = "Germoglio" | "Ramoscello" | "Arbusto" | "Albero" | "Foresta" | "Giungla";
 
+export const CHECKIN_REWARDS: Record<LevelName, { daily: number; finalBonus: number }> = {
+  Germoglio:  { daily: 5,  finalBonus: 100  },
+  Ramoscello: { daily: 7,  finalBonus: 150  },
+  Arbusto:    { daily: 10, finalBonus: 250  },
+  Albero:     { daily: 15, finalBonus: 400  },
+  Foresta:    { daily: 25, finalBonus: 700  },
+  Giungla:    { daily: 50, finalBonus: 1000 },
+};
+
+export function getCheckinRewards(level: LevelName): { daily: number; finalBonus: number } {
+  return CHECKIN_REWARDS[level] ?? CHECKIN_REWARDS.Germoglio;
+}
+
 export const LEVEL_THRESHOLDS: { name: LevelName; minPoints: number }[] = [
   { name: "Germoglio", minPoints: 0 },
   { name: "Ramoscello", minPoints: 500 },

@@ -133,15 +133,24 @@ const BP_PRIZES_DISPLAY = [
   { type: "both" as const, label: "150+15" },
 ];
 
-const CHECKIN_STICKERS = [
-  { emoji: "🌱", reward: "+20" },
-  { emoji: "💧", reward: "+30" },
-  { emoji: "⚡", reward: "+40" },
-  { emoji: "🍃", reward: "+60" },
-  { emoji: "💰", reward: "+80" },
-  { emoji: "🌟", reward: "+100" },
-  { emoji: "🏆", reward: "+250" },
-];
+const CHECKIN_STICKER_EMOJIS = ["🌱", "💧", "⚡", "🍃", "💰", "🌟", "🏆"];
+
+const CHECKIN_REWARDS_BY_LEVEL: Record<string, { daily: number; finalBonus: number }> = {
+  Germoglio:  { daily: 5,   finalBonus: 100  },
+  Ramoscello: { daily: 7,   finalBonus: 150  },
+  Arbusto:    { daily: 10,  finalBonus: 250  },
+  Albero:     { daily: 15,  finalBonus: 400  },
+  Foresta:    { daily: 25,  finalBonus: 700  },
+  Giungla:    { daily: 50,  finalBonus: 1000 },
+};
+
+function getCheckinStickers(level: string) {
+  const r = CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio;
+  return CHECKIN_STICKER_EMOJIS.map((emoji, i) => ({
+    emoji,
+    reward: i === 6 ? `+${r.finalBonus}` : `+${r.daily}`,
+  }));
+}
 const GOLD_STICKER_EMOJIS = ["⭐", "🎯", "🔮", "💎", "👑", "🌈", "🎁"];
 
 const ICON_BASE_SIZE = 72;
@@ -1149,6 +1158,7 @@ export default function HomeScreen() {
     loginStreak: number;
     bonusAwarded: boolean;
     dropsBonus: number;
+    dailyDrops: number;
     bpPrize: { drops: number; lea: number } | null;
   } | null>(null);
 
@@ -1313,6 +1323,7 @@ export default function HomeScreen() {
           loginStreak: data.loginStreak,
           bonusAwarded: data.bonusAwarded,
           dropsBonus: data.dropsBonus,
+          dailyDrops: data.dailyDrops ?? data.dropsBonus,
           bpPrize: null,
         });
         setTimeout(() => setStreakToast(null), 4500);
@@ -1342,6 +1353,7 @@ export default function HomeScreen() {
           loginStreak: 0,
           bonusAwarded: false,
           dropsBonus: 0,
+          dailyDrops: 0,
           bpPrize: data.bpPrize,
         });
         setTimeout(() => setStreakToast(null), 4500);
@@ -1435,11 +1447,13 @@ export default function HomeScreen() {
               )}
             </View>
           ) : (
-            <Text style={streakStyles.toastSub}>
-              {streakToast.loginStreak === 1
-                ? "Ottimo inizio! Torna domani."
-                : `${7 - streakToast.loginStreak} giorni al prossimo premio.`}
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+              <Text style={streakStyles.toastSub}>+{streakToast.dailyDrops}</Text>
+              <XpIcon size={12} />
+              <Text style={streakStyles.toastSub}>
+                {` · ${7 - streakToast.loginStreak} giorni al bonus`}
+              </Text>
+            </View>
           )}
         </View>
       </Animated.View>
@@ -1525,7 +1539,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={streakStyles.stampRow}>
-          {CHECKIN_STICKERS.map((sticker, i) => {
+          {getCheckinStickers(level).map((sticker, i) => {
             const done = i < loginStreak;
             const isNext = i === loginStreak && loginStreak < 7;
             const isFinal = i === 6;
@@ -1567,7 +1581,7 @@ export default function HomeScreen() {
           </View>
           <View style={streakStyles.stampFooterReward}>
             <View style={streakStyles.rewardPill}>
-              <Text style={streakStyles.stampFooterRewardText}>+250</Text>
+              <Text style={streakStyles.stampFooterRewardText}>+{(CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio).finalBonus}</Text>
               <XpIcon size={14} />
             </View>
           </View>

@@ -8,7 +8,7 @@ import {
   ApplyReferralBody,
   ApplyReferralResponse,
 } from "@workspace/api-zod";
-import { calculateLevel } from "../lib/scanner";
+import { calculateLevel, getCheckinRewards } from "../lib/scanner";
 import { leaToEur } from "../lib/economy";
 
 const router: IRouter = Router();
@@ -355,28 +355,29 @@ router.post("/profile/daily-checkin", async (req, res): Promise<void> => {
 
   // ── Classic streak only ──
   const STREAK_MAX = 7;
-  const STREAK_BONUS_XP = 250;
   const prevStreak = user.loginStreak ?? 0;
   let newStreak = lastStr === yesterdayStr ? prevStreak + 1 : 1;
   const classicBonusAwarded = newStreak >= STREAK_MAX;
   if (classicBonusAwarded) newStreak = 1;
 
-  const dropsGain = classicBonusAwarded ? STREAK_BONUS_XP : 0;
+  const { level: userLevel } = calculateLevel(user.totalPoints ?? 0);
+  const rewards = getCheckinRewards(userLevel);
+  const dailyDrops = rewards.daily;
+  const dropsGain = classicBonusAwarded ? rewards.finalBonus : dailyDrops;
 
   await db.update(usersTable).set({
     loginStreak: newStreak,
     lastLoginDate: today,
-    ...(dropsGain > 0 ? {
-      drops: sql`xp + ${dropsGain}`,
-      totalPoints: sql`total_points + ${dropsGain}`,
-    } : {}),
+    drops: sql`xp + ${dropsGain}`,
+    totalPoints: sql`total_points + ${dropsGain}`,
   }).where(eq(usersTable.id, user.id));
 
   res.json({
     alreadyCheckedIn: false,
     loginStreak: newStreak,
     bonusAwarded: classicBonusAwarded,
-    dropsBonus: classicBonusAwarded ? STREAK_BONUS_XP : 0,
+    dropsBonus: classicBonusAwarded ? rewards.finalBonus : 0,
+    dailyDrops: dropsGain,
   });
 });
 
