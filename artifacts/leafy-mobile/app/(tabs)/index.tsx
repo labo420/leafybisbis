@@ -1655,9 +1655,18 @@ export default function HomeScreen() {
                       </View>
                     )}
                   </Animated.View>
-                  <Text style={[streakStyles.stickerReward, { color: done ? "#B8860B" : "rgba(184,134,11,0.25)" }]}>
-                    +{prize.drops}
-                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 1 }}>
+                    <Text style={[streakStyles.stickerReward, { color: done ? "#B8860B" : "rgba(184,134,11,0.25)" }]}>
+                      +{prize.drops}
+                    </Text>
+                    <XpIcon size={9} />
+                  </View>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 1 }}>
+                    <Text style={[streakStyles.stickerReward, { color: done ? "#B8860B" : "rgba(184,134,11,0.25)" }]}>
+                      +{prize.lea}
+                    </Text>
+                    <LeaIcon size={9} />
+                  </View>
                   <Text style={[streakStyles.stickerLabel, { color: done ? "#B8860B" : "rgba(184,134,11,0.22)" }]}>
                     {done ? "fatto" : isFinal ? "bonus" : `${i + 1}°`}
                   </Text>
