@@ -127,7 +127,14 @@ function AcceptedStoresSection() {
       {open && (
         <View style={[styles.storesList, { borderTopWidth: 1, borderTopColor: theme.border }]}>
           <View style={styles.storesCategory}>
-            <Text style={[styles.storesCatList, { color: theme.textSecondary }]}>{[...data.standard, ...data.discount].join(", ")}</Text>
+            <Text style={[styles.storesCatList, { color: theme.textSecondary }]}>
+              {(() => {
+                const allStores = [...data.standard, ...data.discount].filter(s => s && s.trim());
+                if (allStores.length === 0) return "";
+                if (allStores.length === 1) return allStores[0];
+                return allStores.slice(0, -1).join(", ") + " e " + allStores[allStores.length - 1];
+              })()}
+            </Text>
           </View>
         </View>
       )}
