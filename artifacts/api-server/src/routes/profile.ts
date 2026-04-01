@@ -368,7 +368,7 @@ router.post("/profile/daily-checkin", async (req, res): Promise<void> => {
     alreadyCheckedIn: false,
     loginStreak: newStreak,
     bonusAwarded: classicBonusAwarded,
-    dropsBonus: classicBonusAwarded ? rewards.finalBonus : 0,
+    dropsBonus: classicBonusAwarded ? rewards.finalBonus + rewards.daily : 0,
     dailyDrops: dropsGain,
   });
 });
