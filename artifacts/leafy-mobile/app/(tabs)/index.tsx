@@ -171,6 +171,12 @@ const CAN_PIVOT = 14;
 const DROP_TOP = 49;
 const DROP_LEFT = RING_SIZE / 2 + 11;
 const DROP_TRAVEL = 40;
+const BUBBLE_SIZE = 72;
+const BUBBLE_TOP = DROP_TOP + DROP_TRAVEL - BUBBLE_SIZE / 2;
+const BUBBLE_LEFT = RING_SIZE / 2 - BUBBLE_SIZE / 2;
+const BURST_P_SIZE = 9;
+const BURST_CENTER_TOP = BUBBLE_TOP + BUBBLE_SIZE / 2 - BURST_P_SIZE / 2;
+const BURST_CENTER_LEFT = BUBBLE_LEFT + BUBBLE_SIZE / 2 - BURST_P_SIZE / 2;
 
 function LevelProgressRing({
   progress,
@@ -285,6 +291,10 @@ function LevelProgressRing({
   const dropY = useSharedValue(0);
   const bubbleOpacity = useSharedValue(0);
   const bubbleScale = useSharedValue(0);
+  const bubbleX = useSharedValue(0);
+  const bubbleY = useSharedValue(0);
+  const bubbleRotate = useSharedValue(0);
+  const burstProgress = useSharedValue(0);
   const [earnedDropsDelta, setEarnedDropsDelta] = useState(0);
 
   const canAnimStyle = useAnimatedStyle(() => ({
@@ -304,8 +314,33 @@ function LevelProgressRing({
   }));
   const bubbleAnimStyle = useAnimatedStyle(() => ({
     opacity: bubbleOpacity.value,
-    transform: [{ scale: bubbleScale.value }],
+    transform: [
+      { translateX: bubbleX.value },
+      { translateY: bubbleY.value },
+      { scale: bubbleScale.value },
+      { rotate: `${bubbleRotate.value}deg` },
+    ],
   }));
+  const burst0Style = useAnimatedStyle(() => {
+    const p = burstProgress.value;
+    return { opacity: p > 0 ? Math.max(0, 1 - p * 1.6) : 0, transform: [{ translateX: bubbleX.value }, { translateY: bubbleY.value + p * (-26) }] };
+  });
+  const burst1Style = useAnimatedStyle(() => {
+    const p = burstProgress.value;
+    return { opacity: p > 0 ? Math.max(0, 1 - p * 1.6) : 0, transform: [{ translateX: bubbleX.value + p * 24 }, { translateY: bubbleY.value + p * (-17) }] };
+  });
+  const burst2Style = useAnimatedStyle(() => {
+    const p = burstProgress.value;
+    return { opacity: p > 0 ? Math.max(0, 1 - p * 1.6) : 0, transform: [{ translateX: bubbleX.value + p * 28 }, { translateY: bubbleY.value + p * 4 }] };
+  });
+  const burst3Style = useAnimatedStyle(() => {
+    const p = burstProgress.value;
+    return { opacity: p > 0 ? Math.max(0, 1 - p * 1.6) : 0, transform: [{ translateX: bubbleX.value + p * (-24) }, { translateY: bubbleY.value + p * (-17) }] };
+  });
+  const burst4Style = useAnimatedStyle(() => {
+    const p = burstProgress.value;
+    return { opacity: p > 0 ? Math.max(0, 1 - p * 1.6) : 0, transform: [{ translateX: bubbleX.value + p * (-28) }, { translateY: bubbleY.value + p * 4 }] };
+  });
 
   // ── Main animation logic ──
   useEffect(() => {
@@ -372,21 +407,56 @@ function LevelProgressRing({
         withTiming(0, { duration: 0 }),
       );
 
-      // Fumetto drops: appare a 500ms con effetto pop, svanisce all'atterraggio
+      // Bolla di sapone: nasce all'atterraggio (1970ms), vola ondulando verso l'alto e scoppia
       const delta = points - prev;
       setEarnedDropsDelta(delta > 0 ? delta : 0);
       bubbleScale.value = 0;
       bubbleOpacity.value = 0;
-      bubbleScale.value = withDelay(500, withSequence(
-        withTiming(1.15, { duration: 200, easing: Easing.out(Easing.back(1.8)) }),
-        withTiming(1, { duration: 130 }),
-        withTiming(1, { duration: 1100 }),
-        withTiming(0, { duration: 220 }),
+      bubbleX.value = 0;
+      bubbleY.value = 0;
+      bubbleRotate.value = 0;
+      burstProgress.value = 0;
+      bubbleScale.value = withDelay(1970, withSequence(
+        withTiming(1.12, { duration: 180, easing: Easing.out(Easing.back(2.2)) }),
+        withTiming(0.96, { duration: 100 }),
+        withTiming(1,    { duration: 120 }),
+        withTiming(1,    { duration: 1100 }),
+        withTiming(1.72, { duration: 250 }),
+        withTiming(0,    { duration: 0 }),
       ));
-      bubbleOpacity.value = withDelay(500, withSequence(
-        withTiming(1, { duration: 160 }),
-        withTiming(1, { duration: 1270 }),
-        withTiming(0, { duration: 220 }),
+      bubbleOpacity.value = withDelay(1970, withSequence(
+        withTiming(1, { duration: 200 }),
+        withTiming(1, { duration: 1400 }),
+        withTiming(0, { duration: 250 }),
+        withTiming(0, { duration: 0 }),
+      ));
+      bubbleY.value = withDelay(1970, withSequence(
+        withTiming(0,   { duration: 400 }),
+        withTiming(-70, { duration: 1100, easing: Easing.out(Easing.ease) }),
+        withTiming(-80, { duration: 250 }),
+        withTiming(0,   { duration: 0 }),
+      ));
+      bubbleX.value = withDelay(1970, withSequence(
+        withTiming(0,   { duration: 400 }),
+        withTiming(13,  { duration: 275 }),
+        withTiming(0,   { duration: 275 }),
+        withTiming(-13, { duration: 275 }),
+        withTiming(0,   { duration: 275 }),
+        withTiming(8,   { duration: 250 }),
+        withTiming(0,   { duration: 0 }),
+      ));
+      bubbleRotate.value = withDelay(1970, withSequence(
+        withTiming(0,  { duration: 400 }),
+        withTiming(4,  { duration: 275 }),
+        withTiming(0,  { duration: 275 }),
+        withTiming(-4, { duration: 275 }),
+        withTiming(0,  { duration: 275 }),
+        withTiming(3,  { duration: 250 }),
+        withTiming(0,  { duration: 0 }),
+      ));
+      burstProgress.value = withDelay(3470, withSequence(
+        withTiming(1, { duration: 300 }),
+        withTiming(0, { duration: 0 }),
       ));
 
       // Haptic all'atterraggio goccia (1970ms)
@@ -484,21 +554,56 @@ function LevelProgressRing({
         withTiming(0, { duration: 0 }),
       );
 
-      // Fumetto drops: appare a 500ms con effetto pop, svanisce all'atterraggio
+      // Bolla di sapone: nasce all'atterraggio (1970ms), vola ondulando verso l'alto e scoppia
       const deltaC = points - prev;
       setEarnedDropsDelta(deltaC > 0 ? deltaC : 0);
       bubbleScale.value = 0;
       bubbleOpacity.value = 0;
-      bubbleScale.value = withDelay(500, withSequence(
-        withTiming(1.15, { duration: 200, easing: Easing.out(Easing.back(1.8)) }),
-        withTiming(1, { duration: 130 }),
-        withTiming(1, { duration: 1100 }),
-        withTiming(0, { duration: 220 }),
+      bubbleX.value = 0;
+      bubbleY.value = 0;
+      bubbleRotate.value = 0;
+      burstProgress.value = 0;
+      bubbleScale.value = withDelay(1970, withSequence(
+        withTiming(1.12, { duration: 180, easing: Easing.out(Easing.back(2.2)) }),
+        withTiming(0.96, { duration: 100 }),
+        withTiming(1,    { duration: 120 }),
+        withTiming(1,    { duration: 1100 }),
+        withTiming(1.72, { duration: 250 }),
+        withTiming(0,    { duration: 0 }),
       ));
-      bubbleOpacity.value = withDelay(500, withSequence(
-        withTiming(1, { duration: 160 }),
-        withTiming(1, { duration: 1270 }),
-        withTiming(0, { duration: 220 }),
+      bubbleOpacity.value = withDelay(1970, withSequence(
+        withTiming(1, { duration: 200 }),
+        withTiming(1, { duration: 1400 }),
+        withTiming(0, { duration: 250 }),
+        withTiming(0, { duration: 0 }),
+      ));
+      bubbleY.value = withDelay(1970, withSequence(
+        withTiming(0,   { duration: 400 }),
+        withTiming(-70, { duration: 1100, easing: Easing.out(Easing.ease) }),
+        withTiming(-80, { duration: 250 }),
+        withTiming(0,   { duration: 0 }),
+      ));
+      bubbleX.value = withDelay(1970, withSequence(
+        withTiming(0,   { duration: 400 }),
+        withTiming(13,  { duration: 275 }),
+        withTiming(0,   { duration: 275 }),
+        withTiming(-13, { duration: 275 }),
+        withTiming(0,   { duration: 275 }),
+        withTiming(8,   { duration: 250 }),
+        withTiming(0,   { duration: 0 }),
+      ));
+      bubbleRotate.value = withDelay(1970, withSequence(
+        withTiming(0,  { duration: 400 }),
+        withTiming(4,  { duration: 275 }),
+        withTiming(0,  { duration: 275 }),
+        withTiming(-4, { duration: 275 }),
+        withTiming(0,  { duration: 275 }),
+        withTiming(3,  { duration: 250 }),
+        withTiming(0,  { duration: 0 }),
+      ));
+      burstProgress.value = withDelay(3470, withSequence(
+        withTiming(1, { duration: 300 }),
+        withTiming(0, { duration: 0 }),
       ));
 
       // Quando la goccia atterra (~1970ms): barra, contatore e badge crescono insieme
@@ -676,12 +781,23 @@ function LevelProgressRing({
           resizeMode="contain"
         />
 
-        {/* Fumetto drops guadagnati */}
+        {/* Bolla di sapone: nasce all'atterraggio, vola verso l'alto e scoppia */}
         {earnedDropsDelta > 0 && (
-          <Animated.View style={[ringStyles.dropsBubble, bubbleAnimStyle, { backgroundColor: onDark ? "#51B888" : "#2E6B50" }]}>
-            <Text style={ringStyles.dropsBubbleText}>+{new Intl.NumberFormat("it-IT").format(earnedDropsDelta)} 💧</Text>
-            <View style={[ringStyles.dropsBubbleTail, { borderLeftColor: onDark ? "#51B888" : "#2E6B50" }]} />
-          </Animated.View>
+          <>
+            <Animated.View style={[ringStyles.soapBubble, bubbleAnimStyle]}>
+              <View style={ringStyles.soapLayer1} />
+              <View style={ringStyles.soapLayer2} />
+              <View style={ringStyles.soapShine} />
+              <Text style={ringStyles.soapBubbleText}>
+                +{new Intl.NumberFormat("it-IT").format(earnedDropsDelta)} 💧
+              </Text>
+            </Animated.View>
+            <Animated.View style={[ringStyles.burstParticle, { backgroundColor: "#c77dff" }, burst0Style]} />
+            <Animated.View style={[ringStyles.burstParticle, { backgroundColor: "#48cae4" }, burst1Style]} />
+            <Animated.View style={[ringStyles.burstParticle, { backgroundColor: "#06d6a0" }, burst2Style]} />
+            <Animated.View style={[ringStyles.burstParticle, { backgroundColor: "#ff6b9d" }, burst3Style]} />
+            <Animated.View style={[ringStyles.burstParticle, { backgroundColor: "#ffd60a" }, burst4Style]} />
+          </>
         )}
       </View>
 
@@ -748,34 +864,62 @@ const ringStyles = StyleSheet.create({
     height: 19,
     zIndex: 10,
   },
-  dropsBubble: {
+  soapBubble: {
     position: "absolute",
-    top: CAN_TOP - 10,
-    left: 4,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    zIndex: 20,
-    flexDirection: "row",
+    top: BUBBLE_TOP,
+    left: BUBBLE_LEFT,
+    width: BUBBLE_SIZE,
+    height: BUBBLE_SIZE,
+    borderRadius: BUBBLE_SIZE / 2,
+    backgroundColor: "rgba(130, 80, 255, 0.16)",
+    borderWidth: 1.5,
+    borderColor: "rgba(255, 255, 255, 0.42)",
+    overflow: "hidden",
     alignItems: "center",
+    justifyContent: "center",
+    zIndex: 25,
+    shadowColor: "#a855f7",
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 6,
   },
-  dropsBubbleTail: {
+  soapLayer1: {
     position: "absolute",
-    right: -9,
-    top: 9,
-    width: 0,
-    height: 0,
-    borderTopWidth: 7,
-    borderTopColor: "transparent",
-    borderBottomWidth: 7,
-    borderBottomColor: "transparent",
-    borderLeftWidth: 10,
+    top: 10, left: 10, right: -22, bottom: -22,
+    borderRadius: 36,
+    backgroundColor: "rgba(56, 189, 248, 0.14)",
   },
-  dropsBubbleText: {
-    color: "#fff",
+  soapLayer2: {
+    position: "absolute",
+    top: -10, left: -10, right: 10, bottom: 10,
+    borderRadius: 36,
+    backgroundColor: "rgba(16, 185, 129, 0.11)",
+  },
+  soapShine: {
+    position: "absolute",
+    top: 9, left: 13,
+    width: 18, height: 11,
+    borderRadius: 9,
+    backgroundColor: "rgba(255, 255, 255, 0.65)",
+  },
+  soapBubbleText: {
+    color: "rgba(255, 255, 255, 0.95)",
     fontSize: 13,
     fontFamily: "Nunito_700Bold",
-    letterSpacing: 0.2,
+    textShadowColor: "rgba(168, 85, 247, 0.9)",
+    textShadowRadius: 6,
+    textShadowOffset: { width: 0, height: 0 },
+    zIndex: 1,
+  },
+  burstParticle: {
+    position: "absolute",
+    top: BURST_CENTER_TOP,
+    left: BURST_CENTER_LEFT,
+    width: BURST_P_SIZE,
+    height: BURST_P_SIZE,
+    borderRadius: BURST_P_SIZE / 2,
+    zIndex: 26,
   },
   outerBorder: {
     position: "absolute",
