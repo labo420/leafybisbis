@@ -193,7 +193,7 @@ function LevelProgressRing({
 }) {
   const { mode } = useTheme();
   const { levelUpPhase, levelUpToLevel, setRingLayout } = useLevelUp();
-  const { scheduleDropsAnimation } = useAuth();
+  const { scheduleDropsAnimation, dropsBarLayoutRef } = useAuth();
   const onDark = mode === "dark";
   const trackColor = onDark ? "rgba(255,255,255,0.15)" : "rgba(46,107,80,0.13)";
   const borderColor = onDark ? "rgba(255,255,255,0.20)" : "rgba(46,107,80,0.22)";
@@ -250,6 +250,8 @@ function LevelProgressRing({
   const rafRef = useRef<number | null>(null);
   const progTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hapticTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suckinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bubbleRef = useRef<any>(null);
 
   const animateProgress = useCallback((from: number, to: number, durationMs = 800) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -296,6 +298,10 @@ function LevelProgressRing({
   const bubbleY = useSharedValue(0);
   const bubbleRotate = useSharedValue(0);
   const burstProgress = useSharedValue(0);
+  const contentSuckX = useSharedValue(0);
+  const contentSuckY = useSharedValue(0);
+  const contentSuckScale = useSharedValue(1);
+  const contentSuckOpacity = useSharedValue(1);
   const [earnedDropsDelta, setEarnedDropsDelta] = useState(0);
 
   const canAnimStyle = useAnimatedStyle(() => ({
@@ -342,6 +348,14 @@ function LevelProgressRing({
     const p = burstProgress.value;
     return { opacity: p > 0 ? Math.max(0, 1 - p * 1.6) : 0, transform: [{ translateX: bubbleX.value + p * (-28) }, { translateY: bubbleY.value + p * 4 }] };
   });
+  const contentSuckAnimStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: contentSuckX.value },
+      { translateY: contentSuckY.value },
+      { scale: contentSuckScale.value },
+    ],
+    opacity: contentSuckOpacity.value,
+  }));
 
   // ── Main animation logic ──
   useEffect(() => {
@@ -417,6 +431,10 @@ function LevelProgressRing({
       bubbleY.value = 0;
       bubbleRotate.value = 0;
       burstProgress.value = 0;
+      contentSuckX.value = 0;
+      contentSuckY.value = 0;
+      contentSuckScale.value = 1;
+      contentSuckOpacity.value = 1;
       bubbleScale.value = withDelay(1970, withSequence(
         withTiming(1,   { duration: 180, easing: Easing.out(Easing.ease) }),
         withTiming(1,   { duration: 1320 }),
@@ -445,6 +463,21 @@ function LevelProgressRing({
         withTiming(0, { duration: 0 }),
       ));
       scheduleDropsAnimation(prev, points, 3470);
+      if (suckinTimeoutRef.current) clearTimeout(suckinTimeoutRef.current);
+      suckinTimeoutRef.current = setTimeout(() => {
+        (bubbleRef.current as any)?.measureInWindow((bx: number, by: number, bw: number, bh: number) => {
+          const layout = dropsBarLayoutRef.current;
+          if (!layout || bw === 0) return;
+          const bubbleCX = bx + bw / 2;
+          const bubbleCY = by + bh / 2;
+          const targetCX = layout.x + layout.width / 2;
+          const targetCY = layout.y + layout.height / 2;
+          contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckOpacity.value = withTiming(0, { duration: 200 });
+        });
+      }, 3400);
 
       // Haptic all'atterraggio goccia (1970ms)
       hapticTimeoutRef.current = setTimeout(() => {
@@ -492,6 +525,7 @@ function LevelProgressRing({
       return () => {
         if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
         if (hapticTimeoutRef.current) clearTimeout(hapticTimeoutRef.current);
+        if (suckinTimeoutRef.current) clearTimeout(suckinTimeoutRef.current);
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
         if (pointsRafRef.current) cancelAnimationFrame(pointsRafRef.current);
       };
@@ -550,6 +584,10 @@ function LevelProgressRing({
       bubbleY.value = 0;
       bubbleRotate.value = 0;
       burstProgress.value = 0;
+      contentSuckX.value = 0;
+      contentSuckY.value = 0;
+      contentSuckScale.value = 1;
+      contentSuckOpacity.value = 1;
       bubbleScale.value = withDelay(1970, withSequence(
         withTiming(1,   { duration: 180, easing: Easing.out(Easing.ease) }),
         withTiming(1,   { duration: 1320 }),
@@ -578,6 +616,21 @@ function LevelProgressRing({
         withTiming(0, { duration: 0 }),
       ));
       scheduleDropsAnimation(prev, points, 3470);
+      if (suckinTimeoutRef.current) clearTimeout(suckinTimeoutRef.current);
+      suckinTimeoutRef.current = setTimeout(() => {
+        (bubbleRef.current as any)?.measureInWindow((bx: number, by: number, bw: number, bh: number) => {
+          const layout = dropsBarLayoutRef.current;
+          if (!layout || bw === 0) return;
+          const bubbleCX = bx + bw / 2;
+          const bubbleCY = by + bh / 2;
+          const targetCX = layout.x + layout.width / 2;
+          const targetCY = layout.y + layout.height / 2;
+          contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckOpacity.value = withTiming(0, { duration: 200 });
+        });
+      }, 3400);
 
       // Quando la goccia atterra (~1970ms): barra, contatore e badge crescono insieme
       iconScale.value = withDelay(
@@ -602,6 +655,7 @@ function LevelProgressRing({
     return () => {
       if (progTimeoutRef.current) clearTimeout(progTimeoutRef.current);
       if (hapticTimeoutRef.current) clearTimeout(hapticTimeoutRef.current);
+      if (suckinTimeoutRef.current) clearTimeout(suckinTimeoutRef.current);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (pointsRafRef.current) cancelAnimationFrame(pointsRafRef.current);
     };
@@ -757,13 +811,15 @@ function LevelProgressRing({
         {/* Bolla di sapone: nasce all'atterraggio, vola verso l'alto e scoppia */}
         {earnedDropsDelta > 0 && (
           <>
-            <Animated.View style={[ringStyles.soapBubble, bubbleAnimStyle]}>
+            <Animated.View ref={bubbleRef} style={[ringStyles.soapBubble, bubbleAnimStyle]}>
               <View style={ringStyles.soapLayer1} />
               <View style={ringStyles.soapLayer2} />
               <View style={ringStyles.soapShine} />
-              <Text style={ringStyles.soapBubbleText}>
-                +{new Intl.NumberFormat("it-IT").format(earnedDropsDelta)} 💧
-              </Text>
+              <Animated.View style={contentSuckAnimStyle}>
+                <Text style={ringStyles.soapBubbleText}>
+                  +{new Intl.NumberFormat("it-IT").format(earnedDropsDelta)} 💧
+                </Text>
+              </Animated.View>
             </Animated.View>
             <Animated.View style={[ringStyles.burstParticle, { backgroundColor: "#c77dff" }, burst0Style]} />
             <Animated.View style={[ringStyles.burstParticle, { backgroundColor: "#48cae4" }, burst1Style]} />
