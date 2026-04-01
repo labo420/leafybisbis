@@ -407,7 +407,7 @@ function LevelProgressRing({
         withTiming(0, { duration: 0 }),
       );
 
-      // Bolla di sapone: nasce all'atterraggio (1970ms), vola ondulando verso l'alto e scoppia
+      // Bolla di sapone: nasce all'atterraggio (1970ms), vola in obliquo verso destra e scoppia
       const delta = points - prev;
       setEarnedDropsDelta(delta > 0 ? delta : 0);
       bubbleScale.value = 0;
@@ -423,7 +423,7 @@ function LevelProgressRing({
         withTiming(0,   { duration: 0 }),
       ));
       bubbleOpacity.value = withDelay(1970, withSequence(
-        withTiming(1, { duration: 180 }),
+        withTiming(1, { duration: 180, easing: Easing.out(Easing.ease) }),
         withTiming(1, { duration: 1320 }),
         withTiming(0, { duration: 250 }),
         withTiming(0, { duration: 0 }),
@@ -537,7 +537,7 @@ function LevelProgressRing({
         withTiming(0, { duration: 0 }),
       );
 
-      // Bolla di sapone: nasce all'atterraggio (1970ms), vola ondulando verso l'alto e scoppia
+      // Bolla di sapone: nasce all'atterraggio (1970ms), vola in obliquo verso destra e scoppia
       const deltaC = points - prev;
       setEarnedDropsDelta(deltaC > 0 ? deltaC : 0);
       bubbleScale.value = 0;
@@ -553,7 +553,7 @@ function LevelProgressRing({
         withTiming(0,   { duration: 0 }),
       ));
       bubbleOpacity.value = withDelay(1970, withSequence(
-        withTiming(1, { duration: 180 }),
+        withTiming(1, { duration: 180, easing: Easing.out(Easing.ease) }),
         withTiming(1, { duration: 1320 }),
         withTiming(0, { duration: 250 }),
         withTiming(0, { duration: 0 }),
