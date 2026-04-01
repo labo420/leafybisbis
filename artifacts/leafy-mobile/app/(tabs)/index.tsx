@@ -193,6 +193,7 @@ function LevelProgressRing({
 }) {
   const { mode } = useTheme();
   const { levelUpPhase, levelUpToLevel, setRingLayout } = useLevelUp();
+  const { scheduleDropsAnimation } = useAuth();
   const onDark = mode === "dark";
   const trackColor = onDark ? "rgba(255,255,255,0.15)" : "rgba(46,107,80,0.13)";
   const borderColor = onDark ? "rgba(255,255,255,0.20)" : "rgba(46,107,80,0.22)";
@@ -1313,7 +1314,7 @@ const lbCardStyles = StyleSheet.create({
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { user, syncBalances, scheduleDropsAnimation } = useAuth();
+  const { user, syncBalances } = useAuth();
   const { theme, mode } = useTheme();
   const queryClient = useQueryClient();
   const [isHomeFocused, setIsHomeFocused] = React.useState(true);
