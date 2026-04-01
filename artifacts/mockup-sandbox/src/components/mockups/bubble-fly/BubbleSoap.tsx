@@ -1,13 +1,27 @@
 export function BubbleSoap() {
   const css = `
     @keyframes bsFly {
-      0%   { opacity:0; transform:translateY(0) scale(0); }
-      8%   { opacity:0.95; transform:translateY(0) scale(1.1); }
-      14%  { opacity:0.95; transform:translateY(0) scale(0.94); }
-      19%  { opacity:0.95; transform:translateY(0) scale(1); }
-      73%  { opacity:0.95; transform:translateY(-80px) scale(1); }
-      85%  { opacity:0; transform:translateY(-96px) scale(1.8); }
-      100% { opacity:0; transform:translateY(0) scale(0); }
+      0%   { opacity:0;    transform:translate(0px,    0px)   scale(0)   rotate(0deg); }
+      8%   { opacity:0.95; transform:translate(0px,    0px)   scale(1.1) rotate(0deg); }
+      14%  { opacity:0.95; transform:translate(0px,    0px)   scale(0.94) rotate(0deg); }
+      19%  { opacity:0.95; transform:translate(0px,    0px)   scale(1)   rotate(0deg); }
+      30%  { opacity:0.95; transform:translate(13px,  -18px)  scale(1)   rotate(5deg); }
+      40%  { opacity:0.95; transform:translate(0px,   -36px)  scale(1)   rotate(0deg); }
+      52%  { opacity:0.95; transform:translate(-14px, -55px)  scale(1)   rotate(-5deg); }
+      62%  { opacity:0.95; transform:translate(0px,   -68px)  scale(1)   rotate(0deg); }
+      73%  { opacity:0.95; transform:translate(8px,   -80px)  scale(1)   rotate(3deg); }
+      85%  { opacity:0;    transform:translate(8px,   -96px)  scale(1.8) rotate(3deg); }
+      100% { opacity:0;    transform:translate(0px,    0px)   scale(0)   rotate(0deg); }
+    }
+    @keyframes bsSquish {
+      0%,19% { transform:scaleX(1) scaleY(1) }
+      30%    { transform:scaleX(0.91) scaleY(1.07) }
+      40%    { transform:scaleX(1) scaleY(1) }
+      52%    { transform:scaleX(0.91) scaleY(1.07) }
+      62%    { transform:scaleX(1) scaleY(1) }
+      73%    { transform:scaleX(1.04) scaleY(0.97) }
+      85%    { transform:scaleX(1.8) scaleY(1.8) }
+      100%   { transform:scaleX(1) scaleY(1) }
     }
     @keyframes bsP1 { 0%,72%{opacity:0;transform:translate(0,0)scale(0)} 75%{opacity:1;transform:translate(0,0)scale(1)} 88%{opacity:0;transform:translate(0,-26px)scale(0.3)} 100%{opacity:0} }
     @keyframes bsP2 { 0%,72%{opacity:0;transform:translate(0,0)scale(0)} 75%{opacity:1;transform:translate(0,0)scale(1)} 88%{opacity:0;transform:translate(23px,-17px)scale(0.3)} 100%{opacity:0} }
@@ -33,10 +47,10 @@ export function BubbleSoap() {
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, background: "#1a1a2e" }}>
       <style>{css}</style>
       <div style={{ position: "relative", width: 240, height: 260 }}>
-        {/* Rainbow burst particles */}
+        {/* Rainbow burst particles — centrate sul punto di scoppio: left:124, bottom:171 */}
         {particleAnims.map((anim, i) => (
           <div key={i} style={{
-            position: "absolute", left: 116, bottom: 154,
+            position: "absolute", left: 124, bottom: 171,
             width: 8, height: 8, borderRadius: "50%", background: particleColors[i],
             boxShadow: `0 0 6px ${particleColors[i]}`,
             animation: `${anim} ${dur} ${ease} ${inf}`,
@@ -58,6 +72,7 @@ export function BubbleSoap() {
             display: "flex", alignItems: "center", justifyContent: "center",
             position: "relative",
             boxShadow: "0 0 18px rgba(180,120,255,0.4), inset 0 0 12px rgba(255,255,255,0.15)",
+            animation: `bsSquish ${dur} ${ease} ${inf}`,
           }}>
             {/* Shine highlight */}
             <div style={{
