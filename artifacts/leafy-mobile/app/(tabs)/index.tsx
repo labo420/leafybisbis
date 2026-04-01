@@ -443,6 +443,7 @@ function LevelProgressRing({
         withTiming(1, { duration: 300 }),
         withTiming(0, { duration: 0 }),
       ));
+      scheduleDropsAnimation(prev, points, 3470);
 
       // Haptic all'atterraggio goccia (1970ms)
       hapticTimeoutRef.current = setTimeout(() => {
@@ -575,6 +576,7 @@ function LevelProgressRing({
         withTiming(1, { duration: 300 }),
         withTiming(0, { duration: 0 }),
       ));
+      scheduleDropsAnimation(prev, points, 3470);
 
       // Quando la goccia atterra (~1970ms): barra, contatore e badge crescono insieme
       iconScale.value = withDelay(
@@ -1311,7 +1313,7 @@ const lbCardStyles = StyleSheet.create({
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { user, syncBalances } = useAuth();
+  const { user, syncBalances, scheduleDropsAnimation } = useAuth();
   const { theme, mode } = useTheme();
   const queryClient = useQueryClient();
   const [isHomeFocused, setIsHomeFocused] = React.useState(true);

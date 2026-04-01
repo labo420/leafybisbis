@@ -106,7 +106,37 @@ function FloatingScanButton({ focused }: { focused: boolean }) {
 }
 
 function BalanceBar() {
-  const { user, drops, leaBalance } = useAuth();
+  const { user, drops, leaBalance, dropsAnimSignal, dropsFrozen } = useAuth();
+  const [displayDrops, setDisplayDrops] = React.useState(drops);
+  const displayDropsRef = React.useRef(drops);
+  const dropsRafRef = React.useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
+
+  React.useEffect(() => {
+    if (dropsFrozen) return;
+    if (dropsRafRef.current != null) cancelAnimationFrame(dropsRafRef.current);
+    displayDropsRef.current = drops;
+    setDisplayDrops(drops);
+  }, [drops, dropsFrozen]);
+
+  React.useEffect(() => {
+    if (!dropsAnimSignal) return;
+    const { from, to } = dropsAnimSignal;
+    if (dropsRafRef.current != null) cancelAnimationFrame(dropsRafRef.current);
+    const start = Date.now();
+    const duration = 700;
+    const step = () => {
+      const elapsed = Date.now() - start;
+      const t = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = Math.round(from + eased * (to - from));
+      displayDropsRef.current = val;
+      setDisplayDrops(val);
+      if (t < 1) {
+        dropsRafRef.current = requestAnimationFrame(step);
+      }
+    };
+    dropsRafRef.current = requestAnimationFrame(step);
+  }, [dropsAnimSignal]);
 
   if (!user) return null;
 
@@ -115,7 +145,7 @@ function BalanceBar() {
       <View style={styles.balanceInner}>
         <View style={styles.balanceChip}>
           <XpIcon size={18} />
-          <Text style={styles.balanceChipValue}>{drops.toLocaleString("it-IT")}</Text>
+          <Text style={styles.balanceChipValue}>{displayDrops.toLocaleString("it-IT")}</Text>
         </View>
         <View style={styles.balanceSeparator} />
         <View style={styles.balanceChip}>

@@ -9,6 +9,9 @@ type AuthContextType = {
   leaBalance: number;
   hasLeafyGold: boolean;
   justLoggedIn: boolean;
+  dropsAnimSignal: { from: number; to: number } | null;
+  dropsFrozen: boolean;
+  scheduleDropsAnimation: (from: number, to: number, delayMs: number) => void;
   markJustLoggedIn: () => void;
   clearJustLoggedIn: () => void;
   refetch: () => void;
@@ -27,6 +30,9 @@ const AuthContext = createContext<AuthContextType>({
   leaBalance: 0,
   hasLeafyGold: false,
   justLoggedIn: false,
+  dropsAnimSignal: null,
+  dropsFrozen: false,
+  scheduleDropsAnimation: () => {},
   markJustLoggedIn: () => {},
   clearJustLoggedIn: () => {},
   refetch: () => {},
@@ -58,6 +64,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [leaBalance, setLeaBalance] = useState(0);
   const [hasLeafyGold, setHasLeafyGold] = useState(false);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
+  const [dropsAnimSignal, setDropsAnimSignal] = useState<{ from: number; to: number } | null>(null);
+  const [dropsFrozen, setDropsFrozen] = useState(false);
+  const dropsAnimTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dropsAnimCleanupRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleDropsAnimation = useCallback((from: number, to: number, delayMs: number) => {
+    if (dropsAnimTimeoutRef.current) clearTimeout(dropsAnimTimeoutRef.current);
+    if (dropsAnimCleanupRef.current) clearTimeout(dropsAnimCleanupRef.current);
+    setDropsFrozen(true);
+    dropsAnimTimeoutRef.current = setTimeout(() => {
+      setDropsFrozen(false);
+      setDropsAnimSignal({ from, to });
+      dropsAnimCleanupRef.current = setTimeout(() => {
+        setDropsAnimSignal(null);
+      }, 900);
+    }, delayMs);
+  }, []);
 
   const markJustLoggedIn = useCallback(() => setJustLoggedIn(true), []);
   const clearJustLoggedIn = useCallback(() => setJustLoggedIn(false), []);
@@ -293,6 +316,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         leaBalance,
         hasLeafyGold,
         justLoggedIn,
+        dropsAnimSignal,
+        dropsFrozen,
+        scheduleDropsAnimation,
         markJustLoggedIn,
         clearJustLoggedIn,
         refetch: fetchUser,
