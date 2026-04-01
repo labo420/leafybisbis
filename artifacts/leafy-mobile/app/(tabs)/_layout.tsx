@@ -108,13 +108,11 @@ function FloatingScanButton({ focused }: { focused: boolean }) {
 function BalanceBar() {
   const { user, drops, leaBalance, dropsAnimSignal, dropsFrozen } = useAuth();
   const [displayDrops, setDisplayDrops] = React.useState(drops);
-  const displayDropsRef = React.useRef(drops);
   const dropsRafRef = React.useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
 
   React.useEffect(() => {
     if (dropsFrozen || dropsAnimSignal) return;
     if (dropsRafRef.current != null) cancelAnimationFrame(dropsRafRef.current);
-    displayDropsRef.current = drops;
     setDisplayDrops(drops);
   }, [drops, dropsFrozen, dropsAnimSignal]);
 
@@ -128,15 +126,19 @@ function BalanceBar() {
       const elapsed = Date.now() - start;
       const t = Math.min(1, elapsed / duration);
       const eased = 1 - Math.pow(1 - t, 3);
-      const val = Math.round(from + eased * (to - from));
-      displayDropsRef.current = val;
-      setDisplayDrops(val);
+      setDisplayDrops(Math.round(from + eased * (to - from)));
       if (t < 1) {
         dropsRafRef.current = requestAnimationFrame(step);
       }
     };
     dropsRafRef.current = requestAnimationFrame(step);
   }, [dropsAnimSignal]);
+
+  React.useEffect(() => {
+    return () => {
+      if (dropsRafRef.current != null) cancelAnimationFrame(dropsRafRef.current);
+    };
+  }, []);
 
   if (!user) return null;
 
