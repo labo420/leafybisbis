@@ -1581,7 +1581,7 @@ export default function HomeScreen() {
           </View>
           <View style={streakStyles.stampFooterReward}>
             <View style={streakStyles.rewardPill}>
-              <Text style={streakStyles.stampFooterRewardText}>+{(CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio).finalBonus + (CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio).daily}</Text>
+              <Text style={streakStyles.stampFooterRewardText}>+{(() => { const r = CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio; return (loginStreak % 7 === 6) ? r.finalBonus + r.daily : r.daily; })()}</Text>
               <XpIcon size={14} />
             </View>
           </View>
