@@ -106,9 +106,17 @@ function FloatingScanButton({ focused }: { focused: boolean }) {
 }
 
 function BalanceBar() {
-  const { user, drops, leaBalance, dropsAnimSignal, dropsFrozen } = useAuth();
+  const { user, drops, leaBalance, dropsAnimSignal, dropsFrozen, setDropsBarLayout } = useAuth();
   const [displayDrops, setDisplayDrops] = React.useState(drops);
   const dropsRafRef = React.useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
+  const dropsChipRef = React.useRef<View>(null);
+  const handleDropsChipLayout = React.useCallback(() => {
+    setTimeout(() => {
+      (dropsChipRef.current as any)?.measureInWindow((x: number, y: number, width: number, height: number) => {
+        if (width > 0 && height > 0) setDropsBarLayout({ x, y, width, height });
+      });
+    }, 80);
+  }, [setDropsBarLayout]);
 
   React.useEffect(() => {
     if (dropsFrozen || dropsAnimSignal) return;
@@ -145,7 +153,7 @@ function BalanceBar() {
   return (
     <View style={styles.balanceBar}>
       <View style={styles.balanceInner}>
-        <View style={styles.balanceChip}>
+        <View ref={dropsChipRef} style={styles.balanceChip} onLayout={handleDropsChipLayout}>
           <XpIcon size={18} />
           <Text style={styles.balanceChipValue}>{displayDrops.toLocaleString("it-IT")}</Text>
         </View>

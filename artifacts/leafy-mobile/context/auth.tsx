@@ -12,6 +12,8 @@ type AuthContextType = {
   dropsAnimSignal: { from: number; to: number } | null;
   dropsFrozen: boolean;
   scheduleDropsAnimation: (from: number, to: number, delayMs: number) => void;
+  dropsBarLayoutRef: React.MutableRefObject<{ x: number; y: number; width: number; height: number } | null>;
+  setDropsBarLayout: (layout: { x: number; y: number; width: number; height: number }) => void;
   markJustLoggedIn: () => void;
   clearJustLoggedIn: () => void;
   refetch: () => void;
@@ -33,6 +35,8 @@ const AuthContext = createContext<AuthContextType>({
   dropsAnimSignal: null,
   dropsFrozen: false,
   scheduleDropsAnimation: () => {},
+  dropsBarLayoutRef: { current: null } as React.MutableRefObject<{ x: number; y: number; width: number; height: number } | null>,
+  setDropsBarLayout: () => {},
   markJustLoggedIn: () => {},
   clearJustLoggedIn: () => {},
   refetch: () => {},
@@ -68,6 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [dropsFrozen, setDropsFrozen] = useState(false);
   const dropsAnimTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dropsAnimCleanupRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dropsBarLayoutRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
+  const setDropsBarLayout = useCallback((layout: { x: number; y: number; width: number; height: number }) => {
+    dropsBarLayoutRef.current = layout;
+  }, []);
 
   const scheduleDropsAnimation = useCallback((from: number, to: number, delayMs: number) => {
     if (dropsAnimTimeoutRef.current) clearTimeout(dropsAnimTimeoutRef.current);
@@ -326,6 +334,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         dropsAnimSignal,
         dropsFrozen,
         scheduleDropsAnimation,
+        dropsBarLayoutRef,
+        setDropsBarLayout,
         markJustLoggedIn,
         clearJustLoggedIn,
         refetch: fetchUser,
