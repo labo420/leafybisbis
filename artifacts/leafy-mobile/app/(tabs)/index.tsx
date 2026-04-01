@@ -466,6 +466,8 @@ function LevelProgressRing({
       scheduleDropsAnimation(prev, points, 3470);
       if (suckinTimeoutRef.current) clearTimeout(suckinTimeoutRef.current);
       suckinTimeoutRef.current = setTimeout(() => {
+        contentSuckOpacity.value = withTiming(0, { duration: 350 });
+        contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
         const layout = dropsBarLayoutRef.current;
         if (!layout) return;
         bubbleRef.current?.measureInWindow((bx, by, bw, bh) => {
@@ -476,8 +478,6 @@ function LevelProgressRing({
           const targetCY = layout.y + layout.height / 2;
           contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
           contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
-          contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
-          contentSuckOpacity.value = withTiming(0, { duration: 350 });
         });
       }, 3400);
 
@@ -621,6 +621,8 @@ function LevelProgressRing({
       scheduleDropsAnimation(prev, points, 3470);
       if (suckinTimeoutRef.current) clearTimeout(suckinTimeoutRef.current);
       suckinTimeoutRef.current = setTimeout(() => {
+        contentSuckOpacity.value = withTiming(0, { duration: 350 });
+        contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
         const layout = dropsBarLayoutRef.current;
         if (!layout) return;
         bubbleRef.current?.measureInWindow((bx, by, bw, bh) => {
@@ -631,8 +633,6 @@ function LevelProgressRing({
           const targetCY = layout.y + layout.height / 2;
           contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
           contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
-          contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
-          contentSuckOpacity.value = withTiming(0, { duration: 350 });
         });
       }, 3400);
 
