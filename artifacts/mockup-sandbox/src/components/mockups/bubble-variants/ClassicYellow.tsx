@@ -1,71 +1,33 @@
 export function ClassicYellow() {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 24,
-        background: "radial-gradient(ellipse at center, #2D6A4F 0%, #1B4332 100%)",
-      }}
-    >
-      <div style={{ transform: "rotate(-4deg)", position: "relative" }}>
-        <div
-          style={{
-            background: "#FFE135",
-            border: "3px solid #111",
-            borderRadius: "12px",
-            padding: "10px 18px",
-            display: "flex",
-            alignItems: "center",
-            boxShadow: "3px 3px 0px #111",
-            position: "relative",
-          }}
-        >
-          <span
-            style={{
-              fontSize: 22,
-              fontWeight: 900,
-              color: "#111",
-              fontFamily: "'Arial Black', sans-serif",
-              letterSpacing: "-0.5px",
-            }}
-          >
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, background: "#e8e8e8" }}>
+      <div style={{ position: "relative", transform: "rotate(-3deg)" }}>
+        {/* Halftone shadow */}
+        <div style={{
+          position: "absolute", top: 6, left: 6,
+          width: "100%", height: "100%",
+          borderRadius: 14,
+          backgroundImage: "radial-gradient(circle, #000 1.5px, transparent 1.5px)",
+          backgroundSize: "5px 5px",
+          zIndex: 0,
+        }} />
+        {/* Main bubble */}
+        <div style={{
+          position: "relative", zIndex: 1,
+          background: "#fff",
+          border: "3px solid #000",
+          borderRadius: 14,
+          padding: "11px 22px",
+        }}>
+          <span style={{ fontSize: 24, fontWeight: 900, color: "#000", fontFamily: "'Arial Black', 'Impact', sans-serif", letterSpacing: -0.5 }}>
             +25 💧
           </span>
-          <div
-            style={{
-              position: "absolute",
-              right: -14,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 0,
-              height: 0,
-              borderTop: "11px solid transparent",
-              borderBottom: "11px solid transparent",
-              borderLeft: "13px solid #111",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: -10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 0,
-              height: 0,
-              borderTop: "8px solid transparent",
-              borderBottom: "8px solid transparent",
-              borderLeft: "10px solid #FFE135",
-            }}
-          />
+          {/* Arrow tail right */}
+          <div style={{ position: "absolute", right: -15, top: "50%", transform: "translateY(-50%)", width: 0, height: 0, borderTop: "11px solid transparent", borderBottom: "11px solid transparent", borderLeft: "14px solid #000" }} />
+          <div style={{ position: "absolute", right: -11, top: "50%", transform: "translateY(-50%)", width: 0, height: 0, borderTop: "8px solid transparent", borderBottom: "8px solid transparent", borderLeft: "11px solid #fff" }} />
         </div>
       </div>
-      <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase" }}>
-        Classic Yellow
-      </p>
+      <p style={{ color: "#999", fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "monospace" }}>V1 — Rettangolo classico</p>
     </div>
   );
 }
