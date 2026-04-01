@@ -430,10 +430,12 @@ function LevelProgressRing({
       ));
       bubbleY.value = withDelay(1970, withSequence(
         withTiming(-65, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        withTiming(-65, { duration: 550 }),
         withTiming(0,   { duration: 0 }),
       ));
       bubbleX.value = withDelay(1970, withSequence(
         withTiming(40, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        withTiming(40, { duration: 550 }),
         withTiming(0,  { duration: 0 }),
       ));
       bubbleRotate.value = 0;
@@ -560,10 +562,12 @@ function LevelProgressRing({
       ));
       bubbleY.value = withDelay(1970, withSequence(
         withTiming(-65, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        withTiming(-65, { duration: 550 }),
         withTiming(0,   { duration: 0 }),
       ));
       bubbleX.value = withDelay(1970, withSequence(
         withTiming(40, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        withTiming(40, { duration: 550 }),
         withTiming(0,  { duration: 0 }),
       ));
       bubbleRotate.value = 0;
