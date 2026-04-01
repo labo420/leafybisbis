@@ -468,7 +468,7 @@ function LevelProgressRing({
       suckinTimeoutRef.current = setTimeout(() => {
         const layout = dropsBarLayoutRef.current;
         if (!layout) return;
-        (bubbleRef.current as any)?.measureInWindow((bx: number, by: number, bw: number, bh: number) => {
+        bubbleRef.current?.measureInWindow((bx, by, bw, bh) => {
           if (bw === 0) return;
           const bubbleCX = bx + bw / 2;
           const bubbleCY = by + bh / 2;
@@ -623,7 +623,7 @@ function LevelProgressRing({
       suckinTimeoutRef.current = setTimeout(() => {
         const layout = dropsBarLayoutRef.current;
         if (!layout) return;
-        (bubbleRef.current as any)?.measureInWindow((bx: number, by: number, bw: number, bh: number) => {
+        bubbleRef.current?.measureInWindow((bx, by, bw, bh) => {
           if (bw === 0) return;
           const bubbleCX = bx + bw / 2;
           const bubbleCY = by + bh / 2;
@@ -815,7 +815,7 @@ function LevelProgressRing({
         {/* Bolla di sapone: nasce all'atterraggio, vola verso l'alto e scoppia */}
         {earnedDropsDelta > 0 && (
           <>
-            <Animated.View ref={bubbleRef as any} style={[ringStyles.soapBubble, bubbleAnimStyle]}>
+            <Animated.View ref={bubbleRef} style={[ringStyles.soapBubble, bubbleAnimStyle]}>
               <View style={ringStyles.soapLayer1} />
               <View style={ringStyles.soapLayer2} />
               <View style={ringStyles.soapShine} />
