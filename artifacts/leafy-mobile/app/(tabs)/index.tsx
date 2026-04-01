@@ -418,28 +418,26 @@ function LevelProgressRing({
       burstProgress.value = 0;
       bubbleScale.value = withDelay(1970, withSequence(
         withTiming(1,   { duration: 180, easing: Easing.out(Easing.ease) }),
-        withTiming(1,   { duration: 1500 }),
+        withTiming(1,   { duration: 1320 }),
         withTiming(1.6, { duration: 250 }),
         withTiming(0,   { duration: 0 }),
       ));
       bubbleOpacity.value = withDelay(1970, withSequence(
         withTiming(1, { duration: 180 }),
-        withTiming(1, { duration: 1500 }),
+        withTiming(1, { duration: 1320 }),
         withTiming(0, { duration: 250 }),
         withTiming(0, { duration: 0 }),
       ));
       bubbleY.value = withDelay(1970, withSequence(
-        withTiming(-65, { duration: 1680, easing: Easing.out(Easing.ease) }),
-        withTiming(-75, { duration: 250 }),
+        withTiming(-65, { duration: 1500, easing: Easing.out(Easing.ease) }),
         withTiming(0,   { duration: 0 }),
       ));
       bubbleX.value = withDelay(1970, withSequence(
-        withTiming(40, { duration: 1680, easing: Easing.out(Easing.ease) }),
-        withTiming(45, { duration: 250 }),
+        withTiming(40, { duration: 1500, easing: Easing.out(Easing.ease) }),
         withTiming(0,  { duration: 0 }),
       ));
       bubbleRotate.value = 0;
-      burstProgress.value = withDelay(3650, withSequence(
+      burstProgress.value = withDelay(3470, withSequence(
         withTiming(1, { duration: 300 }),
         withTiming(0, { duration: 0 }),
       ));
@@ -550,28 +548,26 @@ function LevelProgressRing({
       burstProgress.value = 0;
       bubbleScale.value = withDelay(1970, withSequence(
         withTiming(1,   { duration: 180, easing: Easing.out(Easing.ease) }),
-        withTiming(1,   { duration: 1500 }),
+        withTiming(1,   { duration: 1320 }),
         withTiming(1.6, { duration: 250 }),
         withTiming(0,   { duration: 0 }),
       ));
       bubbleOpacity.value = withDelay(1970, withSequence(
         withTiming(1, { duration: 180 }),
-        withTiming(1, { duration: 1500 }),
+        withTiming(1, { duration: 1320 }),
         withTiming(0, { duration: 250 }),
         withTiming(0, { duration: 0 }),
       ));
       bubbleY.value = withDelay(1970, withSequence(
-        withTiming(-65, { duration: 1680, easing: Easing.out(Easing.ease) }),
-        withTiming(-75, { duration: 250 }),
+        withTiming(-65, { duration: 1500, easing: Easing.out(Easing.ease) }),
         withTiming(0,   { duration: 0 }),
       ));
       bubbleX.value = withDelay(1970, withSequence(
-        withTiming(40, { duration: 1680, easing: Easing.out(Easing.ease) }),
-        withTiming(45, { duration: 250 }),
+        withTiming(40, { duration: 1500, easing: Easing.out(Easing.ease) }),
         withTiming(0,  { duration: 0 }),
       ));
       bubbleRotate.value = 0;
-      burstProgress.value = withDelay(3650, withSequence(
+      burstProgress.value = withDelay(3470, withSequence(
         withTiming(1, { duration: 300 }),
         withTiming(0, { duration: 0 }),
       ));
@@ -875,7 +871,7 @@ const ringStyles = StyleSheet.create({
   },
   soapBubbleText: {
     color: "rgba(255, 255, 255, 0.95)",
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: "Nunito_700Bold",
     textShadowColor: "rgba(168, 85, 247, 0.9)",
     textShadowRadius: 4,
