@@ -1,88 +1,40 @@
 export function SpikyBurst() {
+  const cx = 90, cy = 75;
+  const outerR = 68, innerR = 43;
+  const numSpikes = 9;
+  const pts = Array.from({ length: numSpikes * 2 }, (_, i) => {
+    const angle = (i * Math.PI) / numSpikes - Math.PI / 2;
+    const r = i % 2 === 0 ? outerR : innerR;
+    return `${(cx + r * Math.cos(angle)).toFixed(1)},${(cy + r * Math.sin(angle)).toFixed(1)}`;
+  }).join(" ");
+
+  // Shadow polygon (offset)
+  const ptsShadow = Array.from({ length: numSpikes * 2 }, (_, i) => {
+    const angle = (i * Math.PI) / numSpikes - Math.PI / 2;
+    const r = i % 2 === 0 ? outerR : innerR;
+    return `${(cx + 6 + r * Math.cos(angle)).toFixed(1)},${(cy + 6 + r * Math.sin(angle)).toFixed(1)}`;
+  }).join(" ");
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 24,
-        background: "radial-gradient(ellipse at center, #2D6A4F 0%, #1B4332 100%)",
-      }}
-    >
-      <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: 140, height: 110 }}>
-        {Array.from({ length: 14 }).map((_, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              width: 5,
-              height: 56,
-              background: i % 2 === 0 ? "#FF6B35" : "#FFB347",
-              borderRadius: 3,
-              top: "50%",
-              left: "50%",
-              transformOrigin: "50% 100%",
-              transform: `translate(-50%, 0%) rotate(${i * (360 / 14)}deg) translateY(-100%)`,
-              opacity: 0.9,
-            }}
-          />
-        ))}
-        <div
-          style={{
-            background: "#fff",
-            border: "3px solid #FF6B35",
-            borderRadius: 14,
-            padding: "9px 16px",
-            position: "relative",
-            zIndex: 2,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
-          }}
-        >
-          <span
-            style={{
-              fontSize: 19,
-              fontWeight: 900,
-              color: "#FF6B35",
-              fontFamily: "'Arial Black', sans-serif",
-            }}
-          >
-            +25 💧
-          </span>
-          <div
-            style={{
-              position: "absolute",
-              right: -14,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 0,
-              height: 0,
-              borderTop: "10px solid transparent",
-              borderBottom: "10px solid transparent",
-              borderLeft: "14px solid #FF6B35",
-              zIndex: 2,
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: -10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 0,
-              height: 0,
-              borderTop: "7px solid transparent",
-              borderBottom: "7px solid transparent",
-              borderLeft: "10px solid #fff",
-              zIndex: 3,
-            }}
-          />
-        </div>
-      </div>
-      <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase" }}>
-        Spiky Burst
-      </p>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, background: "#e8e8e8" }}>
+      <svg width={180} height={150} overflow="visible">
+        {/* Halftone shadow layer */}
+        <defs>
+          <pattern id="dots" x="0" y="0" width="5" height="5" patternUnits="userSpaceOnUse">
+            <circle cx="1.5" cy="1.5" r="1.5" fill="#000" />
+          </pattern>
+          <clipPath id="shadowClip">
+            <polygon points={ptsShadow} />
+          </clipPath>
+        </defs>
+        <polygon points={ptsShadow} fill="url(#dots)" clipPath="url(#shadowClip)" />
+        {/* Main spiky burst */}
+        <polygon points={pts} fill="#fff" stroke="#000" strokeWidth={3} strokeLinejoin="round" />
+        <text x={cx} y={cy + 8} textAnchor="middle" fontSize={21} fontWeight={900} fontFamily="'Arial Black', Impact, sans-serif" fill="#000">
+          +25 💧
+        </text>
+      </svg>
+      <p style={{ color: "#999", fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "monospace", marginTop: -8 }}>V3 — Burst a punte</p>
     </div>
   );
 }
