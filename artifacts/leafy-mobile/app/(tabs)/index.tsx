@@ -192,7 +192,7 @@ function LevelProgressRing({
   isFocused: boolean;
 }) {
   const { mode } = useTheme();
-  const { levelUpPhase, levelUpToLevel, setRingLayout, ringTargetLayout } = useLevelUp();
+  const { levelUpPhase, levelUpToLevel, setRingLayout } = useLevelUp();
   const { scheduleDropsAnimation, dropsBarLayoutRef } = useAuth();
   const onDark = mode === "dark";
   const trackColor = onDark ? "rgba(255,255,255,0.15)" : "rgba(46,107,80,0.13)";
@@ -251,6 +251,7 @@ function LevelProgressRing({
   const progTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hapticTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suckinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bubbleRef = useRef<View>(null);
 
   const animateProgress = useCallback((from: number, to: number, durationMs = 800) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -466,18 +467,18 @@ function LevelProgressRing({
       if (suckinTimeoutRef.current) clearTimeout(suckinTimeoutRef.current);
       suckinTimeoutRef.current = setTimeout(() => {
         const layout = dropsBarLayoutRef.current;
-        const ring = ringTargetLayout;
-        if (!layout || !ring) return;
-        const ringCX = ring.x + ring.width / 2;
-        const ringCY = ring.y + ring.height / 2;
-        const bubbleCX = ringCX + BUBBLE_LEFT + BUBBLE_SIZE / 2 - RING_SIZE / 2 + 40;
-        const bubbleCY = ringCY + BUBBLE_TOP + BUBBLE_SIZE / 2 - RING_SIZE / 2 - 65;
-        const targetCX = layout.x + layout.width / 2;
-        const targetCY = layout.y + layout.height / 2;
-        contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
-        contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
-        contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
-        contentSuckOpacity.value = withTiming(0, { duration: 350 });
+        if (!layout) return;
+        (bubbleRef.current as any)?.measureInWindow((bx: number, by: number, bw: number, bh: number) => {
+          if (bw === 0) return;
+          const bubbleCX = bx + bw / 2;
+          const bubbleCY = by + bh / 2;
+          const targetCX = layout.x + layout.width / 2;
+          const targetCY = layout.y + layout.height / 2;
+          contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckOpacity.value = withTiming(0, { duration: 350 });
+        });
       }, 3400);
 
       // Haptic all'atterraggio goccia (1970ms)
@@ -621,18 +622,18 @@ function LevelProgressRing({
       if (suckinTimeoutRef.current) clearTimeout(suckinTimeoutRef.current);
       suckinTimeoutRef.current = setTimeout(() => {
         const layout = dropsBarLayoutRef.current;
-        const ring = ringTargetLayout;
-        if (!layout || !ring) return;
-        const ringCX = ring.x + ring.width / 2;
-        const ringCY = ring.y + ring.height / 2;
-        const bubbleCX = ringCX + BUBBLE_LEFT + BUBBLE_SIZE / 2 - RING_SIZE / 2 + 40;
-        const bubbleCY = ringCY + BUBBLE_TOP + BUBBLE_SIZE / 2 - RING_SIZE / 2 - 65;
-        const targetCX = layout.x + layout.width / 2;
-        const targetCY = layout.y + layout.height / 2;
-        contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
-        contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
-        contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
-        contentSuckOpacity.value = withTiming(0, { duration: 350 });
+        if (!layout) return;
+        (bubbleRef.current as any)?.measureInWindow((bx: number, by: number, bw: number, bh: number) => {
+          if (bw === 0) return;
+          const bubbleCX = bx + bw / 2;
+          const bubbleCY = by + bh / 2;
+          const targetCX = layout.x + layout.width / 2;
+          const targetCY = layout.y + layout.height / 2;
+          contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
+          contentSuckOpacity.value = withTiming(0, { duration: 350 });
+        });
       }, 3400);
 
       // Quando la goccia atterra (~1970ms): barra, contatore e badge crescono insieme
@@ -814,7 +815,7 @@ function LevelProgressRing({
         {/* Bolla di sapone: nasce all'atterraggio, vola verso l'alto e scoppia */}
         {earnedDropsDelta > 0 && (
           <>
-            <Animated.View style={[ringStyles.soapBubble, bubbleAnimStyle]}>
+            <Animated.View ref={bubbleRef as any} style={[ringStyles.soapBubble, bubbleAnimStyle]}>
               <View style={ringStyles.soapLayer1} />
               <View style={ringStyles.soapLayer2} />
               <View style={ringStyles.soapShine} />
