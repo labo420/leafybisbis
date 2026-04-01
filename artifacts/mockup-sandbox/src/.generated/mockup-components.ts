@@ -2,6 +2,11 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/badges/BadgeDesigns.tsx": () => import("../components/mockups/badges/BadgeDesigns.tsx"),
+  "./components/mockups/bubble-variants/ClassicYellow.tsx": () => import("../components/mockups/bubble-variants/ClassicYellow.tsx"),
+  "./components/mockups/bubble-variants/LeafyGreen.tsx": () => import("../components/mockups/bubble-variants/LeafyGreen.tsx"),
+  "./components/mockups/bubble-variants/NeonGlow.tsx": () => import("../components/mockups/bubble-variants/NeonGlow.tsx"),
+  "./components/mockups/bubble-variants/SpikyBurst.tsx": () => import("../components/mockups/bubble-variants/SpikyBurst.tsx"),
+  "./components/mockups/bubble-variants/StampBadge.tsx": () => import("../components/mockups/bubble-variants/StampBadge.tsx"),
   "./components/mockups/checkin-bonus/BonusSeparato.tsx": () => import("../components/mockups/checkin-bonus/BonusSeparato.tsx"),
   "./components/mockups/checkin-cards/DueColonne.tsx": () => import("../components/mockups/checkin-cards/DueColonne.tsx"),
   "./components/mockups/checkin-cards/SerpentinaPath.tsx": () => import("../components/mockups/checkin-cards/SerpentinaPath.tsx"),
