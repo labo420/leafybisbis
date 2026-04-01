@@ -134,8 +134,8 @@ const CHECKIN_REWARDS_BY_LEVEL: Record<string, { daily: number; finalBonus: numb
 
 function getCheckinRewardsForSlots(level: string): { reward: string }[] {
   const r = CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio;
-  return Array.from({ length: 7 }, (_, i) => ({
-    reward: i === 6 ? `+${r.finalBonus + r.daily}` : `+${r.daily}`,
+  return Array.from({ length: 7 }, () => ({
+    reward: `+${r.daily}`,
   }));
 }
 
@@ -150,9 +150,7 @@ const GOLD_CHECKIN_REWARDS_BY_LEVEL: Record<string, { daily: { drops: number; le
 
 function getGoldCheckinRewardsForSlots(level: string): { drops: number; lea: number }[] {
   const r = GOLD_CHECKIN_REWARDS_BY_LEVEL[level] ?? GOLD_CHECKIN_REWARDS_BY_LEVEL.Germoglio;
-  return Array.from({ length: 7 }, (_, i) =>
-    i === 6 ? { drops: r.finalBonus.drops + r.daily.drops, lea: r.finalBonus.lea + r.daily.lea } : r.daily
-  );
+  return Array.from({ length: 7 }, () => r.daily);
 }
 
 const ICON_BASE_SIZE = 72;
@@ -1544,7 +1542,6 @@ export default function HomeScreen() {
           {getCheckinRewardsForSlots(level).map((slot, i) => {
             const done = i < loginStreak;
             const isNext = i === loginStreak && loginStreak < 7;
-            const isFinal = i === 6;
             return (
               <Animated.View
                 key={i}
@@ -1567,21 +1564,42 @@ export default function HomeScreen() {
                   {slot.reward}
                 </Text>
                 <Text style={[streakStyles.stickerLabel, { color: done ? "#2E6B50" : "rgba(0,0,0,0.18)" }]}>
-                  {done ? "fatto" : isFinal ? "bonus" : `${i + 1}°`}
+                  {`${i + 1}°`}
                 </Text>
               </Animated.View>
             );
           })}
         </View>
 
-        <View style={[streakStyles.stampFooter, { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(46,107,80,0.09)" }]}>
+        {/* ── Banner Bonus 7/7 classico ── */}
+        {(() => {
+          const r = CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio;
+          const completed = loginStreak >= 7;
+          return (
+            <View style={[
+              streakStyles.bonusBanner,
+              completed ? streakStyles.bonusBannerActive : streakStyles.bonusBannerDimmed,
+            ]}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <MaterialCommunityIcons name="trophy" size={15} color={completed ? "#2E6B50" : "rgba(46,107,80,0.45)"} />
+                <Text style={[streakStyles.bonusBannerLabel, { color: completed ? "#2E6B50" : "rgba(46,107,80,0.45)" }]}>Bonus 7/7</Text>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                <Text style={[streakStyles.bonusBannerValue, { color: completed ? "#2E6B50" : "rgba(46,107,80,0.45)" }]}>+{r.finalBonus}</Text>
+                <XpIcon size={14} />
+              </View>
+            </View>
+          );
+        })()}
+
+        <View style={[streakStyles.stampFooter, { marginTop: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(46,107,80,0.09)" }]}>
           <View style={streakStyles.stampFooterLeft}>
             <MaterialCommunityIcons name="fire" size={16} color="#F97316" />
             <Text style={streakStyles.stampFooterDay}>{loginStreak > 0 ? `${loginStreak} ${loginStreak === 1 ? "giorno" : "giorni"} di fila` : "Inizia oggi"}</Text>
           </View>
           <View style={streakStyles.stampFooterReward}>
             <View style={streakStyles.rewardPill}>
-              <Text style={streakStyles.stampFooterRewardText}>+{(() => { const r = CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio; return (loginStreak % 7 === 6) ? r.finalBonus + r.daily : r.daily; })()}</Text>
+              <Text style={streakStyles.stampFooterRewardText}>+{(CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio).daily}</Text>
               <XpIcon size={14} />
             </View>
           </View>
@@ -1633,7 +1651,6 @@ export default function HomeScreen() {
             {getGoldCheckinRewardsForSlots(level).map((prize, i) => {
               const done = i < bpStreakClaimed;
               const isNext = i === bpStreakClaimed && !bpStreakCompleted;
-              const isFinal = i === 6;
               return (
                 <Animated.View
                   key={i}
@@ -1668,14 +1685,41 @@ export default function HomeScreen() {
                     <LeaIcon size={9} />
                   </View>
                   <Text style={[streakStyles.stickerLabel, { color: done ? "#B8860B" : "rgba(184,134,11,0.22)" }]}>
-                    {done ? "fatto" : isFinal ? "bonus" : `${i + 1}°`}
+                    {`${i + 1}°`}
                   </Text>
                 </Animated.View>
               );
             })}
           </View>
 
-          <View style={[streakStyles.stampFooter, { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(184,134,11,0.10)" }]}>
+          {/* ── Banner Bonus 7/7 Gold ── */}
+          {(() => {
+            const rg = GOLD_CHECKIN_REWARDS_BY_LEVEL[level] ?? GOLD_CHECKIN_REWARDS_BY_LEVEL.Germoglio;
+            const completed = bpStreakCompleted;
+            return (
+              <View style={[
+                streakStyles.bonusBanner,
+                completed ? streakStyles.bonusBannerGoldActive : streakStyles.bonusBannerGoldDimmed,
+              ]}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <MaterialCommunityIcons name="trophy" size={15} color={completed ? "#B8860B" : "rgba(184,134,11,0.40)"} />
+                  <Text style={[streakStyles.bonusBannerLabel, { color: completed ? "#B8860B" : "rgba(184,134,11,0.40)" }]}>Bonus 7/7</Text>
+                </View>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                    <Text style={[streakStyles.bonusBannerValue, { color: completed ? "#B8860B" : "rgba(184,134,11,0.40)" }]}>+{rg.finalBonus.drops}</Text>
+                    <XpIcon size={13} />
+                  </View>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                    <Text style={[streakStyles.bonusBannerValue, { color: completed ? "#B8860B" : "rgba(184,134,11,0.40)" }]}>+{rg.finalBonus.lea}</Text>
+                    <LeaIcon size={13} />
+                  </View>
+                </View>
+              </View>
+            );
+          })()}
+
+          <View style={[streakStyles.stampFooter, { marginTop: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(184,134,11,0.10)" }]}>
             <View style={streakStyles.stampFooterLeft}>
               <MaterialCommunityIcons name="shield-star" size={16} color="#B8860B" />
               <Text style={[streakStyles.stampFooterDay, { color: "rgba(146,64,14,0.60)" }]}>
@@ -2501,6 +2545,35 @@ const streakStyles = StyleSheet.create({
   },
   stampLabelFuture: {
     color: "rgba(0,0,0,0.15)",
+  },
+  bonusBanner: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    marginTop: 10,
+  },
+  bonusBannerActive: {
+    backgroundColor: "rgba(46,107,80,0.09)",
+  },
+  bonusBannerDimmed: {
+    backgroundColor: "rgba(46,107,80,0.04)",
+  },
+  bonusBannerGoldActive: {
+    backgroundColor: "rgba(184,134,11,0.10)",
+  },
+  bonusBannerGoldDimmed: {
+    backgroundColor: "rgba(184,134,11,0.05)",
+  },
+  bonusBannerLabel: {
+    fontFamily: "Nunito_700Bold",
+    fontSize: 12,
+  },
+  bonusBannerValue: {
+    fontFamily: "Nunito_700Bold",
+    fontSize: 13,
   },
   stampFooter: {
     flexDirection: "row" as const,
