@@ -283,6 +283,9 @@ function LevelProgressRing({
   const canRotate = useSharedValue(0);
   const dropOpacity = useSharedValue(0);
   const dropY = useSharedValue(0);
+  const bubbleOpacity = useSharedValue(0);
+  const bubbleScale = useSharedValue(0);
+  const [earnedDropsDelta, setEarnedDropsDelta] = useState(0);
 
   const canAnimStyle = useAnimatedStyle(() => ({
     opacity: canOpacity.value,
@@ -298,6 +301,10 @@ function LevelProgressRing({
   const dropAnimStyle = useAnimatedStyle(() => ({
     opacity: dropOpacity.value,
     transform: [{ translateY: dropY.value }],
+  }));
+  const bubbleAnimStyle = useAnimatedStyle(() => ({
+    opacity: bubbleOpacity.value,
+    transform: [{ scale: bubbleScale.value }],
   }));
 
   // ── Main animation logic ──
@@ -364,6 +371,23 @@ function LevelProgressRing({
         withTiming(DROP_TRAVEL, { duration: 1020, easing: Easing.in(Easing.quad) }),
         withTiming(0, { duration: 0 }),
       );
+
+      // Fumetto drops: appare a 500ms con effetto pop, svanisce all'atterraggio
+      const delta = points - prev;
+      setEarnedDropsDelta(delta > 0 ? delta : 0);
+      bubbleScale.value = 0;
+      bubbleOpacity.value = 0;
+      bubbleScale.value = withDelay(500, withSequence(
+        withTiming(1.15, { duration: 200, easing: Easing.out(Easing.back(1.8)) }),
+        withTiming(1, { duration: 130 }),
+        withTiming(1, { duration: 1100 }),
+        withTiming(0, { duration: 220 }),
+      ));
+      bubbleOpacity.value = withDelay(500, withSequence(
+        withTiming(1, { duration: 160 }),
+        withTiming(1, { duration: 1270 }),
+        withTiming(0, { duration: 220 }),
+      ));
 
       // Haptic all'atterraggio goccia (1970ms)
       hapticTimeoutRef.current = setTimeout(() => {
@@ -459,6 +483,23 @@ function LevelProgressRing({
         withTiming(DROP_TRAVEL, { duration: 1020, easing: Easing.in(Easing.quad) }),
         withTiming(0, { duration: 0 }),
       );
+
+      // Fumetto drops: appare a 500ms con effetto pop, svanisce all'atterraggio
+      const deltaC = points - prev;
+      setEarnedDropsDelta(deltaC > 0 ? deltaC : 0);
+      bubbleScale.value = 0;
+      bubbleOpacity.value = 0;
+      bubbleScale.value = withDelay(500, withSequence(
+        withTiming(1.15, { duration: 200, easing: Easing.out(Easing.back(1.8)) }),
+        withTiming(1, { duration: 130 }),
+        withTiming(1, { duration: 1100 }),
+        withTiming(0, { duration: 220 }),
+      ));
+      bubbleOpacity.value = withDelay(500, withSequence(
+        withTiming(1, { duration: 160 }),
+        withTiming(1, { duration: 1270 }),
+        withTiming(0, { duration: 220 }),
+      ));
 
       // Quando la goccia atterra (~1970ms): barra, contatore e badge crescono insieme
       iconScale.value = withDelay(
@@ -634,6 +675,14 @@ function LevelProgressRing({
           style={[ringStyles.droplet, dropAnimStyle]}
           resizeMode="contain"
         />
+
+        {/* Fumetto drops guadagnati */}
+        {earnedDropsDelta > 0 && (
+          <Animated.View style={[ringStyles.dropsBubble, bubbleAnimStyle, { backgroundColor: onDark ? "#51B888" : "#2E6B50" }]}>
+            <Text style={ringStyles.dropsBubbleText}>+{new Intl.NumberFormat("it-IT").format(earnedDropsDelta)} 💧</Text>
+            <View style={[ringStyles.dropsBubbleTail, { borderLeftColor: onDark ? "#51B888" : "#2E6B50" }]} />
+          </Animated.View>
+        )}
       </View>
 
       <Text style={[ringStyles.nextLevelText, { color: nextLvlColor }]} numberOfLines={3}>
@@ -698,6 +747,35 @@ const ringStyles = StyleSheet.create({
     width: 14,
     height: 19,
     zIndex: 10,
+  },
+  dropsBubble: {
+    position: "absolute",
+    top: CAN_TOP - 10,
+    left: 4,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    zIndex: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dropsBubbleTail: {
+    position: "absolute",
+    right: -9,
+    top: 9,
+    width: 0,
+    height: 0,
+    borderTopWidth: 7,
+    borderTopColor: "transparent",
+    borderBottomWidth: 7,
+    borderBottomColor: "transparent",
+    borderLeftWidth: 10,
+  },
+  dropsBubbleText: {
+    color: "#fff",
+    fontSize: 13,
+    fontFamily: "Nunito_700Bold",
+    letterSpacing: 0.2,
   },
   outerBorder: {
     position: "absolute",
