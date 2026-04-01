@@ -3,7 +3,7 @@ import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect } from "react";
-import { Image, Platform, StyleSheet, Text, View } from "react-native";
+import { findNodeHandle, Image, Platform, StyleSheet, Text, UIManager, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Animated, {
   cancelAnimation,
@@ -112,8 +112,10 @@ function BalanceBar() {
   const dropsChipRef = React.useRef<View>(null);
   const handleDropsChipLayout = React.useCallback(() => {
     setTimeout(() => {
-      (dropsChipRef.current as any)?.measureInWindow((x: number, y: number, width: number, height: number) => {
-        if (width > 0 && height > 0) setDropsBarLayout({ x, y, width, height });
+      const handle = findNodeHandle(dropsChipRef.current);
+      if (!handle) return;
+      UIManager.measure(handle, (_x, _y, width, height, pageX, pageY) => {
+        if (width > 0 && height > 0) setDropsBarLayout({ x: pageX, y: pageY, width, height });
       });
     }, 80);
   }, [setDropsBarLayout]);
