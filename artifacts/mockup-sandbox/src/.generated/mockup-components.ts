@@ -2,6 +2,10 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/badges/BadgeDesigns.tsx": () => import("../components/mockups/badges/BadgeDesigns.tsx"),
+  "./components/mockups/bubble-fly/BubbleClassic.tsx": () => import("../components/mockups/bubble-fly/BubbleClassic.tsx"),
+  "./components/mockups/bubble-fly/BubbleLeafy.tsx": () => import("../components/mockups/bubble-fly/BubbleLeafy.tsx"),
+  "./components/mockups/bubble-fly/BubbleSoap.tsx": () => import("../components/mockups/bubble-fly/BubbleSoap.tsx"),
+  "./components/mockups/bubble-fly/BubbleSpiky.tsx": () => import("../components/mockups/bubble-fly/BubbleSpiky.tsx"),
   "./components/mockups/bubble-variants/ClassicYellow.tsx": () => import("../components/mockups/bubble-variants/ClassicYellow.tsx"),
   "./components/mockups/bubble-variants/LeafyGreen.tsx": () => import("../components/mockups/bubble-variants/LeafyGreen.tsx"),
   "./components/mockups/bubble-variants/NeonGlow.tsx": () => import("../components/mockups/bubble-variants/NeonGlow.tsx"),
