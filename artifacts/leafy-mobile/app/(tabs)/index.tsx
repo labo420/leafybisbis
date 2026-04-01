@@ -1592,19 +1592,6 @@ export default function HomeScreen() {
           );
         })()}
 
-        <View style={[streakStyles.stampFooter, { marginTop: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(46,107,80,0.09)" }]}>
-          <View style={streakStyles.stampFooterLeft}>
-            <MaterialCommunityIcons name="fire" size={16} color="#F97316" />
-            <Text style={streakStyles.stampFooterDay}>{loginStreak > 0 ? `${loginStreak} ${loginStreak === 1 ? "giorno" : "giorni"} di fila` : "Inizia oggi"}</Text>
-          </View>
-          <View style={streakStyles.stampFooterReward}>
-            <View style={streakStyles.rewardPill}>
-              <Text style={streakStyles.stampFooterRewardText}>+{(CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio).daily}</Text>
-              <XpIcon size={14} />
-            </View>
-          </View>
-        </View>
-
         {/* ── OVERLAY CHECK IN — visibile solo se non ancora fatto oggi ── */}
         {!checkedInToday && (
           <Pressable
@@ -1718,32 +1705,6 @@ export default function HomeScreen() {
               </View>
             );
           })()}
-
-          <View style={[streakStyles.stampFooter, { marginTop: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(184,134,11,0.10)" }]}>
-            <View style={streakStyles.stampFooterLeft}>
-              <MaterialCommunityIcons name="shield-star" size={16} color="#B8860B" />
-              <Text style={[streakStyles.stampFooterDay, { color: "rgba(146,64,14,0.60)" }]}>
-                {bpStreakCompleted ? "Completata" : `Premio ${bpStreakClaimed}/7`}
-              </Text>
-            </View>
-            {!bpStreakCompleted && (() => {
-              const nextPrize = getGoldCheckinRewardsForSlots(level)[bpStreakClaimed];
-              return nextPrize ? (
-                <View style={streakStyles.stampFooterReward}>
-                  <View style={streakStyles.rewardPillGold}>
-                    <Text style={streakStyles.stampGoldFooterRewardText}>
-                      +{nextPrize.drops}
-                    </Text>
-                    <XpIcon size={13} />
-                    <Text style={streakStyles.stampGoldFooterRewardText}>
-                      {" "}+{nextPrize.lea}
-                    </Text>
-                    <LeaIcon size={13} />
-                  </View>
-                </View>
-              ) : null;
-            })()}
-          </View>
 
           {/* ── OVERLAY CHECK IN GOLD — visibile solo se Gold e non ancora fatto oggi ── */}
           {hasLeafyGold && !bpCheckedInToday && (
