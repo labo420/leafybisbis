@@ -248,6 +248,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    return () => {
+      if (dropsAnimTimeoutRef.current) clearTimeout(dropsAnimTimeoutRef.current);
+      if (dropsAnimCleanupRef.current) clearTimeout(dropsAnimCleanupRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     const initAuth = async () => {
       let savedUser: AuthUser | null = null;
       let savedToken: string | null = null;

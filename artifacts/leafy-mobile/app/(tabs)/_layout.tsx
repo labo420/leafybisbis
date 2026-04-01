@@ -112,11 +112,11 @@ function BalanceBar() {
   const dropsRafRef = React.useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
 
   React.useEffect(() => {
-    if (dropsFrozen) return;
+    if (dropsFrozen || dropsAnimSignal) return;
     if (dropsRafRef.current != null) cancelAnimationFrame(dropsRafRef.current);
     displayDropsRef.current = drops;
     setDisplayDrops(drops);
-  }, [drops, dropsFrozen]);
+  }, [drops, dropsFrozen, dropsAnimSignal]);
 
   React.useEffect(() => {
     if (!dropsAnimSignal) return;
