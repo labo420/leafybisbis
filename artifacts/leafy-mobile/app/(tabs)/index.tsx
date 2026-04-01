@@ -171,10 +171,10 @@ const CAN_PIVOT = 14;
 const DROP_TOP = 49;
 const DROP_LEFT = RING_SIZE / 2 + 11;
 const DROP_TRAVEL = 40;
-const BUBBLE_SIZE = 72;
+const BUBBLE_SIZE = 32;
 const BUBBLE_TOP = DROP_TOP + DROP_TRAVEL - BUBBLE_SIZE / 2;
-const BUBBLE_LEFT = RING_SIZE / 2 - BUBBLE_SIZE / 2;
-const BURST_P_SIZE = 9;
+const BUBBLE_LEFT = DROP_LEFT + 2 - BUBBLE_SIZE / 2;
+const BURST_P_SIZE = 7;
 const BURST_CENTER_TOP = BUBBLE_TOP + BUBBLE_SIZE / 2 - BURST_P_SIZE / 2;
 const BURST_CENTER_LEFT = BUBBLE_LEFT + BUBBLE_SIZE / 2 - BURST_P_SIZE / 2;
 
@@ -417,44 +417,29 @@ function LevelProgressRing({
       bubbleRotate.value = 0;
       burstProgress.value = 0;
       bubbleScale.value = withDelay(1970, withSequence(
-        withTiming(1.12, { duration: 180, easing: Easing.out(Easing.back(2.2)) }),
-        withTiming(0.96, { duration: 100 }),
-        withTiming(1,    { duration: 120 }),
-        withTiming(1,    { duration: 1100 }),
-        withTiming(1.72, { duration: 250 }),
-        withTiming(0,    { duration: 0 }),
+        withTiming(1,   { duration: 180, easing: Easing.out(Easing.ease) }),
+        withTiming(1,   { duration: 1500 }),
+        withTiming(1.6, { duration: 250 }),
+        withTiming(0,   { duration: 0 }),
       ));
       bubbleOpacity.value = withDelay(1970, withSequence(
-        withTiming(1, { duration: 200 }),
-        withTiming(1, { duration: 1400 }),
+        withTiming(1, { duration: 180 }),
+        withTiming(1, { duration: 1500 }),
         withTiming(0, { duration: 250 }),
         withTiming(0, { duration: 0 }),
       ));
       bubbleY.value = withDelay(1970, withSequence(
-        withTiming(0,   { duration: 400 }),
-        withTiming(-70, { duration: 1100, easing: Easing.out(Easing.ease) }),
-        withTiming(-80, { duration: 250 }),
+        withTiming(-65, { duration: 1680, easing: Easing.out(Easing.ease) }),
+        withTiming(-75, { duration: 250 }),
         withTiming(0,   { duration: 0 }),
       ));
       bubbleX.value = withDelay(1970, withSequence(
-        withTiming(0,   { duration: 400 }),
-        withTiming(13,  { duration: 275 }),
-        withTiming(0,   { duration: 275 }),
-        withTiming(-13, { duration: 275 }),
-        withTiming(0,   { duration: 275 }),
-        withTiming(8,   { duration: 250 }),
-        withTiming(0,   { duration: 0 }),
-      ));
-      bubbleRotate.value = withDelay(1970, withSequence(
-        withTiming(0,  { duration: 400 }),
-        withTiming(4,  { duration: 275 }),
-        withTiming(0,  { duration: 275 }),
-        withTiming(-4, { duration: 275 }),
-        withTiming(0,  { duration: 275 }),
-        withTiming(3,  { duration: 250 }),
+        withTiming(40, { duration: 1680, easing: Easing.out(Easing.ease) }),
+        withTiming(45, { duration: 250 }),
         withTiming(0,  { duration: 0 }),
       ));
-      burstProgress.value = withDelay(3470, withSequence(
+      bubbleRotate.value = 0;
+      burstProgress.value = withDelay(3650, withSequence(
         withTiming(1, { duration: 300 }),
         withTiming(0, { duration: 0 }),
       ));
@@ -564,44 +549,29 @@ function LevelProgressRing({
       bubbleRotate.value = 0;
       burstProgress.value = 0;
       bubbleScale.value = withDelay(1970, withSequence(
-        withTiming(1.12, { duration: 180, easing: Easing.out(Easing.back(2.2)) }),
-        withTiming(0.96, { duration: 100 }),
-        withTiming(1,    { duration: 120 }),
-        withTiming(1,    { duration: 1100 }),
-        withTiming(1.72, { duration: 250 }),
-        withTiming(0,    { duration: 0 }),
+        withTiming(1,   { duration: 180, easing: Easing.out(Easing.ease) }),
+        withTiming(1,   { duration: 1500 }),
+        withTiming(1.6, { duration: 250 }),
+        withTiming(0,   { duration: 0 }),
       ));
       bubbleOpacity.value = withDelay(1970, withSequence(
-        withTiming(1, { duration: 200 }),
-        withTiming(1, { duration: 1400 }),
+        withTiming(1, { duration: 180 }),
+        withTiming(1, { duration: 1500 }),
         withTiming(0, { duration: 250 }),
         withTiming(0, { duration: 0 }),
       ));
       bubbleY.value = withDelay(1970, withSequence(
-        withTiming(0,   { duration: 400 }),
-        withTiming(-70, { duration: 1100, easing: Easing.out(Easing.ease) }),
-        withTiming(-80, { duration: 250 }),
+        withTiming(-65, { duration: 1680, easing: Easing.out(Easing.ease) }),
+        withTiming(-75, { duration: 250 }),
         withTiming(0,   { duration: 0 }),
       ));
       bubbleX.value = withDelay(1970, withSequence(
-        withTiming(0,   { duration: 400 }),
-        withTiming(13,  { duration: 275 }),
-        withTiming(0,   { duration: 275 }),
-        withTiming(-13, { duration: 275 }),
-        withTiming(0,   { duration: 275 }),
-        withTiming(8,   { duration: 250 }),
-        withTiming(0,   { duration: 0 }),
-      ));
-      bubbleRotate.value = withDelay(1970, withSequence(
-        withTiming(0,  { duration: 400 }),
-        withTiming(4,  { duration: 275 }),
-        withTiming(0,  { duration: 275 }),
-        withTiming(-4, { duration: 275 }),
-        withTiming(0,  { duration: 275 }),
-        withTiming(3,  { duration: 250 }),
+        withTiming(40, { duration: 1680, easing: Easing.out(Easing.ease) }),
+        withTiming(45, { duration: 250 }),
         withTiming(0,  { duration: 0 }),
       ));
-      burstProgress.value = withDelay(3470, withSequence(
+      bubbleRotate.value = 0;
+      burstProgress.value = withDelay(3650, withSequence(
         withTiming(1, { duration: 300 }),
         withTiming(0, { duration: 0 }),
       ));
@@ -871,44 +841,44 @@ const ringStyles = StyleSheet.create({
     width: BUBBLE_SIZE,
     height: BUBBLE_SIZE,
     borderRadius: BUBBLE_SIZE / 2,
-    backgroundColor: "rgba(130, 80, 255, 0.16)",
-    borderWidth: 1.5,
-    borderColor: "rgba(255, 255, 255, 0.42)",
+    backgroundColor: "rgba(130, 80, 255, 0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.45)",
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 25,
     shadowColor: "#a855f7",
     shadowOpacity: 0.5,
-    shadowRadius: 14,
+    shadowRadius: 8,
     shadowOffset: { width: 0, height: 0 },
-    elevation: 6,
+    elevation: 5,
   },
   soapLayer1: {
     position: "absolute",
-    top: 10, left: 10, right: -22, bottom: -22,
-    borderRadius: 36,
-    backgroundColor: "rgba(56, 189, 248, 0.14)",
+    top: 4, left: 4, right: -10, bottom: -10,
+    borderRadius: 16,
+    backgroundColor: "rgba(56, 189, 248, 0.16)",
   },
   soapLayer2: {
     position: "absolute",
-    top: -10, left: -10, right: 10, bottom: 10,
-    borderRadius: 36,
-    backgroundColor: "rgba(16, 185, 129, 0.11)",
+    top: -4, left: -4, right: 4, bottom: 4,
+    borderRadius: 16,
+    backgroundColor: "rgba(16, 185, 129, 0.12)",
   },
   soapShine: {
     position: "absolute",
-    top: 9, left: 13,
-    width: 18, height: 11,
-    borderRadius: 9,
-    backgroundColor: "rgba(255, 255, 255, 0.65)",
+    top: 4, left: 6,
+    width: 9, height: 5,
+    borderRadius: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.70)",
   },
   soapBubbleText: {
     color: "rgba(255, 255, 255, 0.95)",
-    fontSize: 13,
+    fontSize: 9,
     fontFamily: "Nunito_700Bold",
     textShadowColor: "rgba(168, 85, 247, 0.9)",
-    textShadowRadius: 6,
+    textShadowRadius: 4,
     textShadowOffset: { width: 0, height: 0 },
     zIndex: 1,
   },
