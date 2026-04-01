@@ -135,7 +135,7 @@ const CHECKIN_REWARDS_BY_LEVEL: Record<string, { daily: number; finalBonus: numb
 function getCheckinRewardsForSlots(level: string): { reward: string }[] {
   const r = CHECKIN_REWARDS_BY_LEVEL[level] ?? CHECKIN_REWARDS_BY_LEVEL.Germoglio;
   return Array.from({ length: 7 }, (_, i) => ({
-    reward: i === 6 ? `+${r.finalBonus}` : `+${r.daily}`,
+    reward: i === 6 ? `+${r.finalBonus + r.daily}` : `+${r.daily}`,
   }));
 }
 
@@ -151,7 +151,7 @@ const GOLD_CHECKIN_REWARDS_BY_LEVEL: Record<string, { daily: { drops: number; le
 function getGoldCheckinRewardsForSlots(level: string): { drops: number; lea: number }[] {
   const r = GOLD_CHECKIN_REWARDS_BY_LEVEL[level] ?? GOLD_CHECKIN_REWARDS_BY_LEVEL.Germoglio;
   return Array.from({ length: 7 }, (_, i) =>
-    i === 6 ? r.finalBonus : r.daily
+    i === 6 ? { drops: r.finalBonus.drops + r.daily.drops, lea: r.finalBonus.lea + r.daily.lea } : r.daily
   );
 }
 

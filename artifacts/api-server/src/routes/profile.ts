@@ -355,7 +355,7 @@ router.post("/profile/daily-checkin", async (req, res): Promise<void> => {
   const { level: userLevel } = calculateLevel(user.totalPoints ?? 0);
   const rewards = getCheckinRewards(userLevel);
   const dailyDrops = rewards.daily;
-  const dropsGain = classicBonusAwarded ? rewards.finalBonus : dailyDrops;
+  const dropsGain = classicBonusAwarded ? rewards.finalBonus + rewards.daily : dailyDrops;
 
   await db.update(usersTable).set({
     loginStreak: newStreak,
@@ -427,7 +427,9 @@ router.post("/profile/daily-checkin-gold", async (req, res): Promise<void> => {
     const nextPrizeDay = newBpClaimed + 1;
     if (newBpDay >= nextPrizeDay && newBpClaimed < 7) {
       const isFinalDay = newBpClaimed === 6;
-      bpPrize = isFinalDay ? goldRewards.finalBonus : goldRewards.daily;
+      bpPrize = isFinalDay
+        ? { drops: goldRewards.finalBonus.drops + goldRewards.daily.drops, lea: goldRewards.finalBonus.lea + goldRewards.daily.lea }
+        : goldRewards.daily;
       newBpClaimed += 1;
       if (newBpClaimed >= 7) {
         newBpCompleted = true;
