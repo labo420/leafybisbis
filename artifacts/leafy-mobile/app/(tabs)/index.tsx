@@ -192,7 +192,7 @@ function LevelProgressRing({
   isFocused: boolean;
 }) {
   const { mode } = useTheme();
-  const { levelUpPhase, levelUpToLevel, setRingLayout } = useLevelUp();
+  const { levelUpPhase, levelUpToLevel, setRingLayout, ringTargetLayout } = useLevelUp();
   const { scheduleDropsAnimation, dropsBarLayoutRef } = useAuth();
   const onDark = mode === "dark";
   const trackColor = onDark ? "rgba(255,255,255,0.15)" : "rgba(46,107,80,0.13)";
@@ -251,7 +251,6 @@ function LevelProgressRing({
   const progTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hapticTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suckinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bubbleRef = useRef<any>(null);
 
   const animateProgress = useCallback((from: number, to: number, durationMs = 800) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -348,10 +347,10 @@ function LevelProgressRing({
     const p = burstProgress.value;
     return { opacity: p > 0 ? Math.max(0, 1 - p * 1.6) : 0, transform: [{ translateX: bubbleX.value + p * (-28) }, { translateY: bubbleY.value + p * 4 }] };
   });
-  const contentSuckAnimStyle = useAnimatedStyle(() => ({
+  const bubbleContentAnimStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: contentSuckX.value },
-      { translateY: contentSuckY.value },
+      { translateX: bubbleX.value + contentSuckX.value },
+      { translateY: bubbleY.value + contentSuckY.value },
       { scale: contentSuckScale.value },
     ],
     opacity: contentSuckOpacity.value,
@@ -434,7 +433,7 @@ function LevelProgressRing({
       contentSuckX.value = 0;
       contentSuckY.value = 0;
       contentSuckScale.value = 1;
-      contentSuckOpacity.value = 1;
+      contentSuckOpacity.value = 0;
       bubbleScale.value = withDelay(1970, withSequence(
         withTiming(1,   { duration: 180, easing: Easing.out(Easing.ease) }),
         withTiming(1,   { duration: 1320 }),
@@ -457,6 +456,7 @@ function LevelProgressRing({
         withTiming(40, { duration: 550 }),
         withTiming(0,  { duration: 0 }),
       ));
+      contentSuckOpacity.value = withDelay(1970, withTiming(1, { duration: 180, easing: Easing.out(Easing.ease) }));
       bubbleRotate.value = 0;
       burstProgress.value = withDelay(3470, withSequence(
         withTiming(1, { duration: 300 }),
@@ -465,18 +465,19 @@ function LevelProgressRing({
       scheduleDropsAnimation(prev, points, 3470);
       if (suckinTimeoutRef.current) clearTimeout(suckinTimeoutRef.current);
       suckinTimeoutRef.current = setTimeout(() => {
-        (bubbleRef.current as any)?.measureInWindow((bx: number, by: number, bw: number, bh: number) => {
-          const layout = dropsBarLayoutRef.current;
-          if (!layout || bw === 0) return;
-          const bubbleCX = bx + bw / 2;
-          const bubbleCY = by + bh / 2;
-          const targetCX = layout.x + layout.width / 2;
-          const targetCY = layout.y + layout.height / 2;
-          contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
-          contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
-          contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
-          contentSuckOpacity.value = withTiming(0, { duration: 200 });
-        });
+        const layout = dropsBarLayoutRef.current;
+        const ring = ringTargetLayout;
+        if (!layout || !ring) return;
+        const ringCX = ring.x + ring.width / 2;
+        const ringCY = ring.y + ring.height / 2;
+        const bubbleCX = ringCX + BUBBLE_LEFT + BUBBLE_SIZE / 2 - RING_SIZE / 2 + 40;
+        const bubbleCY = ringCY + BUBBLE_TOP + BUBBLE_SIZE / 2 - RING_SIZE / 2 - 65;
+        const targetCX = layout.x + layout.width / 2;
+        const targetCY = layout.y + layout.height / 2;
+        contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
+        contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
+        contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
+        contentSuckOpacity.value = withTiming(0, { duration: 350 });
       }, 3400);
 
       // Haptic all'atterraggio goccia (1970ms)
@@ -587,7 +588,7 @@ function LevelProgressRing({
       contentSuckX.value = 0;
       contentSuckY.value = 0;
       contentSuckScale.value = 1;
-      contentSuckOpacity.value = 1;
+      contentSuckOpacity.value = 0;
       bubbleScale.value = withDelay(1970, withSequence(
         withTiming(1,   { duration: 180, easing: Easing.out(Easing.ease) }),
         withTiming(1,   { duration: 1320 }),
@@ -610,6 +611,7 @@ function LevelProgressRing({
         withTiming(40, { duration: 550 }),
         withTiming(0,  { duration: 0 }),
       ));
+      contentSuckOpacity.value = withDelay(1970, withTiming(1, { duration: 180, easing: Easing.out(Easing.ease) }));
       bubbleRotate.value = 0;
       burstProgress.value = withDelay(3470, withSequence(
         withTiming(1, { duration: 300 }),
@@ -618,18 +620,19 @@ function LevelProgressRing({
       scheduleDropsAnimation(prev, points, 3470);
       if (suckinTimeoutRef.current) clearTimeout(suckinTimeoutRef.current);
       suckinTimeoutRef.current = setTimeout(() => {
-        (bubbleRef.current as any)?.measureInWindow((bx: number, by: number, bw: number, bh: number) => {
-          const layout = dropsBarLayoutRef.current;
-          if (!layout || bw === 0) return;
-          const bubbleCX = bx + bw / 2;
-          const bubbleCY = by + bh / 2;
-          const targetCX = layout.x + layout.width / 2;
-          const targetCY = layout.y + layout.height / 2;
-          contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
-          contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
-          contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
-          contentSuckOpacity.value = withTiming(0, { duration: 200 });
-        });
+        const layout = dropsBarLayoutRef.current;
+        const ring = ringTargetLayout;
+        if (!layout || !ring) return;
+        const ringCX = ring.x + ring.width / 2;
+        const ringCY = ring.y + ring.height / 2;
+        const bubbleCX = ringCX + BUBBLE_LEFT + BUBBLE_SIZE / 2 - RING_SIZE / 2 + 40;
+        const bubbleCY = ringCY + BUBBLE_TOP + BUBBLE_SIZE / 2 - RING_SIZE / 2 - 65;
+        const targetCX = layout.x + layout.width / 2;
+        const targetCY = layout.y + layout.height / 2;
+        contentSuckX.value = withTiming(targetCX - bubbleCX, { duration: 350, easing: Easing.in(Easing.cubic) });
+        contentSuckY.value = withTiming(targetCY - bubbleCY, { duration: 350, easing: Easing.in(Easing.cubic) });
+        contentSuckScale.value = withTiming(0, { duration: 350, easing: Easing.in(Easing.cubic) });
+        contentSuckOpacity.value = withTiming(0, { duration: 350 });
       }, 3400);
 
       // Quando la goccia atterra (~1970ms): barra, contatore e badge crescono insieme
@@ -811,15 +814,15 @@ function LevelProgressRing({
         {/* Bolla di sapone: nasce all'atterraggio, vola verso l'alto e scoppia */}
         {earnedDropsDelta > 0 && (
           <>
-            <Animated.View ref={bubbleRef} style={[ringStyles.soapBubble, bubbleAnimStyle]}>
+            <Animated.View style={[ringStyles.soapBubble, bubbleAnimStyle]}>
               <View style={ringStyles.soapLayer1} />
               <View style={ringStyles.soapLayer2} />
               <View style={ringStyles.soapShine} />
-              <Animated.View style={contentSuckAnimStyle}>
-                <Text style={ringStyles.soapBubbleText}>
-                  +{new Intl.NumberFormat("it-IT").format(earnedDropsDelta)} 💧
-                </Text>
-              </Animated.View>
+            </Animated.View>
+            <Animated.View pointerEvents="none" style={[ringStyles.bubbleContent, bubbleContentAnimStyle]}>
+              <Text style={ringStyles.soapBubbleText}>
+                +{new Intl.NumberFormat("it-IT").format(earnedDropsDelta)} 💧
+              </Text>
             </Animated.View>
             <Animated.View style={[ringStyles.burstParticle, { backgroundColor: "#c77dff" }, burst0Style]} />
             <Animated.View style={[ringStyles.burstParticle, { backgroundColor: "#48cae4" }, burst1Style]} />
@@ -892,6 +895,16 @@ const ringStyles = StyleSheet.create({
     width: 14,
     height: 19,
     zIndex: 10,
+  },
+  bubbleContent: {
+    position: "absolute",
+    top: BUBBLE_TOP,
+    left: BUBBLE_LEFT,
+    width: BUBBLE_SIZE,
+    height: BUBBLE_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 26,
   },
   soapBubble: {
     position: "absolute",
