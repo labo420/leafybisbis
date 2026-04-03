@@ -16,15 +16,14 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { useTheme } from "@/context/theme";
-import { useAuth } from "@/context/auth";
 import { Fonts } from "@/constants/typography";
 import { apiFetch } from "@/lib/api";
 import { XpIcon } from "@/components/XpIcon";
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
+const { height: SCREEN_H } = Dimensions.get("window");
 const CARD_H = 210;
 const INITIAL_RADIUS_KM = 5;
 
@@ -122,12 +121,12 @@ const markerStyles = StyleSheet.create({
 export default function MappaScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const { user } = useAuth();
 
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locations, setLocations] = useState<MapLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [permDenied, setPermDenied] = useState(false);
+  const [apiError, setApiError] = useState(false);
   const [selected, setSelected] = useState<MapLocation | null>(null);
   const mapRef = useRef<MapView>(null);
 
@@ -152,13 +151,14 @@ export default function MappaScreen() {
   }, [cardSlide]);
 
   const fetchLocations = useCallback(async (lat: number, lng: number) => {
+    setApiError(false);
     try {
       const data = await apiFetch<{ locations: RawMapLocation[]; count: number }>(
         `/locations/nearby?lat=${lat}&lng=${lng}&radius=${INITIAL_RADIUS_KM}`,
       );
       setLocations((data.locations ?? []).map(parseLocation));
     } catch {
-      // silently fail — map still shows user position
+      setApiError(true);
     }
   }, []);
 
@@ -307,7 +307,7 @@ export default function MappaScreen() {
       )}
 
       {/* ── EMPTY STATE ── */}
-      {isMapReady && locations.length === 0 && (
+      {isMapReady && !apiError && locations.length === 0 && (
         <Animated.View
           entering={FadeInDown.delay(300).springify()}
           style={[styles.emptyBanner, { backgroundColor: theme.card, borderColor: theme.border }]}
@@ -315,6 +315,19 @@ export default function MappaScreen() {
           <MaterialCommunityIcons name="store-off" size={18} color={theme.textMuted} />
           <Text style={[styles.emptyBannerText, { color: theme.textSecondary }]}>
             Nessun negozio entro {INITIAL_RADIUS_KM} km dalla tua posizione
+          </Text>
+        </Animated.View>
+      )}
+
+      {/* ── API ERROR BANNER ── */}
+      {isMapReady && apiError && (
+        <Animated.View
+          entering={FadeInDown.delay(300).springify()}
+          style={[styles.emptyBanner, { backgroundColor: theme.card, borderColor: theme.border }]}
+        >
+          <Feather name="wifi-off" size={16} color={theme.red} />
+          <Text style={[styles.emptyBannerText, { color: theme.textSecondary }]}>
+            Impossibile caricare i negozi. Controlla la connessione.
           </Text>
         </Animated.View>
       )}
