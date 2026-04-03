@@ -833,12 +833,6 @@ function LevelProgressRing({
           </>
         )}
       </View>
-
-      <Text style={[ringStyles.nextLevelText, { color: nextLvlColor }]} numberOfLines={3}>
-        {isMaxLevel
-          ? "Hai raggiunto il massimo livello!"
-          : `Ti mancano solo ${new Intl.NumberFormat("it-IT").format(pointsRemaining)} drops per sbloccare ${nextLevel!.name} e ottenere i nuovi vantaggi.`}
-      </Text>
     </Animated.View>
   );
 }
