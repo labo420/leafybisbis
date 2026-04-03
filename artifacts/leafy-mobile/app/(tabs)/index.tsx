@@ -1210,6 +1210,10 @@ function leaderboardInitials(username: string): string {
   return (username ?? "").replace(/[^\p{L}\p{N}]/gu, "").slice(0, 2).toUpperCase() || "??";
 }
 
+const PODIUM_BASE_HEIGHTS = [55, 82, 38]; // 2°-left, 1°-center, 3°-right
+const PODIUM_BASE_COLORS = ["rgba(46,107,80,0.55)", "#2E6B50", "rgba(46,107,80,0.28)"];
+const PODIUM_RANK_LABELS = ["2°", "1°", "3°"];
+
 function LeaderboardMiniCard({
   entries,
   theme,
@@ -1217,89 +1221,139 @@ function LeaderboardMiniCard({
   entries: LeaderboardEntry[];
   theme: ReturnType<typeof useTheme>["theme"];
 }) {
-  const top3 = entries.filter(e => e.rank <= 3);
-  const userEntry = entries.find(e => e.isCurrentUser);
+  const [scope, setScope] = useState<"global" | "friends">("global");
+  const fadeOpacity = useSharedValue(1);
+  const fadeStyle = useAnimatedStyle(() => ({ opacity: fadeOpacity.value }));
+
+  const { data: friendsEntries, isFetching: friendsFetching } = useQuery<LeaderboardEntry[]>({
+    queryKey: ["leaderboard", "friends", "weekly"],
+    queryFn: () => apiFetch("/leaderboard?period=weekly&scope=friends"),
+    staleTime: 120_000,
+  });
+
+  const activeEntries = scope === "global" ? entries : (friendsEntries ?? []);
+  const top3Raw = activeEntries.filter(e => e.rank <= 3);
+  const podium = [
+    top3Raw.find(e => e.rank === 2),
+    top3Raw.find(e => e.rank === 1),
+    top3Raw.find(e => e.rank === 3),
+  ] as (LeaderboardEntry | undefined)[];
+  const userEntry = activeEntries.find(e => e.isCurrentUser);
+
+  const switchScope = (newScope: "global" | "friends") => {
+    if (newScope === scope) return;
+    fadeOpacity.value = withSequence(
+      withTiming(0, { duration: 150 }),
+      withTiming(1, { duration: 220 }),
+    );
+    setScope(newScope);
+  };
 
   return (
     <View style={lbCardStyles.cardShadow}>
-    <Pressable
-      style={lbCardStyles.card}
-      onPress={() => router.push("/leaderboard")}
-    >
-      {/* Header a gradiente */}
-      <LinearGradient
-        colors={["#1A3028", "#2E6B50"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={lbCardStyles.header}
-      >
-        <View style={lbCardStyles.headerLeft}>
-          <MaterialCommunityIcons name="trophy" size={18} color="#FFD700" />
-          <Text style={lbCardStyles.title}>Classifica</Text>
-          <View style={lbCardStyles.badge}>
-            <Text style={lbCardStyles.badgeText}>Questa settimana</Text>
+      <View style={[lbCardStyles.card, { backgroundColor: theme.card }]}>
+        {/* Header con gradiente + chip filtro */}
+        <LinearGradient
+          colors={["#1A3028", "#2E6B50"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={lbCardStyles.header}
+        >
+          <View style={lbCardStyles.headerLeft}>
+            <MaterialCommunityIcons name="trophy" size={18} color="#FFD700" />
+            <Text style={lbCardStyles.title}>Classifica</Text>
           </View>
-        </View>
-        <View style={lbCardStyles.headerRight}>
-          <Text style={lbCardStyles.viewAll}>Vedi tutto</Text>
-          <MaterialCommunityIcons name="chevron-right" size={15} color="rgba(255,255,255,0.8)" />
-        </View>
-      </LinearGradient>
+          <View style={lbCardStyles.scopeRow}>
+            <Pressable
+              onPress={() => switchScope("global")}
+              style={[lbCardStyles.scopeChip, scope === "global" && lbCardStyles.scopeChipActive]}
+            >
+              <Text style={[lbCardStyles.scopeChipText, scope === "global" && lbCardStyles.scopeChipTextActive]}>
+                Globale
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => switchScope("friends")}
+              style={[lbCardStyles.scopeChip, scope === "friends" && lbCardStyles.scopeChipActive]}
+            >
+              <Text style={[lbCardStyles.scopeChipText, scope === "friends" && lbCardStyles.scopeChipTextActive]}>
+                Amici
+              </Text>
+            </Pressable>
+          </View>
+        </LinearGradient>
 
-      {/* Podio compatto */}
-      <View style={[lbCardStyles.podiumRow, { backgroundColor: theme.card }]}>
-        {top3.length === 0 ? (
-          <Text style={[lbCardStyles.emptyText, { color: theme.textMuted }]}>Nessun dato disponibile</Text>
-        ) : (
-          top3.map((entry) => {
-            const color = entry.avatarColor ?? leaderboardAvatarColor(entry.userId);
-            const medal = ["🥇","🥈","🥉"][entry.rank - 1];
-            const isFirst = entry.rank === 1;
-            const avatarSize = isFirst ? 52 : 42;
-            return (
-              <View key={entry.userId} style={lbCardStyles.podiumItem}>
-                <Text style={[lbCardStyles.medal, isFirst && lbCardStyles.medalFirst]}>{medal}</Text>
-                <View style={[
-                  lbCardStyles.avatar,
-                  {
-                    backgroundColor: color,
-                    width: avatarSize,
-                    height: avatarSize,
-                    borderRadius: avatarSize / 2,
-                  },
-                  isFirst && lbCardStyles.avatarFirst,
-                  entry.isCurrentUser && lbCardStyles.avatarMe,
-                ]}>
-                  <Text style={[lbCardStyles.avatarText, { fontSize: isFirst ? 17 : 14 }]}>
-                    {leaderboardInitials(entry.username)}
-                  </Text>
+        {/* Podio con altezze differenziate (2°-sx | 1°-centro | 3°-dx) */}
+        <Animated.View style={[lbCardStyles.podiumRow, fadeStyle]}>
+          {friendsFetching && scope === "friends" ? (
+            <ActivityIndicator size="small" color={theme.primary} style={{ flex: 1, paddingVertical: 28 }} />
+          ) : top3Raw.length === 0 ? (
+            <Text style={[lbCardStyles.emptyText, { color: theme.textMuted }]}>
+              {scope === "friends" ? "Nessun amico in classifica" : "Nessun dato disponibile"}
+            </Text>
+          ) : (
+            podium.map((entry, idx) => {
+              if (!entry) return <View key={`empty-${idx}`} style={{ flex: 1 }} />;
+              const color = entry.avatarColor ?? leaderboardAvatarColor(entry.userId);
+              const medal = ["🥈", "🥇", "🥉"][idx];
+              const isFirst = idx === 1;
+              const avatarSize = isFirst ? 52 : 42;
+              return (
+                <View key={entry.userId} style={lbCardStyles.podiumItem}>
+                  <View style={lbCardStyles.podiumTopSection}>
+                    <Text style={[lbCardStyles.medal, isFirst && lbCardStyles.medalFirst]}>{medal}</Text>
+                    <View style={[
+                      lbCardStyles.avatar,
+                      { backgroundColor: color, width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 },
+                      isFirst && lbCardStyles.avatarFirst,
+                      entry.isCurrentUser && lbCardStyles.avatarMe,
+                    ]}>
+                      <Text style={[lbCardStyles.avatarText, { fontSize: isFirst ? 17 : 14 }]}>
+                        {leaderboardInitials(entry.username)}
+                      </Text>
+                    </View>
+                    <Text style={[lbCardStyles.podiumName, { color: theme.text }]} numberOfLines={1}>
+                      {entry.isCurrentUser ? "Tu 👋" : entry.username}
+                    </Text>
+                    <Text style={[lbCardStyles.podiumScore, { color: theme.primary, fontSize: isFirst ? 13 : 11 }]}>
+                      {entry.score >= 1000 ? `${(entry.score / 1000).toFixed(1)}k` : entry.score}
+                      <Text style={[lbCardStyles.dropsLabel, { color: theme.textMuted }]}> drops</Text>
+                    </Text>
+                  </View>
+                  <View style={[lbCardStyles.podiumBase, {
+                    height: PODIUM_BASE_HEIGHTS[idx],
+                    backgroundColor: PODIUM_BASE_COLORS[idx],
+                  }]}>
+                    <Text style={lbCardStyles.podiumRankLabel}>{PODIUM_RANK_LABELS[idx]}</Text>
+                  </View>
                 </View>
-                <Text style={[lbCardStyles.podiumName, { color: theme.text }]} numberOfLines={1}>
-                  {entry.isCurrentUser ? "Tu 👋" : entry.username}
-                </Text>
-                <Text style={[lbCardStyles.podiumScore, { color: theme.primary, fontSize: isFirst ? 13 : 11 }]}>
-                  {entry.score >= 1000 ? `${(entry.score / 1000).toFixed(1)}k` : entry.score}
-                  <Text style={[lbCardStyles.dropsLabel, { color: theme.textMuted }]}> drops</Text>
-                </Text>
-              </View>
-            );
-          })
-        )}
-      </View>
+              );
+            })
+          )}
+        </Animated.View>
 
-      {/* La tua posizione (se fuori top 3) */}
-      {userEntry && userEntry.rank > 3 && (
-        <View style={[lbCardStyles.myRankRow, { backgroundColor: "#2E6B50" }]}>
-          <MaterialCommunityIcons name="account" size={15} color="#fff" />
-          <Text style={lbCardStyles.myRankText}>
-            La tua posizione: #{userEntry.rank}
-          </Text>
-          <Text style={lbCardStyles.myRankScore}>
-            · {userEntry.score >= 1000 ? `${(userEntry.score / 1000).toFixed(1)}k` : userEntry.score} drops
-          </Text>
-        </View>
-      )}
-    </Pressable>
+        {/* Posizione utente se fuori top 3 */}
+        {userEntry && userEntry.rank > 3 && (
+          <View style={[lbCardStyles.myRankRow, { backgroundColor: "rgba(46,107,80,0.10)", borderTopColor: theme.border }]}>
+            <MaterialCommunityIcons name="account-circle" size={17} color={theme.primary} />
+            <Text style={[lbCardStyles.myRankText, { color: theme.text }]}>
+              Tu sei <Text style={{ color: theme.primary }}>#{userEntry.rank}</Text> questa settimana
+            </Text>
+            <Text style={[lbCardStyles.myRankScore, { color: theme.textSecondary }]}>
+              · {userEntry.score >= 1000 ? `${(userEntry.score / 1000).toFixed(1)}k` : userEntry.score} drops
+            </Text>
+          </View>
+        )}
+
+        {/* Bottone "Vedi classifica completa" */}
+        <Pressable
+          onPress={() => router.push("/leaderboard")}
+          style={[lbCardStyles.viewAllBtn, { borderTopColor: theme.border }]}
+        >
+          <Text style={[lbCardStyles.viewAllBtnText, { color: theme.primary }]}>Vedi classifica completa</Text>
+          <MaterialCommunityIcons name="chevron-right" size={16} color={theme.primary} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -1325,27 +1379,42 @@ const lbCardStyles = StyleSheet.create({
     paddingVertical: 11,
   },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 7 },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 3 },
   title: { fontSize: 15, fontFamily: Fonts.bodyBold, color: "#fff" },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: "rgba(255,255,255,0.18)",
+  scopeRow: { flexDirection: "row", gap: 5 },
+  scopeChip: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.12)",
   },
-  badgeText: { fontSize: 10, fontFamily: Fonts.bodyMedium, color: "rgba(255,255,255,0.9)" },
-  viewAll: { fontSize: 12, fontFamily: Fonts.bodyMedium, color: "rgba(255,255,255,0.85)" },
+  scopeChipActive: {
+    backgroundColor: "rgba(255,255,255,0.90)",
+  },
+  scopeChipText: {
+    fontSize: 11,
+    fontFamily: Fonts.bodyMedium,
+    color: "rgba(255,255,255,0.80)",
+  },
+  scopeChipTextActive: {
+    color: "#1A3028",
+  },
   podiumRow: {
     flexDirection: "row",
-    justifyContent: "space-around",
     alignItems: "flex-end",
-    paddingHorizontal: 12,
-    paddingBottom: 16,
-    paddingTop: 14,
+    paddingHorizontal: 10,
+    paddingTop: 16,
   },
-  podiumItem: { alignItems: "center", gap: 4, flex: 1 },
+  podiumItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  podiumTopSection: {
+    alignItems: "center",
+    gap: 3,
+    paddingBottom: 6,
+  },
   medal: { fontSize: 20 },
-  medalFirst: { fontSize: 26 },
+  medalFirst: { fontSize: 28 },
   avatar: {
     alignItems: "center",
     justifyContent: "center",
@@ -1364,16 +1433,41 @@ const lbCardStyles = StyleSheet.create({
   podiumName: { fontSize: 11, fontFamily: Fonts.bodyMedium, textAlign: "center" },
   podiumScore: { fontFamily: Fonts.bodyBold, textAlign: "center" },
   dropsLabel: { fontSize: 9, fontFamily: Fonts.bodyRegular },
-  emptyText: { fontSize: 13, fontFamily: Fonts.bodyRegular, padding: 12 },
+  podiumBase: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+  },
+  podiumRankLabel: {
+    fontSize: 11,
+    fontFamily: Fonts.bodyBold,
+    color: "rgba(255,255,255,0.88)",
+  },
+  emptyText: { fontSize: 13, fontFamily: Fonts.bodyRegular, padding: 20, textAlign: "center", flex: 1 },
   myRankRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     paddingHorizontal: 14,
     paddingVertical: 9,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  myRankText: { fontSize: 13, fontFamily: Fonts.bodyBold, color: "#fff" },
-  myRankScore: { fontSize: 12, fontFamily: Fonts.bodyMedium, color: "#fff" },
+  myRankText: { fontSize: 13, fontFamily: Fonts.bodyMedium, flex: 1 },
+  myRankScore: { fontSize: 12, fontFamily: Fonts.bodyMedium },
+  viewAllBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  viewAllBtnText: {
+    fontSize: 13,
+    fontFamily: Fonts.bodyMedium,
+  },
 });
 
 interface WeeklySummary {
