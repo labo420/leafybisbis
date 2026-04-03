@@ -1228,6 +1228,7 @@ function LeaderboardMiniCard({
   const { data: friendsEntries, isFetching: friendsFetching } = useQuery<LeaderboardEntry[]>({
     queryKey: ["leaderboard", "friends", "weekly"],
     queryFn: () => apiFetch("/leaderboard?period=weekly&scope=friends"),
+    enabled: scope === "friends",
     staleTime: 120_000,
   });
 
