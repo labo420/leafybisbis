@@ -42,9 +42,22 @@ interface MapLocation {
   walkinDrops: number;
 }
 
+interface RawMapLocation {
+  id: number;
+  name: string;
+  type: "oasi" | "standard";
+  lat: number | string;
+  lng: number | string;
+  distance_km: number | string;
+  chain: string | null;
+  address: string | null;
+  city: string | null;
+  province: string | null;
+}
+
 const WALKIN_DROPS: Record<string, number> = { oasi: 15, standard: 5 };
 
-function parseLocation(raw: any): MapLocation {
+function parseLocation(raw: RawMapLocation): MapLocation {
   const distKm = parseFloat(String(raw.distance_km ?? 0)) || 0;
   return {
     id: raw.id,
@@ -140,7 +153,7 @@ export default function MappaScreen() {
 
   const fetchLocations = useCallback(async (lat: number, lng: number) => {
     try {
-      const data = await apiFetch<{ locations: any[]; count: number }>(
+      const data = await apiFetch<{ locations: RawMapLocation[]; count: number }>(
         `/locations/nearby?lat=${lat}&lng=${lng}&radius=${INITIAL_RADIUS_KM}`,
       );
       setLocations((data.locations ?? []).map(parseLocation));
