@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { eq, sql } from "drizzle-orm";
+import { and, gte, lt, eq, sql } from "drizzle-orm";
 import { db, usersTable, receiptsTable, productCacheTable } from "@workspace/db";
 import {
   GetProfileResponse,
@@ -463,6 +463,83 @@ router.post("/profile/daily-checkin-gold", async (req, res): Promise<void> => {
     bpStreakCompleted: newBpCompleted,
     bpPrize,
   });
+});
+
+// Weekly scores for fake users in the leaderboard (totalPoints * weeklyMul, rounded)
+const FAKE_WEEKLY_SCORES = [752, 506, 525, 555, 240, 240, 274, 90, 217];
+
+function getWeekBounds(): { weekStart: Date; lastWeekStart: Date } {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun, 1=Mon...6=Sat
+  const daysSinceMonday = day === 0 ? 6 : day - 1;
+  const weekStart = new Date(now);
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(now.getDate() - daysSinceMonday);
+  const lastWeekStart = new Date(weekStart);
+  lastWeekStart.setDate(weekStart.getDate() - 7);
+  return { weekStart, lastWeekStart };
+}
+
+router.get("/profile/weekly-summary", async (req, res): Promise<void> => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const { weekStart, lastWeekStart } = getWeekBounds();
+
+  const [thisWeekRow] = await db
+    .select({
+      count: sql<number>`cast(count(*) as int)`,
+      drops: sql<number>`cast(coalesce(sum(${receiptsTable.pointsEarned}), 0) as int)`,
+    })
+    .from(receiptsTable)
+    .where(
+      and(
+        eq(receiptsTable.userId, user.id),
+        eq(receiptsTable.status, "approved"),
+        gte(receiptsTable.scannedAt, weekStart),
+      ),
+    );
+
+  const [lastWeekRow] = await db
+    .select({
+      drops: sql<number>`cast(coalesce(sum(${receiptsTable.pointsEarned}), 0) as int)`,
+    })
+    .from(receiptsTable)
+    .where(
+      and(
+        eq(receiptsTable.userId, user.id),
+        eq(receiptsTable.status, "approved"),
+        gte(receiptsTable.scannedAt, lastWeekStart),
+        lt(receiptsTable.scannedAt, weekStart),
+      ),
+    );
+
+  const receiptsThisWeek: number = thisWeekRow?.count ?? 0;
+  const dropsThisWeek: number = thisWeekRow?.drops ?? 0;
+  const dropsLastWeek: number = lastWeekRow?.drops ?? 0;
+
+  // Compute weekly rank among all real users + fake users
+  const allWeeklyRows = await db
+    .select({
+      userId: receiptsTable.userId,
+      drops: sql<number>`cast(sum(${receiptsTable.pointsEarned}) as int)`,
+    })
+    .from(receiptsTable)
+    .where(
+      and(
+        eq(receiptsTable.status, "approved"),
+        gte(receiptsTable.scannedAt, weekStart),
+      ),
+    )
+    .groupBy(receiptsTable.userId);
+
+  const betterReal = allWeeklyRows.filter(
+    (r) => r.userId !== user.id && (r.drops ?? 0) > dropsThisWeek,
+  ).length;
+  const betterFake = FAKE_WEEKLY_SCORES.filter((s) => s > dropsThisWeek).length;
+  const weeklyRank = betterReal + betterFake + 1;
+
+  res.json({ receiptsThisWeek, dropsThisWeek, dropsLastWeek, weeklyRank });
 });
 
 export default router;
