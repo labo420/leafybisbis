@@ -1124,6 +1124,19 @@ export default function ProfiloScreen() {
           </View>
         </Pressable>
 
+        {/* Link mappa negozi */}
+        <Pressable
+          style={({ pressed }) => [inStoreStyles.mapLink, { backgroundColor: theme.primaryLight, opacity: pressed ? 0.75 : 1 }]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push("/mappa");
+          }}
+        >
+          <MaterialCommunityIcons name="map-marker-radius" size={16} color={theme.leaf} />
+          <Text style={[inStoreStyles.mapLinkText, { color: theme.leaf }]}>Vedi mappa negozi partner</Text>
+          <Feather name="chevron-right" size={14} color={theme.leaf} />
+        </Pressable>
+
         {inStoreModeEnabled && inStoreModeActive && (
           <View style={[inStoreStyles.panel, { backgroundColor: theme.card }]}>
             {permissionStatus === "denied" && (
@@ -1710,6 +1723,20 @@ const inStoreStyles = StyleSheet.create({
     marginTop: 4,
   },
   refreshBtnText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+  },
+  mapLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  mapLinkText: {
+    flex: 1,
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
   },
