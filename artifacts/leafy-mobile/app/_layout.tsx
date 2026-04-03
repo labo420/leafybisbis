@@ -75,6 +75,7 @@ function RootLayoutNav() {
         <Stack.Screen name="support" options={{ headerShown: false }} />
         <Stack.Screen name="friends" options={{ headerShown: false }} />
         <Stack.Screen name="leaderboard" options={{ headerShown: false }} />
+        <Stack.Screen name="mappa" options={{ headerShown: false }} />
       </Stack>
       <TutorialGate />
     </>

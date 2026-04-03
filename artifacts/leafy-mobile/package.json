@@ -64,6 +64,7 @@
     "expo-notifications": "^0.32.16",
     "expo-sharing": "^14.0.8",
     "react-native-confetti-cannon": "^1.5.2",
+    "react-native-maps": "1.20.1",
     "react-native-view-shot": "^4.0.3"
   }
 }

@@ -18,4 +18,18 @@ config.resolver.blockList = [
   /\/\.git\/.*/,
 ];
 
+const WEB_NATIVE_SHIMS = ["react-native-maps"];
+const emptyModule = path.resolve(projectRoot, "shims/empty-module.js");
+
+const originalResolveRequest = config.resolver.resolveRequest;
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (platform === "web" && WEB_NATIVE_SHIMS.includes(moduleName)) {
+    return { type: "sourceFile", filePath: emptyModule };
+  }
+  if (originalResolveRequest) {
+    return originalResolveRequest(context, moduleName, platform);
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+
 module.exports = config;
