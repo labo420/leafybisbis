@@ -599,6 +599,40 @@ export default function ProfiloScreen() {
     });
   };
 
+  const handleShareImpact = async () => {
+    if (!impact) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const LEVEL_EMOJI: Record<string, string> = {
+      Germoglio: "🌱", Ramoscello: "🌿", Arbusto: "🍃",
+      Albero: "🌳", Foresta: "🌲", Giungla: "🌴",
+    };
+    const currentLevel = profile?.level ?? "Germoglio";
+    const lvlEmoji = LEVEL_EMOJI[currentLevel] ?? "🌿";
+    const co2 = (impact.co2SavedKg ?? 0).toFixed(1);
+    const water = Math.round(impact.waterSavedLiters ?? 0);
+    const plastic = (impact.plasticAvoidedKg ?? 0).toFixed(2);
+    const green = impact.greenProductsCount ?? 0;
+    const receipts = impact.receiptsScanned ?? 0;
+    const kmAuto = Math.round((impact.co2SavedKg ?? 0) * 5);
+    const docce = Math.round((impact.waterSavedLiters ?? 0) / 40);
+    const bottiglie = Math.round((impact.plasticAvoidedKg ?? 0) / 0.025);
+    const message = [
+      `🌿 Il mio impatto verde su Leafy ${lvlEmoji}`,
+      ``,
+      `Scansionando ${receipts} scontrini ho contribuito a:`,
+      ``,
+      `🌍 ${co2} kg di CO₂ risparmiata (≈ ${kmAuto} km in auto in meno)`,
+      `💧 ${water} L di acqua salvata (≈ ${docce} docce)`,
+      `♻️ ${plastic} kg di plastica evitata (≈ ${bottiglie} bottiglie)`,
+      `🛒 ${green} prodotti green scelti`,
+      ``,
+      `Livello: ${lvlEmoji} ${currentLevel}`,
+      ``,
+      `Anche tu puoi fare la differenza! Scarica Leafy e guadagna premi mentre salvi il pianeta 🌍`,
+    ].join("\n");
+    await Share.share({ message, title: "Il mio impatto verde — Leafy" });
+  };
+
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -760,6 +794,27 @@ export default function ProfiloScreen() {
         <Text style={[styles.impactDisclaimer, { color: theme.textMuted }]}>
           Stime indicative basate sulla categoria del prodotto.
         </Text>
+        {impact && (
+          <Pressable
+            style={({ pressed }) => ({
+              flexDirection: "row" as const,
+              alignItems: "center" as const,
+              justifyContent: "center" as const,
+              gap: 6,
+              marginTop: 12,
+              backgroundColor: theme.primaryLight,
+              borderRadius: 12,
+              paddingVertical: 10,
+              opacity: pressed ? 0.75 : 1,
+            })}
+            onPress={handleShareImpact}
+          >
+            <Feather name="share-2" size={15} color={theme.leaf} />
+            <Text style={{ fontSize: 13, fontFamily: Fonts.displayBold, color: theme.leaf }}>
+              Condividi il tuo impatto
+            </Text>
+          </Pressable>
+        )}
       </Animated.View>
 
       {/* Card Amici */}
