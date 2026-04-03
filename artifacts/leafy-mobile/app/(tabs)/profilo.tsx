@@ -455,6 +455,17 @@ const badgeStyles = StyleSheet.create({
   },
 });
 
+const FRIEND_AVATAR_COLORS = [
+  "#4CAF50", "#2E7D32", "#66BB6A", "#43A047", "#1B5E20",
+  "#388E3C", "#81C784", "#00897B", "#00695C", "#3B82F6",
+];
+function friendAvatarColor(id: number) {
+  return FRIEND_AVATAR_COLORS[id % FRIEND_AVATAR_COLORS.length];
+}
+function friendInitials(username: string) {
+  return (username ?? "").replace(/[^\p{L}\p{N}]/gu, "").slice(0, 2).toUpperCase() || "??";
+}
+
 export default function ProfiloScreen() {
   const insets = useSafeAreaInsets();
   const { user, refetch, hasLeafyGold, logout } = useAuth();
@@ -535,6 +546,17 @@ export default function ProfiloScreen() {
     enabled: !!user,
   });
 
+  const { data: friendsData = [] } = useQuery<Array<{
+    id: number; status: string; isSentByMe: boolean;
+    friendId: number; friendUsername: string; friendProfileImageUrl: string | null;
+  }>>({
+    queryKey: ["friends"],
+    queryFn: () => apiFetch("/friends"),
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+  const acceptedFriends = friendsData.filter((f) => f.status === "accepted");
+  const pendingIncoming = friendsData.filter((f) => f.status === "pending" && !f.isSentByMe);
 
   const { data: badgesData } = useQuery<MyBadgesResponse>({
     queryKey: ["badges"],
@@ -774,6 +796,98 @@ export default function ProfiloScreen() {
         </Animated.View>
       )}
 
+      {/* Card Amici */}
+      <Animated.View entering={FadeInDown.delay(205).springify()} style={styles.section}>
+        <Pressable
+          style={({ pressed }) => [
+            {
+              backgroundColor: theme.card,
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: theme.border,
+              padding: 16,
+              opacity: pressed ? 0.85 : 1,
+            },
+          ]}
+          onPress={() => router.push("/friends")}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: acceptedFriends.length > 0 ? 14 : 0 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: theme.primaryLight, alignItems: "center", justifyContent: "center" }}>
+                <MaterialCommunityIcons name="account-group-outline" size={20} color={theme.leaf} />
+              </View>
+              <View>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Text style={{ fontSize: 15, fontFamily: Fonts.displayBold, color: theme.text }}>Amici</Text>
+                  {pendingIncoming.length > 0 && (
+                    <View style={{ backgroundColor: "#EF4444", borderRadius: 8, minWidth: 18, height: 18, alignItems: "center", justifyContent: "center", paddingHorizontal: 5 }}>
+                      <Text style={{ color: "#fff", fontSize: 10, fontFamily: Fonts.bodyBold }}>{pendingIncoming.length}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={{ fontSize: 12, fontFamily: Fonts.bodyRegular, color: pendingIncoming.length > 0 ? "#EF4444" : theme.textSecondary, marginTop: 1 }}>
+                  {pendingIncoming.length > 0
+                    ? `${acceptedFriends.length} amici · ${pendingIncoming.length} richiest${pendingIncoming.length === 1 ? "a" : "e"}`
+                    : acceptedFriends.length > 0
+                      ? `${acceptedFriends.length} amic${acceptedFriends.length === 1 ? "o" : "i"}`
+                      : "Nessun amico ancora"}
+                </Text>
+              </View>
+            </View>
+            <Feather name="chevron-right" size={16} color={theme.textSecondary} />
+          </View>
+
+          {acceptedFriends.length > 0 ? (
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <View style={{ flexDirection: "row" }}>
+                {acceptedFriends.slice(0, 5).map((f, i) => (
+                  <View
+                    key={f.id}
+                    style={{
+                      marginLeft: i === 0 ? 0 : -10,
+                      width: 34,
+                      height: 34,
+                      borderRadius: 17,
+                      borderWidth: 2,
+                      borderColor: theme.card,
+                      overflow: "hidden",
+                    }}
+                  >
+                    {f.friendProfileImageUrl ? (
+                      <Image source={{ uri: f.friendProfileImageUrl }} style={{ width: 30, height: 30 }} />
+                    ) : (
+                      <View style={{ width: 30, height: 30, backgroundColor: friendAvatarColor(f.friendId), alignItems: "center", justifyContent: "center" }}>
+                        <Text style={{ color: "#fff", fontSize: 11, fontFamily: Fonts.bodyBold }}>
+                          {friendInitials(f.friendUsername)}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                ))}
+                {acceptedFriends.length > 5 && (
+                  <View style={{
+                    marginLeft: -10,
+                    width: 34, height: 34,
+                    borderRadius: 17,
+                    borderWidth: 2,
+                    borderColor: theme.card,
+                    backgroundColor: theme.primaryLight,
+                    alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Text style={{ color: theme.leaf, fontSize: 10, fontFamily: Fonts.bodyBold }}>+{acceptedFriends.length - 5}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={{ fontSize: 12, fontFamily: Fonts.bodyMedium, color: theme.leaf }}>Vedi tutti →</Text>
+            </View>
+          ) : (
+            <View style={{ marginTop: 12, backgroundColor: theme.primaryLight, borderRadius: 14, paddingVertical: 12, alignItems: "center" }}>
+              <Text style={{ fontSize: 14, fontFamily: Fonts.displayBold, color: theme.leaf }}>Aggiungi il tuo primo amico 🌿</Text>
+            </View>
+          )}
+        </Pressable>
+      </Animated.View>
+
       <Animated.View entering={FadeInDown.delay(210).springify()} style={[styles.section, { marginTop: 4 }]}>
         {!hasLeafyGold ? (
           <Pressable
@@ -865,30 +979,6 @@ export default function ProfiloScreen() {
           <View style={{ flex: 1 }}>
             <Text style={[styles.menuRowText, { color: theme.text }]}>I tuoi scontrini</Text>
             <Text style={[styles.menuRowSub, { color: theme.textSecondary }]}>Consulta lo storico delle tue scansioni</Text>
-          </View>
-          <Feather name="chevron-right" size={16} color={theme.textSecondary} />
-        </Pressable>
-      </Animated.View>
-
-      <Animated.View entering={FadeInDown.delay(290).springify()} style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <MaterialCommunityIcons name="account-group" size={18} color={theme.leaf} />
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Comunità</Text>
-        </View>
-        <Pressable
-          style={({ pressed }) => [
-            styles.menuRow,
-            { backgroundColor: theme.card, borderColor: theme.border },
-            pressed && { opacity: 0.75 },
-          ]}
-          onPress={() => router.push("/friends")}
-        >
-          <View style={[styles.menuRowIcon, { backgroundColor: theme.primaryLight }]}>
-            <MaterialCommunityIcons name="account-group-outline" size={18} color={theme.leaf} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.menuRowText, { color: theme.text }]}>Amici</Text>
-            <Text style={[styles.menuRowSub, { color: theme.textSecondary }]}>Gestisci i tuoi amici e le richieste</Text>
           </View>
           <Feather name="chevron-right" size={16} color={theme.textSecondary} />
         </Pressable>
