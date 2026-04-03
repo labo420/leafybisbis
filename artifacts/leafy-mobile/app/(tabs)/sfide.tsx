@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Platform,
   RefreshControl,
@@ -8,7 +8,13 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSequence,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 
@@ -19,11 +25,48 @@ import { useTheme } from "@/context/theme";
 import { SkeletonBox, SkeletonCard } from "@/components/Skeleton";
 import type { Challenge } from "@workspace/api-client-react";
 
+function formatCountdown(expiresAt: string, nowMs: number): { text: string; urgent: boolean } {
+  const diff = new Date(expiresAt).getTime() - nowMs;
+  if (diff <= 0) return { text: "Scaduta", urgent: true };
+  const totalMins = Math.floor(diff / 60_000);
+  const days = Math.floor(totalMins / 1440);
+  const hours = Math.floor((totalMins % 1440) / 60);
+  const mins = totalMins % 60;
+  const urgent = diff < 2 * 60 * 60 * 1000;
+  let text: string;
+  if (days > 0) text = `Scade tra ${days}g ${hours}h`;
+  else if (hours > 0) text = `Scade tra ${hours}h ${mins}m`;
+  else text = `Scade tra ${mins}m`;
+  return { text, urgent };
+}
+
 function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: ReturnType<typeof useTheme>["theme"] }) {
   const pct = ch.progressPercent;
   const isCompleted = ch.isCompleted;
   const typeLabel = ch.challengeType === "daily" ? "Giornaliera" : "Settimanale";
   const typeColor = ch.challengeType === "daily" ? theme.leaf : theme.mint;
+
+  // ── Countdown: aggiorna ogni 60 secondi ──
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+  const countdown = useMemo(() => formatCountdown(ch.expiresAt, nowMs), [ch.expiresAt, nowMs]);
+
+  // ── Pulse animation per barra completata ──
+  const pulseOpacity = useSharedValue(1);
+  const pulseStyle = useAnimatedStyle(() => ({ opacity: pulseOpacity.value }));
+  useEffect(() => {
+    if (isCompleted) {
+      pulseOpacity.value = withSequence(
+        withTiming(0.25, { duration: 350 }),
+        withTiming(1.0,  { duration: 350 }),
+        withTiming(0.25, { duration: 350 }),
+        withTiming(1.0,  { duration: 350 }),
+      );
+    }
+  }, [isCompleted]);
 
   return (
     <View style={[challengeStyles.cardShadow, { shadowColor: isCompleted ? "#51B888" : "#000" }]}>
@@ -41,18 +84,27 @@ function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: 
           <Text style={[challengeStyles.cardDesc, { color: theme.textSecondary }]} numberOfLines={2}>{ch.description}</Text>
           <View style={challengeStyles.progressRow}>
             <View style={[challengeStyles.progressBg, { backgroundColor: theme.border }]}>
-              <View style={[challengeStyles.progressFill, { width: `${pct}%`, backgroundColor: isCompleted ? "#51B888" : typeColor }]} />
+              <Animated.View style={[challengeStyles.progressFill, { width: `${pct}%`, backgroundColor: isCompleted ? "#51B888" : typeColor }, pulseStyle]} />
             </View>
             <Text style={[challengeStyles.progressLabel, { color: theme.textSecondary }]}>{ch.currentCount}/{ch.targetCount}</Text>
           </View>
+          {/* Countdown (nascosto se completata) */}
+          {!isCompleted && (
+            <View style={challengeStyles.countdownRow}>
+              {countdown.urgent && <Text style={challengeStyles.countdownWarning}>⚠️ </Text>}
+              <Text style={[challengeStyles.countdownText, { color: countdown.urgent ? "#E53935" : theme.textMuted }]}>
+                {countdown.text}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={{ alignItems: "flex-end", gap: 6 }}>
           <View style={[challengeStyles.typePill, { backgroundColor: `${typeColor}22` }]}>
             <Text style={[challengeStyles.typePillText, { color: typeColor }]}>{typeLabel}</Text>
           </View>
           <View style={challengeStyles.rewardPill}>
-            <MaterialCommunityIcons name="gift-outline" size={11} color={theme.textMuted} />
-            <Text style={[challengeStyles.rewardPillText, { color: theme.textMuted }]}>?</Text>
+            <MaterialCommunityIcons name="water-outline" size={11} color={theme.primary} />
+            <Text style={[challengeStyles.rewardPillText, { color: theme.primary }]}>+{ch.rewardPoints}</Text>
           </View>
         </View>
       </View>
@@ -151,6 +203,19 @@ const challengeStyles = StyleSheet.create({
   rewardPillText: {
     fontSize: 11,
     fontFamily: Fonts.bodyBold,
+  },
+  countdownRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
+  },
+  countdownText: {
+    fontSize: 10,
+    fontFamily: Fonts.bodyMedium,
+    letterSpacing: 0.1,
+  },
+  countdownWarning: {
+    fontSize: 10,
   },
 });
 
