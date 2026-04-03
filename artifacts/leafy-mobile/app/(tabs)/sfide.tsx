@@ -40,18 +40,13 @@ function formatCountdown(expiresAt: string, nowMs: number): { text: string; urge
   return { text, urgent };
 }
 
-function ChallengeCard({ challenge: ch, theme }: { challenge: Challenge; theme: ReturnType<typeof useTheme>["theme"] }) {
+function ChallengeCard({ challenge: ch, theme, nowMs }: { challenge: Challenge; theme: ReturnType<typeof useTheme>["theme"]; nowMs: number }) {
   const pct = ch.progressPercent;
   const isCompleted = ch.isCompleted;
   const typeLabel = ch.challengeType === "daily" ? "Giornaliera" : "Settimanale";
   const typeColor = ch.challengeType === "daily" ? theme.leaf : theme.mint;
 
-  // ── Countdown: aggiorna ogni 60 secondi ──
-  const [nowMs, setNowMs] = useState(() => Date.now());
-  useEffect(() => {
-    const timer = setInterval(() => setNowMs(Date.now()), 60_000);
-    return () => clearInterval(timer);
-  }, []);
+  // ── Countdown: calcolato da nowMs (timer in SfideScreen) ──
   const countdown = useMemo(() => formatCountdown(ch.expiresAt, nowMs), [ch.expiresAt, nowMs]);
 
   // ── Pulse animation per barra completata ──
@@ -225,6 +220,13 @@ export default function SfideScreen() {
   const { theme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
 
+  // ── Timer unico per il countdown di tutte le ChallengeCard ──
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
   const topPadding = Platform.OS === "web" ? 67 : 0;
   const bottomPad  = Platform.OS === "web" ? 34 + 84 : 84 + insets.bottom;
 
@@ -293,7 +295,7 @@ export default function SfideScreen() {
             <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.group}>
               <Text style={[styles.groupLabel, { color: theme.textSecondary }]}>Giornaliere</Text>
               {daily.map(ch => (
-                <ChallengeCard key={ch.id} challenge={ch} theme={theme} />
+                <ChallengeCard key={ch.id} challenge={ch} theme={theme} nowMs={nowMs} />
               ))}
             </Animated.View>
           )}
@@ -302,7 +304,7 @@ export default function SfideScreen() {
             <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.group}>
               <Text style={[styles.groupLabel, { color: theme.textSecondary }]}>Settimanali</Text>
               {weekly.map(ch => (
-                <ChallengeCard key={ch.id} challenge={ch} theme={theme} />
+                <ChallengeCard key={ch.id} challenge={ch} theme={theme} nowMs={nowMs} />
               ))}
             </Animated.View>
           )}
