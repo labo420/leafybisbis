@@ -465,7 +465,10 @@ router.post("/profile/daily-checkin-gold", async (req, res): Promise<void> => {
   });
 });
 
-// Weekly scores for fake users in the leaderboard (totalPoints * weeklyMul, rounded)
+// Precomputed weekly scores for the fake demo users defined in leaderboard.ts
+// (Math.round(totalPoints * weeklyMul) for each FAKE_USER in order).
+// Keep in sync with FAKE_USERS in routes/leaderboard.ts if fake users change.
+// TODO: for scale, replace in-memory rank scan with a DB-side ranking query.
 const FAKE_WEEKLY_SCORES = [752, 506, 525, 555, 240, 240, 274, 90, 217];
 
 function getWeekBounds(): { weekStart: Date; lastWeekStart: Date } {
