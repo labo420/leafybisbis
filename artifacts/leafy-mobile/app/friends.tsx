@@ -520,6 +520,7 @@ export default function FriendsScreen() {
           <Feather name="arrow-left" size={22} color={theme.text} />
         </Pressable>
         <View style={styles.headerCenter}>
+          <Text style={[styles.headerIcon]}>🌿</Text>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Amici</Text>
           {accepted.length > 0 && (
             <View style={[styles.headerBadge, { backgroundColor: theme.primaryLight }]}>
@@ -801,7 +802,8 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 4, width: 34 },
   shareBtn: { padding: 4, width: 34, alignItems: "flex-end" },
-  headerCenter: { flexDirection: "row", alignItems: "center", gap: 8 },
+  headerCenter: { flexDirection: "row", alignItems: "center", gap: 6 },
+  headerIcon: { fontSize: 18 },
   headerTitle: { fontSize: 17, fontFamily: Fonts.bodyBold },
   headerBadge: {
     borderRadius: 10,
