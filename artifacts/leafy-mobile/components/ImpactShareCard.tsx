@@ -62,7 +62,7 @@ const ImpactShareCard = forwardRef<View, ImpactShareCardProps>(
     ];
 
     return (
-      <View ref={ref} style={styles.wrapper}>
+      <View ref={ref} style={styles.wrapper} collapsable={false}>
         <LinearGradient
           colors={["#1A4331", "#2E6B50", "#3DA070"]}
           start={{ x: 0, y: 0 }}
