@@ -1,9 +1,10 @@
 import { Feather } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React, { useState } from "react";
+import React from "react";
 import {
   Alert,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -118,9 +119,6 @@ export default function ImpostazioniScreen() {
   const queryClient = useQueryClient();
 
   const { pushEnabled, setPushEnabled } = useNotifications();
-  const [emailNotifications, setEmailNotifications] = useState(false);
-  const [weeklyReport, setWeeklyReport] = useState(true);
-  const [challengeAlerts, setChallengeAlerts] = useState(true);
 
   const handleDeleteAccount = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -195,42 +193,9 @@ export default function ImpostazioniScreen() {
               <ToggleRow
                 icon="bell"
                 label="Notifiche push"
-                description="Avvisi su punti, sfide e walk-in"
+                description="Avvisi su punti, sfide, walk-in e aggiornamenti"
                 value={pushEnabled}
                 onChange={setPushEnabled}
-                iconColor={NOTIF_ICON.iconColor}
-                iconBg={NOTIF_ICON.iconBg}
-                theme={theme}
-              />
-              <View style={[styles.divider, { backgroundColor: theme.border }]} />
-              <ToggleRow
-                icon="mail"
-                label="Notifiche email"
-                description="Aggiornamenti settimanali via email"
-                value={emailNotifications}
-                onChange={setEmailNotifications}
-                iconColor={NOTIF_ICON.iconColor}
-                iconBg={NOTIF_ICON.iconBg}
-                theme={theme}
-              />
-              <View style={[styles.divider, { backgroundColor: theme.border }]} />
-              <ToggleRow
-                icon="globe"
-                label="Report settimanale"
-                description="Riepilogo del tuo impatto verde"
-                value={weeklyReport}
-                onChange={setWeeklyReport}
-                iconColor={NOTIF_ICON.iconColor}
-                iconBg={NOTIF_ICON.iconBg}
-                theme={theme}
-              />
-              <View style={[styles.divider, { backgroundColor: theme.border }]} />
-              <ToggleRow
-                icon="bell"
-                label="Avvisi sfide"
-                description="Promemoria scadenze sfide mensili"
-                value={challengeAlerts}
-                onChange={setChallengeAlerts}
                 iconColor={NOTIF_ICON.iconColor}
                 iconBg={NOTIF_ICON.iconBg}
                 theme={theme}
@@ -245,7 +210,7 @@ export default function ImpostazioniScreen() {
               <SettingsRow
                 icon="shield"
                 label="Informativa Privacy"
-                onPress={() => {}}
+                onPress={() => Linking.openURL("https://leafyapp.it/privacy")}
                 iconColor={PRIVACY_ICON.iconColor}
                 iconBg={PRIVACY_ICON.iconBg}
                 theme={theme}
@@ -254,17 +219,7 @@ export default function ImpostazioniScreen() {
               <SettingsRow
                 icon="lock"
                 label="Termini di Servizio"
-                onPress={() => {}}
-                iconColor={PRIVACY_ICON.iconColor}
-                iconBg={PRIVACY_ICON.iconBg}
-                theme={theme}
-              />
-              <View style={[styles.divider, { backgroundColor: theme.border }]} />
-              <SettingsRow
-                icon="globe"
-                label="Lingua"
-                value="Italiano"
-                onPress={() => {}}
+                onPress={() => Linking.openURL("https://leafyapp.it/terms")}
                 iconColor={PRIVACY_ICON.iconColor}
                 iconBg={PRIVACY_ICON.iconBg}
                 theme={theme}
