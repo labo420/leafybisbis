@@ -73,6 +73,7 @@ function RootLayoutNav() {
         <Stack.Screen name="barcode-scanner" options={{ headerShown: false, presentation: "fullScreenModal" }} />
         <Stack.Screen name="shopping-scanner" options={{ headerShown: false, presentation: "fullScreenModal" }} />
         <Stack.Screen name="support" options={{ headerShown: false }} />
+        <Stack.Screen name="friends" options={{ headerShown: false }} />
         <Stack.Screen name="leaderboard" options={{ headerShown: false }} />
       </Stack>
       <TutorialGate />
