@@ -243,8 +243,7 @@ export default function LoginScreen() {
       <BackgroundPattern />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "position"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 80}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
           ref={scrollRef}
