@@ -1813,6 +1813,9 @@ export default function HomeScreen() {
                 entering={FadeInDown.delay(280 + i * 60).springify()}
                 style={streakStyles.stickerSlot}
               >
+                <Text style={[streakStyles.stickerLabel, { color: done ? "#2E6B50" : "rgba(0,0,0,0.18)" }]}>
+                  {`${i + 1}°`}
+                </Text>
                 <Animated.View style={[
                   streakStyles.stickerCircle,
                   done ? streakStyles.stickerDone : isNext ? streakStyles.stickerNext : streakStyles.stickerFuture,
@@ -1827,9 +1830,6 @@ export default function HomeScreen() {
                 </Animated.View>
                 <Text style={[streakStyles.stickerReward, { color: done ? "#2E6B50" : "rgba(0,0,0,0.20)" }]}>
                   {slot.reward}
-                </Text>
-                <Text style={[streakStyles.stickerLabel, { color: done ? "#2E6B50" : "rgba(0,0,0,0.18)" }]}>
-                  {`${i + 1}°`}
                 </Text>
               </Animated.View>
             );
@@ -1909,6 +1909,9 @@ export default function HomeScreen() {
                   entering={FadeInDown.delay(320 + i * 60).springify()}
                   style={streakStyles.stickerSlot}
                 >
+                  <Text style={[streakStyles.stickerLabel, { color: done ? "#B8860B" : "rgba(184,134,11,0.22)" }]}>
+                    {`${i + 1}°`}
+                  </Text>
                   <Animated.View style={[
                     streakStyles.stickerCircle,
                     done ? streakStyles.stickerGoldDone : isNext ? streakStyles.stickerGoldNext : streakStyles.stickerGoldFuture,
@@ -1936,9 +1939,6 @@ export default function HomeScreen() {
                     </Text>
                     <LeaIcon size={9} />
                   </View>
-                  <Text style={[streakStyles.stickerLabel, { color: done ? "#B8860B" : "rgba(184,134,11,0.22)" }]}>
-                    {`${i + 1}°`}
-                  </Text>
                 </Animated.View>
               );
             })}
@@ -3122,11 +3122,11 @@ const streakStyles = StyleSheet.create({
   },
   stickerReward: {
     fontFamily: "Nunito_700Bold",
-    fontSize: 9,
+    fontSize: 11,
   },
   stickerLabel: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 8,
+    fontFamily: "Nunito_700Bold",
+    fontSize: 11,
   },
   // Gold variants
   stickerGoldDone: {
