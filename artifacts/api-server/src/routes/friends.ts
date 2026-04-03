@@ -161,6 +161,8 @@ router.get("/friends/suggestions", async (req, res): Promise<void> => {
 
   const excluded = Array.from(excludedIds);
 
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
   const suggestions = await db
     .select({
       id: usersTable.id,
@@ -170,9 +172,12 @@ router.get("/friends/suggestions", async (req, res): Promise<void> => {
     })
     .from(usersTable)
     .where(
-      excluded.length > 0
-        ? notInArray(usersTable.id, excluded)
-        : ne(usersTable.id, user.id)
+      and(
+        excluded.length > 0
+          ? notInArray(usersTable.id, excluded)
+          : ne(usersTable.id, user.id),
+        sql`${usersTable.lastLoginDate} >= ${thirtyDaysAgo}`
+      )
     )
     .orderBy(sql`RANDOM()`)
     .limit(5);
@@ -214,6 +219,27 @@ router.get("/users/:id/profile-public", async (req, res): Promise<void> => {
   if (!target) {
     res.status(404).json({ error: "Utente non trovato." });
     return;
+  }
+
+  if (targetId !== user.id) {
+    const [friendship] = await db
+      .select()
+      .from(friendshipsTable)
+      .where(
+        and(
+          or(
+            and(eq(friendshipsTable.requesterId, user.id), eq(friendshipsTable.addresseeId, targetId)),
+            and(eq(friendshipsTable.requesterId, targetId), eq(friendshipsTable.addresseeId, user.id)),
+          ),
+          eq(friendshipsTable.status, "accepted"),
+        )
+      )
+      .limit(1);
+
+    if (!friendship) {
+      res.status(403).json({ error: "Profilo non accessibile." });
+      return;
+    }
   }
 
   const drops = target.drops ?? 0;
