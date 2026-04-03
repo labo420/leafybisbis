@@ -2,8 +2,11 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { XpIcon } from "../../components/XpIcon";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
+import * as Sharing from "expo-sharing";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { captureRef } from "react-native-view-shot";
+import ImpactShareCard from "@/components/ImpactShareCard";
 import {
   ActivityIndicator,
   Alert,
@@ -474,6 +477,7 @@ export default function ProfiloScreen() {
   const params = useLocalSearchParams<{ tab?: string }>();
   const [loggingOut, setLoggingOut] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const impactCardRef = useRef<View>(null);
   const [badgeTab, setBadgeTab] = useState<BadgeTab>("traguardi");
   const [impactVisible, setImpactVisible] = useState(false);
   const [showLeafyGoldModal, setShowLeafyGoldModal] = useState(false);
@@ -602,35 +606,52 @@ export default function ProfiloScreen() {
   const handleShareImpact = async () => {
     if (!impact) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const LEVEL_EMOJI: Record<string, string> = {
-      Germoglio: "🌱", Ramoscello: "🌿", Arbusto: "🍃",
-      Albero: "🌳", Foresta: "🌲", Giungla: "🌴",
-    };
-    const currentLevel = profile?.level ?? "Germoglio";
-    const lvlEmoji = LEVEL_EMOJI[currentLevel] ?? "🌿";
-    const co2 = (impact.co2SavedKg ?? 0).toFixed(1);
-    const water = Math.round(impact.waterSavedLiters ?? 0);
-    const plastic = (impact.plasticAvoidedKg ?? 0).toFixed(2);
-    const green = impact.greenProductsCount ?? 0;
-    const receipts = impact.receiptsScanned ?? 0;
-    const kmAuto = Math.round((impact.co2SavedKg ?? 0) * 5);
-    const docce = Math.round((impact.waterSavedLiters ?? 0) / 40);
-    const bottiglie = Math.round((impact.plasticAvoidedKg ?? 0) / 0.025);
-    const message = [
-      `🌿 Il mio impatto verde su Leafy ${lvlEmoji}`,
-      ``,
-      `Scansionando ${receipts} scontrini ho contribuito a:`,
-      ``,
-      `🌍 ${co2} kg di CO₂ risparmiata (≈ ${kmAuto} km in auto in meno)`,
-      `💧 ${water} L di acqua salvata (≈ ${docce} docce)`,
-      `♻️ ${plastic} kg di plastica evitata (≈ ${bottiglie} bottiglie)`,
-      `🛒 ${green} prodotti green scelti`,
-      ``,
-      `Livello: ${lvlEmoji} ${currentLevel}`,
-      ``,
-      `Anche tu puoi fare la differenza! Scarica Leafy e guadagna premi mentre salvi il pianeta 🌍`,
-    ].join("\n");
-    await Share.share({ message, title: "Il mio impatto verde — Leafy" });
+    try {
+      const uri = await captureRef(impactCardRef, {
+        format: "png",
+        quality: 1,
+        result: "tmpfile",
+      });
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "image/png",
+          dialogTitle: "Il mio impatto verde — Leafy",
+        });
+      } else {
+        await Share.share({ url: uri, title: "Il mio impatto verde — Leafy" });
+      }
+    } catch {
+      const currentLevel = profile?.level ?? "Germoglio";
+      const LEVEL_EMOJI: Record<string, string> = {
+        Germoglio: "🌱", Ramoscello: "🌿", Arbusto: "🍃",
+        Albero: "🌳", Foresta: "🌲", Giungla: "🌴",
+      };
+      const lvlEmoji = LEVEL_EMOJI[currentLevel] ?? "🌿";
+      const co2 = (impact.co2SavedKg ?? 0).toFixed(1);
+      const water = Math.round(impact.waterSavedLiters ?? 0);
+      const plastic = (impact.plasticAvoidedKg ?? 0).toFixed(2);
+      const green = impact.greenProductsCount ?? 0;
+      const receipts = impact.receiptsScanned ?? 0;
+      const kmAuto = Math.round((impact.co2SavedKg ?? 0) * 5);
+      const docce = Math.round((impact.waterSavedLiters ?? 0) / 40);
+      const bottiglie = Math.round((impact.plasticAvoidedKg ?? 0) / 0.025);
+      const message = [
+        `🌿 Il mio impatto verde su Leafy ${lvlEmoji}`,
+        ``,
+        `Scansionando ${receipts} scontrini ho contribuito a:`,
+        ``,
+        `🌍 ${co2} kg di CO₂ risparmiata (≈ ${kmAuto} km in auto in meno)`,
+        `💧 ${water} L di acqua salvata (≈ ${docce} docce)`,
+        `♻️ ${plastic} kg di plastica evitata (≈ ${bottiglie} bottiglie)`,
+        `🛒 ${green} prodotti green scelti`,
+        ``,
+        `Livello: ${lvlEmoji} ${currentLevel}`,
+        ``,
+        `Anche tu puoi fare la differenza! Scarica Leafy e guadagna premi mentre salvi il pianeta 🌍`,
+      ].join("\n");
+      await Share.share({ message, title: "Il mio impatto verde — Leafy" });
+    }
   };
 
   const handlePickImage = async () => {
@@ -703,6 +724,19 @@ export default function ProfiloScreen() {
   return (
     <>
       <LeafyGoldModal visible={showLeafyGoldModal} onClose={() => setShowLeafyGoldModal(false)} />
+      {/* Off-screen impact card for captureRef */}
+      <View style={{ position: "absolute", left: -9999, top: -9999, opacity: 0 }} pointerEvents="none">
+        <ImpactShareCard
+          ref={impactCardRef}
+          co2Kg={impact?.co2SavedKg ?? 0}
+          waterLiters={impact?.waterSavedLiters ?? 0}
+          plasticKg={impact?.plasticAvoidedKg ?? 0}
+          greenProducts={impact?.greenProductsCount ?? 0}
+          receiptsScanned={impact?.receiptsScanned ?? 0}
+          level={level}
+          username={username}
+        />
+      </View>
     <ScrollView
       style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={{ paddingBottom: bottomPad }}
