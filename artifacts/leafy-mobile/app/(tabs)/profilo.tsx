@@ -762,42 +762,8 @@ export default function ProfiloScreen() {
         </Text>
       </Animated.View>
 
-      {referral && (
-        <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.section}>
-          <Pressable style={styles.referralCard} onPress={handleShare}>
-            <View style={styles.referralLeft}>
-              <Text style={{ fontSize: 22 }}>👥</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.referralTitle, { color: theme.text }]}>Invita un amico</Text>
-                <Text style={[styles.referralSub, { color: theme.textSecondary }]}>
-                  +50 drops bonus + moltiplicatore drops per entrambi!
-                </Text>
-              </View>
-            </View>
-            <View style={styles.referralCopyBtn}>
-              <Feather name="share-2" size={16} color={theme.leaf} />
-            </View>
-          </Pressable>
-
-          {(profile?.referralDropsMultiplierRemaining ?? 0) > 0 && (
-            <View style={[multiplierStyles.multiplierBanner, { backgroundColor: mode === "dark" ? "#1E3328" : "#D1FAE5" }]}>
-              <Text style={{ fontSize: 18 }}>⚡</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[multiplierStyles.multiplierTitle, { color: theme.leaf }]}>
-                  Moltiplicatore drops attivo!
-                </Text>
-                <Text style={[multiplierStyles.multiplierSub, { color: mode === "dark" ? "#86EFAC" : "#166534" }]}>
-                  +20% drops sui prossimi {profile?.referralDropsMultiplierRemaining} scontrini
-                </Text>
-              </View>
-              <MaterialCommunityIcons name="fire" size={20} color="#F97316" />
-            </View>
-          )}
-        </Animated.View>
-      )}
-
       {/* Card Amici */}
-      <Animated.View entering={FadeInDown.delay(205).springify()} style={styles.section}>
+      <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.section}>
         <Pressable
           style={({ pressed }) => [
             {
@@ -887,6 +853,40 @@ export default function ProfiloScreen() {
           )}
         </Pressable>
       </Animated.View>
+
+      {referral && (
+        <Animated.View entering={FadeInDown.delay(205).springify()} style={styles.section}>
+          <Pressable style={styles.referralCard} onPress={handleShare}>
+            <View style={styles.referralLeft}>
+              <Text style={{ fontSize: 22 }}>👥</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.referralTitle, { color: theme.text }]}>Invita un amico</Text>
+                <Text style={[styles.referralSub, { color: theme.textSecondary }]}>
+                  +50 drops bonus + moltiplicatore drops per entrambi!
+                </Text>
+              </View>
+            </View>
+            <View style={styles.referralCopyBtn}>
+              <Feather name="share-2" size={16} color={theme.leaf} />
+            </View>
+          </Pressable>
+
+          {(profile?.referralDropsMultiplierRemaining ?? 0) > 0 && (
+            <View style={[multiplierStyles.multiplierBanner, { backgroundColor: mode === "dark" ? "#1E3328" : "#D1FAE5" }]}>
+              <Text style={{ fontSize: 18 }}>⚡</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[multiplierStyles.multiplierTitle, { color: theme.leaf }]}>
+                  Moltiplicatore drops attivo!
+                </Text>
+                <Text style={[multiplierStyles.multiplierSub, { color: mode === "dark" ? "#86EFAC" : "#166534" }]}>
+                  +20% drops sui prossimi {profile?.referralDropsMultiplierRemaining} scontrini
+                </Text>
+              </View>
+              <MaterialCommunityIcons name="fire" size={20} color="#F97316" />
+            </View>
+          )}
+        </Animated.View>
+      )}
 
       <Animated.View entering={FadeInDown.delay(210).springify()} style={[styles.section, { marginTop: 4 }]}>
         {!hasLeafyGold ? (
