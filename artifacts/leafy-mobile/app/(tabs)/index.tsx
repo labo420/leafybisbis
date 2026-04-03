@@ -1376,6 +1376,196 @@ const lbCardStyles = StyleSheet.create({
   myRankScore: { fontSize: 12, fontFamily: Fonts.bodyMedium, color: "#fff" },
 });
 
+interface WeeklySummary {
+  receiptsThisWeek: number;
+  dropsThisWeek: number;
+  dropsLastWeek: number;
+  weeklyRank: number;
+}
+
+const WEEKLY_GOAL = 100;
+
+function WeeklySummaryCard({
+  summary,
+  theme,
+}: {
+  summary: WeeklySummary;
+  theme: ReturnType<typeof useTheme>["theme"];
+}) {
+  const { receiptsThisWeek, dropsThisWeek, dropsLastWeek, weeklyRank } = summary;
+  const noActivity = dropsThisWeek === 0 && receiptsThisWeek === 0;
+  const progress = Math.min(1, dropsThisWeek / WEEKLY_GOAL);
+
+  let deltaText: string | null = null;
+  let deltaPositive = true;
+  if (dropsLastWeek > 0) {
+    const pct = Math.round(((dropsThisWeek - dropsLastWeek) / dropsLastWeek) * 100);
+    deltaPositive = pct >= 0;
+    deltaText = pct >= 0 ? `+${pct}% vs settimana scorsa` : `${pct}% vs settimana scorsa`;
+  } else if (dropsThisWeek > 0) {
+    deltaText = "Prima settimana attiva 🎉";
+    deltaPositive = true;
+  }
+
+  return (
+    <View style={wkStyles.shadow}>
+      <View style={[wkStyles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        {/* Header */}
+        <LinearGradient
+          colors={["#1A4331", "#3DA070"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={wkStyles.header}
+        >
+          <View style={wkStyles.headerLeft}>
+            <MaterialCommunityIcons name="calendar-week" size={16} color="rgba(255,255,255,0.9)" />
+            <Text style={wkStyles.headerTitle}>Questa settimana</Text>
+          </View>
+          {weeklyRank > 0 && (
+            <View style={wkStyles.rankChip}>
+              <Text style={wkStyles.rankChipText}>#{weeklyRank} 🏆</Text>
+            </View>
+          )}
+        </LinearGradient>
+
+        {/* Body */}
+        {noActivity ? (
+          <View style={wkStyles.ctaContainer}>
+            <Text style={wkStyles.ctaEmoji}>📸</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[wkStyles.ctaTitle, { color: theme.text }]}>
+                Inizia la settimana con una scansione!
+              </Text>
+              <Text style={[wkStyles.ctaSub, { color: theme.textMuted }]}>
+                Guadagna i tuoi primi Drops di questa settimana
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <View style={wkStyles.body}>
+            {/* Stats row */}
+            <View style={wkStyles.statsRow}>
+              <View style={wkStyles.statItem}>
+                <View style={[wkStyles.statIcon, { backgroundColor: theme.primaryLight }]}>
+                  <MaterialCommunityIcons name="receipt" size={16} color={theme.leaf} />
+                </View>
+                <Text style={[wkStyles.statValue, { color: theme.text }]}>{receiptsThisWeek}</Text>
+                <Text style={[wkStyles.statLabel, { color: theme.textMuted }]}>Scontrini</Text>
+              </View>
+
+              <View style={[wkStyles.statDivider, { backgroundColor: theme.border }]} />
+
+              <View style={wkStyles.statItem}>
+                <View style={[wkStyles.statIcon, { backgroundColor: theme.primaryLight }]}>
+                  <XpIcon size={16} />
+                </View>
+                <Text style={[wkStyles.statValue, { color: theme.text }]}>{dropsThisWeek}</Text>
+                <Text style={[wkStyles.statLabel, { color: theme.textMuted }]}>Drops</Text>
+              </View>
+            </View>
+
+            {/* Delta badge */}
+            {deltaText && (
+              <View style={[wkStyles.deltaBadge, {
+                backgroundColor: deltaPositive ? "#DCFCE7" : "#FEE2E2",
+              }]}>
+                <Feather
+                  name={deltaPositive ? "trending-up" : "trending-down"}
+                  size={12}
+                  color={deltaPositive ? "#16A34A" : "#DC2626"}
+                />
+                <Text style={[wkStyles.deltaText, { color: deltaPositive ? "#16A34A" : "#DC2626" }]}>
+                  {deltaText}
+                </Text>
+              </View>
+            )}
+
+            {/* Progress bar */}
+            <View style={wkStyles.progressContainer}>
+              <View style={[wkStyles.progressTrack, { backgroundColor: theme.border }]}>
+                <View style={[wkStyles.progressFill, {
+                  width: `${Math.round(progress * 100)}%`,
+                  backgroundColor: progress >= 1 ? "#22C55E" : theme.leaf,
+                }]} />
+              </View>
+              <Text style={[wkStyles.progressLabel, { color: theme.textMuted }]}>
+                {dropsThisWeek >= WEEKLY_GOAL
+                  ? `Obiettivo ${WEEKLY_GOAL} Drops raggiunto! 🎉`
+                  : `${dropsThisWeek}/${WEEKLY_GOAL} Drops verso l'obiettivo`}
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+
+const wkStyles = StyleSheet.create({
+  shadow: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  card: {
+    borderRadius: 18,
+    overflow: "hidden",
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 7 },
+  headerTitle: { fontSize: 14, fontFamily: Fonts.bodyBold, color: "#fff" },
+  rankChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.18)",
+  },
+  rankChipText: { fontSize: 11, fontFamily: Fonts.bodyBold, color: "#fff" },
+  ctaContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  ctaEmoji: { fontSize: 32 },
+  ctaTitle: { fontSize: 14, fontFamily: Fonts.bodyBold, lineHeight: 20 },
+  ctaSub: { fontSize: 12, fontFamily: Fonts.bodyRegular, marginTop: 2, lineHeight: 16 },
+  body: { paddingHorizontal: 16, paddingVertical: 14, gap: 12 },
+  statsRow: { flexDirection: "row", alignItems: "center" },
+  statItem: { flex: 1, alignItems: "center", gap: 4 },
+  statIcon: {
+    width: 34, height: 34, borderRadius: 10,
+    alignItems: "center", justifyContent: "center",
+  },
+  statValue: { fontSize: 22, fontFamily: Fonts.displayBold, lineHeight: 26 },
+  statLabel: { fontSize: 11, fontFamily: Fonts.bodyRegular },
+  statDivider: { width: StyleSheet.hairlineWidth, height: 48, marginHorizontal: 8 },
+  deltaBadge: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderRadius: 10, alignSelf: "flex-start",
+  },
+  deltaText: { fontSize: 12, fontFamily: Fonts.bodyMedium },
+  progressContainer: { gap: 5 },
+  progressTrack: {
+    height: 6, borderRadius: 3, overflow: "hidden",
+  },
+  progressFill: {
+    height: 6, borderRadius: 3,
+  },
+  progressLabel: { fontSize: 11, fontFamily: Fonts.bodyRegular },
+});
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user, syncBalances } = useAuth();
@@ -1410,6 +1600,13 @@ export default function HomeScreen() {
     queryFn: () => apiFetch("/leaderboard?period=weekly"),
     enabled: !!user,
     staleTime: 120_000,
+  });
+
+  const { data: weeklySummary } = useQuery<WeeklySummary>({
+    queryKey: ["profile/weekly-summary"],
+    queryFn: () => apiFetch("/profile/weekly-summary"),
+    enabled: !!user,
+    staleTime: 60_000,
   });
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -2040,6 +2237,13 @@ export default function HomeScreen() {
               <Text style={inStoreStyles.walkinToastSub}> da {walkinToast.locationName}</Text>
             </View>
           </View>
+        </Animated.View>
+      )}
+
+      {/* ── RIEPILOGO SETTIMANALE ── */}
+      {weeklySummary && (
+        <Animated.View entering={FadeInDown.delay(260).springify()} style={{ marginTop: 24, paddingHorizontal: 16 }}>
+          <WeeklySummaryCard summary={weeklySummary} theme={theme} />
         </Animated.View>
       )}
 
